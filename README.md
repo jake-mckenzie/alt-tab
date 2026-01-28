@@ -7,12 +7,6 @@ ASCII fretboards**.\
 Given a chord name (e.g. `C`, `G`, `Dm7`), the program looks it up in a
 chord library and prints a visual representation of the fret positions.
 
-Written in **pure C (C11)** and focuses on:
-  - data modeling with structs
-  - pointer correctness
-  - clean modular design
-  - professional build tooling (Make, sanitizers)
-
 ------------------------------------------------------------------------
 
 ## Example Output
@@ -85,14 +79,6 @@ Type `q` to quit.
 ## Supported Chords
 
 Defined in `chords.c` (examples: `C`, `G`, `D`, `Am`, `Em`).
-
-------------------------------------------------------------------------
-
-## Development Notes
-
--   C11
--   macOS / Linux
--   Sanitizers enabled in debug builds
 
 ------------------------------------------------------------------------
 
