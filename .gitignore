@@ -1,1 +1,29 @@
+# ===== Build artifacts =====
 /build
+/alt-tab
+
+# ===== Object files =====
+*.o
+
+# ===== Debug / sanitizer output =====
+*.dSYM/
+
+# ===== macOS junk =====
+.DS_Store
+
+# ===== Editor / IDE files =====
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ===== Temporary files =====
+*~
+
+# ===== Misc. files ====
+*.gcda
+*.gcno
+*.gcov
+
+# Clang tools
+compile_commands.json
