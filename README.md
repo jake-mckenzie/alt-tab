@@ -1,4 +1,4 @@
-# Alt-Tab
+# alt-tab
 
 **Console Guitar Chord Viewer written in C**
 
