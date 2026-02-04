@@ -48,6 +48,42 @@ void initChordLibrary(ChordLibrary *lib)
     lib->count = 0;
 
     addChord(lib, (Chord){
+        .name = "A",
+        .frets = {
+            {0, 3, 'G'}, {1, 0, 'B'}, {2, 0, 'G'},
+            {3, 0, 'D'}, {4, 2, 'B'}, {5, 3, 'G'}
+        },
+        .fret_count = 6
+    });
+
+    addChord(lib, (Chord){
+        .name = "Am",
+        .frets = {
+            {0, 3, 'G'}, {1, 0, 'B'}, {2, 0, 'G'},
+            {3, 0, 'D'}, {4, 2, 'B'}, {5, 3, 'G'}
+        },
+        .fret_count = 6
+    });
+
+    addChord(lib, (Chord){
+        .name = "B",
+        .frets = {
+            {0, 3, 'G'}, {1, 0, 'B'}, {2, 0, 'G'},
+            {3, 0, 'D'}, {4, 2, 'B'}, {5, 3, 'G'}
+        },
+        .fret_count = 6
+    });
+
+    addChord(lib, (Chord){
+        .name = "Bb",
+        .frets = {
+            {0, 3, 'G'}, {1, 0, 'B'}, {2, 0, 'G'},
+            {3, 0, 'D'}, {4, 2, 'B'}, {5, 3, 'G'}
+        },
+        .fret_count = 6
+    });
+
+    addChord(lib, (Chord){
         .name = "C",
         .frets = {
             {0, 0, 'E'}, {1, 1, 'C'}, {2, 0, 'G'},
@@ -57,7 +93,79 @@ void initChordLibrary(ChordLibrary *lib)
     });
 
     addChord(lib, (Chord){
+        .name = "Cm",
+        .frets = {
+            {0, 3, 'G'}, {1, 0, 'B'}, {2, 0, 'G'},
+            {3, 0, 'D'}, {4, 2, 'B'}, {5, 3, 'G'}
+        },
+        .fret_count = 6
+    });
+
+    addChord(lib, (Chord){
+        .name = "D",
+        .frets = {
+            {0, 3, 'G'}, {1, 0, 'B'}, {2, 0, 'G'},
+            {3, 0, 'D'}, {4, 2, 'B'}, {5, 3, 'G'}
+        },
+        .fret_count = 6
+    });
+
+    addChord(lib, (Chord){
+        .name = "Dm",
+        .frets = {
+            {0, 3, 'G'}, {1, 0, 'B'}, {2, 0, 'G'},
+            {3, 0, 'D'}, {4, 2, 'B'}, {5, 3, 'G'}
+        },
+        .fret_count = 6
+    });
+
+    addChord(lib, (Chord){
+        .name = "E",
+        .frets = {
+            {0, 3, 'G'}, {1, 0, 'B'}, {2, 0, 'G'},
+            {3, 0, 'D'}, {4, 2, 'B'}, {5, 3, 'G'}
+        },
+        .fret_count = 6
+    });
+
+    addChord(lib, (Chord){
+        .name = "Em",
+        .frets = {
+            {0, 3, 'G'}, {1, 0, 'B'}, {2, 0, 'G'},
+            {3, 0, 'D'}, {4, 2, 'B'}, {5, 3, 'G'}
+        },
+        .fret_count = 6
+    });
+
+    addChord(lib, (Chord){
+        .name = "F",
+        .frets = {
+            {0, 3, 'G'}, {1, 0, 'B'}, {2, 0, 'G'},
+            {3, 0, 'D'}, {4, 2, 'B'}, {5, 3, 'G'}
+        },
+        .fret_count = 6
+    });
+
+    addChord(lib, (Chord){
+        .name = "F#",
+        .frets = {
+            {0, 3, 'G'}, {1, 0, 'B'}, {2, 0, 'G'},
+            {3, 0, 'D'}, {4, 2, 'B'}, {5, 3, 'G'}
+        },
+        .fret_count = 6
+    });
+
+    addChord(lib, (Chord){
         .name = "G",
+        .frets = {
+            {0, 3, 'G'}, {1, 0, 'B'}, {2, 0, 'G'},
+            {3, 0, 'D'}, {4, 2, 'B'}, {5, 3, 'G'}
+        },
+        .fret_count = 6
+    });
+
+    addChord(lib, (Chord){
+        .name = "Gm",
         .frets = {
             {0, 3, 'G'}, {1, 0, 'B'}, {2, 0, 'G'},
             {3, 0, 'D'}, {4, 2, 'B'}, {5, 3, 'G'}
