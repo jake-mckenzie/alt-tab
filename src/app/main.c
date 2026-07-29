@@ -1,5 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -35,6 +36,13 @@ static int isCompactCommand( const char *input )
            strcmp( input, "-c" ) == 0;
 }
 
+/* Recognizes aliases that request every variation of one chord. */
+static int isAllVariationsCommand( const char *input )
+{
+    return strcmp( input, "--all-variations" ) == 0 ||
+           strcmp( input, "-a" ) == 0;
+}
+
 /* Returns a human-readable label for the active renderer. */
 static const char *renderModeName( TerminalRenderMode mode )
 {
@@ -46,10 +54,46 @@ static const char *renderModeName( TerminalRenderMode mode )
 /* Prints chord names directly from the immutable library. */
 static void printSupportedChords( const ChordLibrary *library )
 {
+    const char *previous_name = NULL;
+    int first = 1;
+
     for ( size_t index = 0; index < library->count; index++ ) {
+        const char *name = library->items[ index ].name;
+
+        if ( previous_name != NULL && strcmp( previous_name, name ) == 0 ) {
+            continue;
+        }
+
         printf( "%s%s",
-                index == 0 ? "" : "  ",
-                library->items[ index ].name );
+                first ? "" : "  ",
+                name );
+        previous_name = name;
+        first = 0;
+    }
+    fputc( '\n', stdout );
+}
+
+/* Prints a small sample instead of crowding the startup screen. */
+static void printChordExamples(
+    const ChordLibrary *library,
+    size_t maximum
+)
+{
+    const char *previous_name = NULL;
+    size_t printed = 0;
+
+    for ( size_t index = 0;
+          index < library->count && printed < maximum;
+          index++ ) {
+        const char *name = library->items[ index ].name;
+
+        if ( previous_name != NULL && strcmp( previous_name, name ) == 0 ) {
+            continue;
+        }
+
+        printf( "%s%s", printed == 0 ? "" : "  ", name );
+        previous_name = name;
+        printed++;
     }
     fputc( '\n', stdout );
 }
@@ -59,7 +103,7 @@ static void printUsage( FILE *stream, const char *program )
 {
     fprintf(
         stream,
-        "Usage: %s [CHORD] [--full-neck|-f] [--compact|-c] [--help|-h]\n",
+        "Usage: %s [CHORD[:VARIATION]] [OPTIONS]\n",
         program
     );
 }
@@ -71,8 +115,11 @@ static void printHelp(
 )
 {
     puts( "\nCOMMANDS" );
-    puts( "  <chord>           Draw a compact horizontal tab" );
-    puts( "  <chord> -f        Draw that chord on the complete neck" );
+    puts( "  <chord>           Draw variation 1" );
+    puts( "  <chord>:<number>  Draw one variation, such as C:2" );
+    puts( "  <chord> -a        Draw every variation" );
+    puts( "  <chord> -f        Draw on the complete neck" );
+    puts( "  -a, --all-variations  Show all variations of a chord" );
     puts( "  -f, --full-neck   Switch to the complete 0-27 fret neck" );
     puts( "  -c, --compact     Switch to compact horizontal tab" );
     puts( "  ?, help           Show this help" );
@@ -83,7 +130,8 @@ static void printHelp(
     printSupportedChords( library );
 
     puts( "\nLAUNCH EXAMPLES" );
-    printf( "  %s A               Draw A in compact mode\n", program );
+    printf( "  %s C:2             Draw C variation 2\n", program );
+    printf( "  %s C -a            Draw every C variation\n", program );
     printf( "  %s A -f            Draw A on the full neck\n", program );
     printf( "  %s -f              Start interactively in full-neck mode\n\n",
             program );
@@ -91,7 +139,6 @@ static void printHelp(
 
 /* Presents concise startup guidance without overwhelming the prompt. */
 static void printWelcome(
-    const char *program,
     const ChordLibrary *library,
     TerminalRenderMode mode
 )
@@ -101,10 +148,11 @@ static void printWelcome(
     puts( "|  Guitar Chord Viewer                                     |" );
     puts( "+----------------------------------------------------------+" );
     printf( "  Mode    : %s\n", renderModeName( mode ) );
-    printf( "  Chords  : " );
-    printSupportedChords( library );
-    puts( "  Commands: CHORD, CHORD -f, ?, or q" );
-    printf( "  Example : %s A -f\n\n", program );
+    printf( "  Examples: " );
+    printChordExamples( library, 4 );
+    puts( "  Variants: C:1  C:2  C -a" );
+    puts( "  Commands: CHORD, CHORD:2, CHORD -a, ?, or q" );
+    fputc( '\n', stdout );
 }
 
 /* Parses one optional chord and display flags in any argument order. */
@@ -112,7 +160,8 @@ static int parseArguments(
     int argc,
     char *argv[ ],
     TerminalRenderMode *mode,
-    const char **chord_name
+    const char **chord_name,
+    int *show_all
 )
 {
     for ( int index = 1; index < argc; index++ ) {
@@ -120,6 +169,8 @@ static int parseArguments(
             *mode = TERMINAL_RENDER_FULL_NECK;
         } else if ( isCompactCommand( argv[ index ] ) ) {
             *mode = TERMINAL_RENDER_COMPACT_TAB;
+        } else if ( isAllVariationsCommand( argv[ index ] ) ) {
+            *show_all = 1;
         } else if ( isHelpCommand( argv[ index ] ) ) {
             return 0;
         } else if ( argv[ index ][ 0 ] == '-' ) {
@@ -138,17 +189,158 @@ static int parseArguments(
     return 1;
 }
 
+/* Parses a selector such as C or C:2 without modifying its source. */
+static int parseChordSelector(
+    const char *selector,
+    char *name,
+    size_t name_capacity,
+    int *variation,
+    int *has_variation
+)
+{
+    const char *separator = strchr( selector, ':' );
+    size_t name_length = separator == NULL
+        ? strlen( selector )
+        : ( size_t )( separator - selector );
+
+    if ( name_length == 0 || name_length >= name_capacity ) {
+        return 0;
+    }
+
+    memcpy( name, selector, name_length );
+    name[ name_length ] = '\0';
+    *variation = 1;
+    *has_variation = separator != NULL;
+
+    if ( separator != NULL ) {
+        const char *digit = separator + 1;
+        int parsed = 0;
+
+        if ( *digit == '\0' ) {
+            return 0;
+        }
+
+        while ( *digit != '\0' ) {
+            int value;
+
+            if ( *digit < '0' || *digit > '9' ) {
+                return 0;
+            }
+
+            value = *digit - '0';
+            if ( parsed > ( INT_MAX - value ) / 10 ) {
+                return 0;
+            }
+
+            parsed = parsed * 10 + value;
+            digit++;
+        }
+
+        if ( parsed < 1 ) {
+            return 0;
+        }
+        *variation = parsed;
+    }
+
+    return 1;
+}
+
+/* Resolves a selector and renders one or every matching variation. */
+static int renderChordSelection(
+    const ChordLibrary *library,
+    const char *selector,
+    int show_all,
+    TerminalRenderMode mode
+)
+{
+    char name[ 16 ];
+    int variation;
+    int has_variation;
+    size_t variation_count;
+
+    if ( !parseChordSelector(
+             selector,
+             name,
+             sizeof( name ),
+             &variation,
+             &has_variation
+         ) ) {
+        fprintf( stderr, "Invalid chord selector: %s\n", selector );
+        return 0;
+    }
+
+    variation_count = chordLibraryVariationCount( library, name );
+    if ( variation_count == 0 ) {
+        fprintf( stderr, "Unknown chord: %s\n", name );
+        return 0;
+    }
+
+    if ( show_all && has_variation ) {
+        fputs( "Choose a variation or use -a, not both.\n", stderr );
+        return 0;
+    }
+
+    if ( show_all ) {
+        for ( size_t index = 1; index <= variation_count; index++ ) {
+            const Chord *chord = chordLibraryFindVariation(
+                library,
+                name,
+                ( int )index
+            );
+
+            if ( chord == NULL ||
+                 !terminalRendererPrint(
+                     stdout,
+                     chord,
+                     TERMINAL_FRET_COUNT,
+                     mode
+                 ) ) {
+                return 0;
+            }
+        }
+        return 1;
+    }
+
+    {
+        const Chord *chord = chordLibraryFindVariation(
+            library,
+            name,
+            variation
+        );
+
+        if ( chord == NULL ) {
+            fprintf(
+                stderr,
+                "%s has %zu variations; variation %d does not exist.\n",
+                name,
+                variation_count,
+                variation
+            );
+            return 0;
+        }
+
+        return terminalRendererPrint(
+            stdout,
+            chord,
+            TERMINAL_FRET_COUNT,
+            mode
+        );
+    }
+}
+
 /* Runs one-shot chord output or the interactive chord prompt. */
 int main( int argc, char *argv[ ] )
 {
     ChordLibrary library = chordLibraryDefault( );
     TerminalRenderMode render_mode = TERMINAL_RENDER_COMPACT_TAB;
     const char *requested_chord = NULL;
+    int show_all = 0;
     int argument_result = parseArguments(
         argc,
         argv,
         &render_mode,
-        &requested_chord
+        &requested_chord,
+        &show_all
     );
 
     if ( argument_result < 0 ) {
@@ -162,22 +354,20 @@ int main( int argc, char *argv[ ] )
     }
 
     if ( requested_chord != NULL ) {
-        const Chord *chord = chordLibraryFind( &library, requested_chord );
-
-        if ( chord == NULL ) {
-            fprintf( stderr, "Unknown chord: %s\n", requested_chord );
-            return 1;
-        }
-
-        return terminalRendererPrint(
-            stdout,
-            chord,
-            TERMINAL_FRET_COUNT,
+        return renderChordSelection(
+            &library,
+            requested_chord,
+            show_all,
             render_mode
         ) ? 0 : 1;
     }
 
-    printWelcome( argv[ 0 ], &library, render_mode );
+    if ( show_all ) {
+        fputs( "-a requires a chord name.\n", stderr );
+        return 1;
+    }
+
+    printWelcome( &library, render_mode );
 
     for ( ;; ) {
         char input[ 64 ];
@@ -186,8 +376,8 @@ int main( int argc, char *argv[ ] )
         char *token;
         const char *chord_name = NULL;
         int mode_changed = 0;
+        int command_show_all = 0;
         TerminalRenderMode command_mode = render_mode;
-        const Chord *chord;
 
         printf( "chord> " );
         if ( fgets( input, sizeof( input ), stdin ) == NULL ) {
@@ -226,6 +416,8 @@ int main( int argc, char *argv[ ] )
             } else if ( isCompactCommand( tokens[ index ] ) ) {
                 command_mode = TERMINAL_RENDER_COMPACT_TAB;
                 mode_changed = 1;
+            } else if ( isAllVariationsCommand( tokens[ index ] ) ) {
+                command_show_all = 1;
             } else if ( tokens[ index ][ 0 ] == '-' ) {
                 printf( "Unknown option: %s\n\n", tokens[ index ] );
                 chord_name = NULL;
@@ -247,25 +439,22 @@ int main( int argc, char *argv[ ] )
             continue;
         }
 
+        if ( chord_name == NULL && command_show_all ) {
+            puts( "-a requires a chord name.\n" );
+            continue;
+        }
+
         if ( chord_name == NULL ) {
             continue;
         }
 
-        chord = chordLibraryFind( &library, chord_name );
-        if ( chord == NULL ) {
-            printf( "Unknown chord: %s\n", chord_name );
-            puts( "Type ? to see supported chords and commands.\n" );
-            continue;
-        }
-
-        if ( !terminalRendererPrint(
-                 stdout,
-                 chord,
-                 TERMINAL_FRET_COUNT,
+        if ( !renderChordSelection(
+                 &library,
+                 chord_name,
+                 command_show_all,
                  command_mode
              ) ) {
-            fputs( "Unable to render chord.\n", stderr );
-            return 1;
+            puts( "Type ? to see supported chords and commands.\n" );
         }
     }
 

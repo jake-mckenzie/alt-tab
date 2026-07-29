@@ -3,6 +3,8 @@
 Alt-Tab is a C11 terminal application that renders guitar chord voicings as
 readable horizontal tablature. The default diagram shows frets 0–4 or extends
 to the highest required fret, while full-neck mode displays frets 0–27.
+Each supported chord includes two conventional voicings at different neck
+positions.
 
 Chord lookup is case-insensitive, so inputs such as `Am`, `am`, and `AM`
 are equivalent. Diagrams follow standard tab orientation: high e is on top,
@@ -23,13 +25,13 @@ low E is on the bottom, and fret numbers increase from left to right.
 |  Guitar Chord Viewer                                     |
 +----------------------------------------------------------+
   Mode    : compact horizontal tab
-  Chords  : A  Am  B  Bb  C  Cm  D  Dm  E  Em  F  F#  G  Gm
-  Commands: CHORD, CHORD -f, ?, or q
-  Example : ./alt-tab A -f
+  Examples: A  Am  B  Bb
+  Variants: C:1  C:2  C -a
+  Commands: CHORD, CHORD:2, CHORD -a, ?, or q
 
 chord> C
 
-Chord: C
+Chord: C (variation 1)
 
     Fret numbers ->
       0    1    2    3    4
@@ -106,6 +108,7 @@ target:
 ```bash
 make run ARGS=--full-neck
 make run ARGS="A -f"
+make run ARGS="C -a"
 make run-full
 ```
 
@@ -124,6 +127,14 @@ Print one chord and exit:
 ./alt-tab A -f
 ```
 
+Select one numbered variation or display every variation:
+
+```bash
+./alt-tab C:2
+./alt-tab C -a
+./alt-tab C --all-variations
+```
+
 Start interactively with the complete 0–27 fret neck:
 
 ```bash
@@ -134,13 +145,17 @@ Start interactively with the complete 0–27 fret neck:
 The display mode can also be changed while the program is running:
 
 ```text
+chord> C:2
+chord> C -a
 chord> A -f
 chord> --full-neck
 chord> --compact
 ```
 
-`A -f` draws A on the full neck; a flag entered by itself changes the mode for
-subsequent chords. Options and the chord name can appear in either order.
+Entering a chord name alone selects variation 1. `C:2` selects only variation
+2, while `C -a` displays all C variations. `A -f` draws A on the full neck; a
+display flag entered by itself changes the mode for subsequent chords. Options
+and the chord name can appear in either order.
 Use `?` or `help` at the `chord>` prompt for supported chords and commands.
 Display command-line help without starting the prompt:
 
@@ -159,10 +174,14 @@ The immutable default library in `src/theory/chord_library.c` contains:
 | --- | --- | --- |
 | `A`, `B`, `C`, `D`, `E`, `F`, `G` | `Am`, `Cm`, `Dm`, `Em`, `Gm` | `Bb`, `F#` |
 
+Each name currently has two variations. Use `?` in the program to list every
+supported name.
+
 ## Architecture
 
-- `theory` defines fret and finger placement for six-string chord voicings and
-  owns the immutable chord library. It performs no terminal input or output.
+- `theory` defines variation numbers, fret placement, and finger placement for
+  six-string chord voicings. It owns the immutable chord library and performs
+  no terminal input or output.
 - `render` validates a chord and provides compact and full-neck horizontal tab.
 - `app` owns the input loop and coordinates lookup and rendering.
 
@@ -177,14 +196,14 @@ consume this model without depending on terminal rendering.
 make test
 ```
 
-The tests verify all 14 stored fret and finger assignments, case-insensitive
-lookup, invalid lookup arguments, both renderer modes, chord-plus-flag commands,
-interactive display switching, and help output. Debug tests run with both
-configured sanitizers.
+The tests verify all 28 stored fret and finger assignments, the musical pitch
+classes of every major/minor triad, variation lookup, case-insensitive lookup,
+both renderer modes, chord-plus-flag commands, interactive display switching,
+and help output. Debug tests run with both configured sanitizers.
 
 ## Roadmap
 
-- Multiple voicings for one chord name
+- Additional voicings beyond the two built-in variations
 - Explicit barre visualization
 - Audio input and chord detection
 - Audio output and chord playback

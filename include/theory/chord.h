@@ -24,6 +24,7 @@ typedef struct {
 /* Stores one named six-string guitar-chord voicing. */
 typedef struct {
     const char *name;
+    int variation;
     StringPlacement strings[ GUITAR_STRING_COUNT ];
 } Chord;
 

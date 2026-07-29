@@ -17,4 +17,17 @@ ChordLibrary chordLibraryDefault( void );
 /* Finds a chord by name without regard to letter case. */
 const Chord *chordLibraryFind( const ChordLibrary *library, const char *name );
 
+/* Finds one numbered variation of a chord name. */
+const Chord *chordLibraryFindVariation(
+    const ChordLibrary *library,
+    const char *name,
+    int variation
+);
+
+/* Counts the available variations for one chord name. */
+size_t chordLibraryVariationCount(
+    const ChordLibrary *library,
+    const char *name
+);
+
 #endif

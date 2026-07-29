@@ -12,7 +12,10 @@ static const char *const STRING_NAMES[ GUITAR_STRING_COUNT ] = {
 /* Rejects invalid fret ranges and missing finger assignments. */
 static int chordIsRenderable( const Chord *chord, size_t fret_count )
 {
-    if ( chord == NULL || chord->name == NULL || fret_count == 0 ) {
+    if ( chord == NULL ||
+         chord->name == NULL ||
+         chord->variation < 1 ||
+         fret_count == 0 ) {
         return 0;
     }
 
@@ -199,7 +202,12 @@ int terminalRendererPrint(
         cell_width = COMPACT_CELL_WIDTH;
     }
 
-    fprintf( stream, "\nChord: %s\n\n", chord->name );
+    fprintf(
+        stream,
+        "\nChord: %s (variation %d)\n\n",
+        chord->name,
+        chord->variation
+    );
     fputs( "    Fret numbers ->\n", stream );
     printTab( stream, chord, last_fret, cell_width );
     fputs(

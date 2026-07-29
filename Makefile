@@ -59,6 +59,10 @@ test: $(TARGET) $(TEST_TARGET)
 	./$(TARGET) A -f | grep -q ' 27 '
 	./$(TARGET) -f A | grep -q ' 27 '
 	printf '%s\n' 'A -f' 'q' | ./$(TARGET) | grep -q ' 27 '
+	./$(TARGET) C:2 | grep -q 'Chord: C (variation 2)'
+	./$(TARGET) C -a | grep -q 'Chord: C (variation 1)'
+	./$(TARGET) C -a | grep -q 'Chord: C (variation 2)'
+	printf '%s\n' 'C:2' 'q' | ./$(TARGET) | grep -q 'Chord: C (variation 2)'
 	./$(TARGET) --help | grep -q 'SUPPORTED CHORDS'
 
 clean:
