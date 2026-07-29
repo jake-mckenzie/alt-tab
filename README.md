@@ -1,11 +1,12 @@
 # Alt-Tab
 
 Alt-Tab is a C11 terminal application that renders guitar chord voicings as
-ASCII fretboards. Enter a supported chord name, and the program displays its
-fingering across frets 0–27.
+readable horizontal tablature. The default diagram shows frets 0–4 or extends
+to the highest required fret, while full-neck mode displays frets 0–27.
 
 Chord lookup is case-insensitive, so inputs such as `Am`, `am`, and `AM`
-are equivalent.
+are equivalent. Diagrams follow standard tab orientation: high e is on top,
+low E is on the bottom, and fret numbers increase from left to right.
 
 ## Requirements
 
@@ -16,23 +17,35 @@ are equivalent.
 
 ## Example Output
 
-The program prints frets 0–27; this example is shortened after fret 5.
-
 ```text
-    Alt-Tab — Guitar Chord Viewer
++----------------------------------------------------------+
+|  ALT-TAB                                                 |
+|  Guitar Chord Viewer                                     |
++----------------------------------------------------------+
+  Mode    : compact horizontal tab
+  Chords  : A  Am  B  Bb  C  Cm  D  Dm  E  Em  F  F#  G  Gm
+  Commands: CHORD, CHORD -f, ?, or q
+  Example : ./alt-tab A -f
 
-    Enter chord name (or 'q' to quit): C
-    C
-           0  1  2  3  4  5
-    e  |   O  -  -  -  -  -|
-    B  |   -  *  -  -  -  -|
-    G  |   O  -  -  -  -  -|
-    D  |   -  -  *  -  -  -|
-    A  |   -  -  -  *  -  -|
-    E  |   X  -  -  -  -  -|
+chord> C
+
+Chord: C
+
+    Fret numbers ->
+      0    1    2    3    4
+e  |--O----------------------|
+B  |-------1-----------------|
+G  |--O----------------------|
+D  |------------2------------|
+A  |-----------------3-------|
+E  |--X----------------------|
+
+    Fingers: 1 index  2 middle  3 ring  4 little
+    Symbols: O open   X muted
 ```
 
-`O` is an open string, `*` is a fretted string, and `X` is a muted string.
+Finger numbers show one conventional fretting-hand placement for the stored
+voicing. `O` is an open string and `X` is a muted string.
 
 ## Project Structure
 
@@ -87,14 +100,56 @@ Build and run:
 make run
 ```
 
-Or run an existing binary directly:
+Pass options through the Makefile with `ARGS`, or use the dedicated full-neck
+target:
+
+```bash
+make run ARGS=--full-neck
+make run ARGS="A -f"
+make run-full
+```
+
+Do not use `make run -f`: `-f` is an option consumed by Make itself.
+
+Start the interactive prompt:
 
 ```bash
 ./alt-tab
 ```
 
-Enter `q` or `Q` to quit. Unknown names produce a not-found message and return
-to the prompt.
+Print one chord and exit:
+
+```bash
+./alt-tab A
+./alt-tab A -f
+```
+
+Start interactively with the complete 0–27 fret neck:
+
+```bash
+./alt-tab --full-neck
+./alt-tab -f
+```
+
+The display mode can also be changed while the program is running:
+
+```text
+chord> A -f
+chord> --full-neck
+chord> --compact
+```
+
+`A -f` draws A on the full neck; a flag entered by itself changes the mode for
+subsequent chords. Options and the chord name can appear in either order.
+Use `?` or `help` at the `chord>` prompt for supported chords and commands.
+Display command-line help without starting the prompt:
+
+```bash
+./alt-tab --help
+```
+
+Enter `q` or `Q` to quit. Unknown names suggest opening help and return to the
+prompt. Unknown command-line options print usage and exit with an error.
 
 ## Supported Chords
 
@@ -106,15 +161,15 @@ The immutable default library in `src/theory/chord_library.c` contains:
 
 ## Architecture
 
-- `theory` defines six-string chord voicings and the immutable chord library.
-  It performs no terminal input or output.
-- `render` validates a chord and converts it into terminal output.
+- `theory` defines fret and finger placement for six-string chord voicings and
+  owns the immutable chord library. It performs no terminal input or output.
+- `render` validates a chord and provides compact and full-neck horizontal tab.
 - `app` owns the input loop and coordinates lookup and rendering.
 
-Fret arrays are ordered from the high E string to the low E string. A value of
-`-1` means muted, `0` means open, and a positive value is the played fret.
-Future audio modules can consume this model without depending on terminal
-rendering.
+String placements are ordered from high e to low E. A fret value of `-1` means
+muted, `0` means open, and a positive value is the played fret. Fretted strings
+also store a finger number from `1` through `4`. Future audio modules can
+consume this model without depending on terminal rendering.
 
 ## Tests
 
@@ -122,9 +177,10 @@ rendering.
 make test
 ```
 
-The tests verify all 14 stored voicings, case-insensitive lookup, invalid lookup
-arguments, and terminal-renderer output. Debug tests run with both configured
-sanitizers.
+The tests verify all 14 stored fret and finger assignments, case-insensitive
+lookup, invalid lookup arguments, both renderer modes, chord-plus-flag commands,
+interactive display switching, and help output. Debug tests run with both
+configured sanitizers.
 
 ## Roadmap
 

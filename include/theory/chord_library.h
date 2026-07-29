@@ -5,12 +5,16 @@
 
 #include "theory/chord.h"
 
+/* Provides a read-only view of a chord collection. */
 typedef struct {
     const Chord *items;
     size_t count;
 } ChordLibrary;
 
+/* Returns the built-in set of supported chord voicings. */
 ChordLibrary chordLibraryDefault( void );
+
+/* Finds a chord by name without regard to letter case. */
 const Chord *chordLibraryFind( const ChordLibrary *library, const char *name );
 
 #endif

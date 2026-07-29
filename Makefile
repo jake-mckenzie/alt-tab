@@ -50,13 +50,24 @@ $(BUILD_DIR)/tests/%.o: $(TEST_DIR)/%.c
 $(TEST_TARGET): $(TEST_OBJS) $(CORE_OBJS)
 	$(CC) $(TEST_OBJS) $(CORE_OBJS) $(LDFLAGS) -o $@
 
-test: $(TEST_TARGET)
+test: $(TARGET) $(TEST_TARGET)
 	./$(TEST_TARGET)
+	printf 'q\n' | ./$(TARGET) --full-neck | grep -q 'Mode    : full neck'
+	printf 'q\n' | ./$(TARGET) -f | grep -q 'Mode    : full neck'
+	printf '%s\n' '-f' 'q' | ./$(TARGET) | grep -q 'Display changed to full neck'
+	printf '%s\n' '--full-neck' 'q' | ./$(TARGET) | grep -q 'Display changed to full neck'
+	./$(TARGET) A -f | grep -q ' 27 '
+	./$(TARGET) -f A | grep -q ' 27 '
+	printf '%s\n' 'A -f' 'q' | ./$(TARGET) | grep -q ' 27 '
+	./$(TARGET) --help | grep -q 'SUPPORTED CHORDS'
 
 clean:
 	rm -rf $(BUILD_DIR) $(TARGET)
 
 run: $(TARGET)
-	./$(TARGET)
+	./$(TARGET) $(ARGS)
 
-.PHONY: all clean run test
+run-full: $(TARGET)
+	./$(TARGET) --full-neck
+
+.PHONY: all clean run run-full test
