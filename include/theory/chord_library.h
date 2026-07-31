@@ -2,7 +2,6 @@
 #define ALT_TAB_THEORY_CHORD_LIBRARY_H
 
 #include <stddef.h>
-
 #include "theory/chord.h"
 
 /* Provides a read-only view of a chord collection. */

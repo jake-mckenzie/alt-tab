@@ -3,7 +3,6 @@
 
 #include <stddef.h>
 #include <stdio.h>
-
 #include "theory/chord.h"
 
 #define TERMINAL_FRET_COUNT 28

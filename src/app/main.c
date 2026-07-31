@@ -3,7 +3,6 @@
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
-
 #include "render/terminal_renderer.h"
 #include "theory/chord_library.h"
 
