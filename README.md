@@ -1,12 +1,110 @@
 # Alt-Tab
 
-Alt-Tab is an interactive guitar-chord viewer built with Bubble Tea. It uses a
-C11 backend for chord data and a responsive Go terminal interface for browsing
-chords, selecting voicings, and viewing accurate finger placement.
+Alt-Tab is an interactive guitar-chord viewer for the terminal. A responsive
+Bubble Tea interface displays chord voicings from a C11 chord library connected
+to Go through cgo.
 
-Diagrams follow standard tablature orientation: high e is on top, low E is on
-the bottom, and fret numbers increase from left to right. Compact mode shows the
-relevant neck position; full-neck mode shows frets 1–27.
+Diagrams follow standard tablature orientation: high e is at the top, low E is
+at the bottom, and fret numbers increase from left to right. Compact mode shows
+the relevant neck position; full-neck mode shows frets 1–27.
+
+## Quick Start
+
+```bash
+git clone https://github.com/jake-mckenzie/alt-tab.git
+cd alt-tab
+make
+./alt-tab
+```
+
+`make run` combines the build and run steps:
+
+```bash
+make run
+```
+
+Alt-Tab is an interactive TUI and must be run in a terminal. It does not accept
+the command-line chord and display flags used by the former interface.
+
+## Requirements
+
+- macOS, Linux, or another Unix-like environment
+- Go 1.25 or newer with cgo enabled
+- A C11 compiler such as Clang or GCC
+- Make
+
+The default test build also requires AddressSanitizer and
+UndefinedBehaviorSanitizer support from the C compiler.
+
+Confirm the required tools are available:
+
+```bash
+go version
+gcc --version
+make --version
+go env CGO_ENABLED
+```
+
+`go env CGO_ENABLED` must print `1`.
+
+## Building
+
+Build the development binary in the project root:
+
+```bash
+make
+```
+
+The resulting executable is:
+
+```text
+./alt-tab
+```
+
+Build a smaller release binary with paths and debug symbols removed:
+
+```bash
+make BUILD=release
+```
+
+You can also build directly with Go:
+
+```bash
+go build -o alt-tab ./cmd/alt-tab
+```
+
+Dependencies listed in `go.mod` and `go.sum` are downloaded automatically when
+needed.
+
+## Running
+
+Build and launch:
+
+```bash
+make run
+```
+
+Launch an existing build:
+
+```bash
+./alt-tab
+```
+
+### Controls
+
+| Key | Action |
+| --- | --- |
+| `↑` / `k` | Previous chord |
+| `↓` / `j` | Next chord |
+| `←` / `h` | Previous variation |
+| `→` / `l` | Next variation |
+| `f` | Toggle compact or full-neck view |
+| `?` | Open or close help |
+| `Esc` | Close help |
+| `q` / `Ctrl+C` | Quit |
+
+The layout responds to terminal resizing. Wide terminals show the chord list
+beside the fretboard; narrow terminals stack the chord selector above it.
 
 ## TUI Output
 
@@ -40,101 +138,64 @@ colors are omitted here; Alt-Tab adapts them to light and dark backgrounds.
 ```
 <!-- END VERIFIED TUI OUTPUT -->
 
-On narrower terminals, the chord selector stacks above the fretboard while
-retaining the same controls and chord data.
+## Testing
 
-## Requirements
-
-- Go 1.25 or newer with cgo enabled
-- A C11 compiler such as GCC or Clang
-- Make
-- AddressSanitizer and UndefinedBehaviorSanitizer support for debug backend
-  tests
-
-## Project Structure
-
-```text
-.
-├── cmd/
-│   └── alt-tab/
-│       └── main.go
-├── include/
-│   ├── backend/
-│   │   └── chord_api.h
-│   └── theory/
-│       ├── chord.h
-│       └── chord_library.h
-├── internal/
-│   ├── chords/
-│   │   ├── catalog.go
-│   │   ├── native.go
-│   │   ├── native_backend.c
-│   │   └── native_test.go
-│   └── tui/
-│       ├── fretboard.go
-│       ├── fretboard_test.go
-│       ├── model.go
-│       ├── model_test.go
-│       ├── readme_test.go
-│       ├── styles.go
-│       └── view.go
-├── src/
-│   ├── backend/
-│   │   └── chord_api.c
-│   └── theory/
-│       └── chord_library.c
-├── tests/
-│   └── test_chord_library.c
-├── go.mod
-├── go.sum
-├── Makefile
-└── README.md
-```
-
-## Building
-
-Build the `alt-tab` TUI:
+Run the C backend tests and all Go tests:
 
 ```bash
-make
+make test
 ```
 
-Build a smaller release binary without debug symbols:
+The default test configuration enables AddressSanitizer and
+UndefinedBehaviorSanitizer for the C backend. To test an optimized build without
+sanitizers, clean first so every C object is rebuilt with release flags:
 
 ```bash
-make BUILD=release
+make clean
+make BUILD=release test
 ```
 
-Remove generated binaries and test objects:
+Optional Go-only checks:
+
+```bash
+go test ./...
+go test -race ./internal/...
+go vet ./...
+```
+
+The suite verifies every stored fret and finger assignment, chord pitch
+classes, the public C API, cgo conversion, TUI navigation, compact and full-neck
+diagrams, help behavior, and the README output snapshot.
+
+## Cleaning
+
+Remove the application binary and generated test objects:
 
 ```bash
 make clean
 ```
 
-## Running
+## Build Troubleshooting
+
+If cgo is disabled, enable it for the build:
 
 ```bash
-make run
+CGO_ENABLED=1 make
 ```
 
-You can also launch the built binary directly:
+Select a specific compiler when the default `cc` is unsuitable:
 
 ```bash
-./alt-tab
+make CC=clang
+make CC=gcc
 ```
 
-### Controls
+If dependency checksums or downloads fail, refresh the module cache and retry:
 
-| Key | Action |
-| --- | --- |
-| `↑` / `k` | Previous chord |
-| `↓` / `j` | Next chord |
-| `←` / `h` | Previous variation |
-| `→` / `l` | Next variation |
-| `f` | Toggle compact or full-neck view |
-| `?` | Open or close help |
-| `Esc` | Close help |
-| `q` / `Ctrl+C` | Quit |
+```bash
+go mod download
+make
+```
 
 ## Supported Chords
 
@@ -142,34 +203,42 @@ You can also launch the built binary directly:
 | --- | --- | --- |
 | `A`, `B`, `C`, `D`, `E`, `F`, `G` | `Am`, `Cm`, `Dm`, `Em`, `Gm` | `Bb`, `F#` |
 
-Each chord currently has two conventional variations. Finger numbers use
-`1` for index, `2` for middle, `3` for ring, and `4` for little finger. `O`
-marks an open string and `X` marks a muted string.
+Each chord has two conventional variations. Finger numbers use `1` for index,
+`2` for middle, `3` for ring, and `4` for little finger. `O` marks an open
+string and `X` marks a muted string.
 
 ## Architecture
 
-- `theory` owns the immutable chord library and has no UI dependencies.
-- `backend` exposes a stable C API for listing chords and copying voicings into
-  caller-owned memory.
-- `internal/chords` converts C data into Go-owned structs behind a catalog
-  interface.
-- `internal/tui` owns Bubble Tea state, navigation, responsive layout, styling,
-  and fretboard rendering.
-- `cmd/alt-tab` is the only application entry point.
+- `cmd/alt-tab` contains the application entry point.
+- `internal/tui` owns Bubble Tea state, navigation, layout, styling, and
+  fretboard rendering.
+- `internal/chords` copies native chord data into Go-owned types behind a
+  catalog interface.
+- `src/backend` and `include/backend` provide the stable C API used through
+  cgo.
+- `src/theory` and `include/theory` own the immutable chord library.
+- `tests` contains the native backend regression suite.
 
-This separation keeps terminal concerns out of the chord model and allows
-future audio input or output packages to consume the same Go chord types.
+Terminal concerns remain separate from the chord model so future audio input or
+output packages can consume the same Go chord types.
 
-## Tests
+## Project Layout
 
-```bash
-make test
+```text
+.
+├── cmd/alt-tab/
+├── include/backend/
+├── include/theory/
+├── internal/chords/
+├── internal/tui/
+├── src/backend/
+├── src/theory/
+├── tests/
+├── go.mod
+├── go.sum
+├── Makefile
+└── README.md
 ```
-
-The suite verifies every stored fret and finger assignment, chord pitch
-classes, the public C API, cgo data conversion, navigation state, compact and
-full-neck diagrams, and help behavior. Debug backend tests run with
-AddressSanitizer and UndefinedBehaviorSanitizer.
 
 ## Roadmap
 
