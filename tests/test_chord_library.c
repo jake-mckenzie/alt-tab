@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include "render/terminal_renderer.h"
+#include "backend/chord_api.h"
 #include "theory/chord_library.h"
 
 #define ARRAY_COUNT( array ) ( sizeof( array ) / sizeof( ( array )[ 0 ] ) )
@@ -102,6 +102,52 @@ static int testLookup( void )
     return 1;
 }
 
+/* Verifies the UI-independent backend API and its ownership boundary. */
+static int testChordApi( void )
+{
+    static const char *const EXPECTED_NAMES[ ] = {
+        "A", "Am", "B", "Bb", "C", "Cm", "D",
+        "Dm", "E", "Em", "F", "F#", "G", "Gm"
+    };
+    AltTabChordVoicing voicing;
+
+    CHECK( altTabChordCount( ) == ARRAY_COUNT( EXPECTED_NAMES ) );
+    for ( size_t index = 0; index < ARRAY_COUNT( EXPECTED_NAMES ); index++ ) {
+        CHECK(
+            strcmp( altTabChordNameAt( index ), EXPECTED_NAMES[ index ] ) == 0
+        );
+    }
+    CHECK( altTabChordNameAt( ARRAY_COUNT( EXPECTED_NAMES ) ) == NULL );
+    CHECK( altTabChordVariationCount( "c" ) == 2 );
+    CHECK( altTabChordVariationCount( "missing" ) == 0 );
+
+    for ( size_t index = 0; index < ARRAY_COUNT( EXPECTED_CHORDS ); index++ ) {
+        const ExpectedChord *expected = &EXPECTED_CHORDS[ index ];
+
+        CHECK(
+            altTabChordLoad(
+                expected->name,
+                expected->variation,
+                &voicing
+            )
+        );
+        CHECK( voicing.variation == expected->variation );
+        for ( size_t string = 0; string < ALT_TAB_STRING_COUNT; string++ ) {
+            CHECK( voicing.strings[ string ].fret == expected->frets[ string ] );
+            CHECK(
+                voicing.strings[ string ].finger ==
+                expected->fingers[ string ]
+            );
+        }
+    }
+
+    CHECK( !altTabChordLoad( "C", 3, &voicing ) );
+    CHECK( !altTabChordLoad( "missing", 1, &voicing ) );
+    CHECK( !altTabChordLoad( "C", 1, NULL ) );
+
+    return 1;
+}
+
 /* Converts the root letter and accidental into a pitch class. */
 static int rootPitchClass( const char *name )
 {
@@ -168,75 +214,12 @@ static int testChordTones( void )
     return 1;
 }
 
-/* Verifies both renderer modes and their instructional output. */
-static int testRenderer( void )
-{
-    ChordLibrary library = chordLibraryDefault( );
-    const Chord *chord = chordLibraryFind( &library, "C" );
-    Chord invalid_chord;
-    FILE *stream = tmpfile( );
-    char output[ 1024 ];
-    size_t bytes_read;
-
-    CHECK( chord != NULL );
-    CHECK( stream != NULL );
-    invalid_chord = *chord;
-    invalid_chord.strings[ GUITAR_STRING_B ].finger = GUITAR_NO_FINGER;
-
-    CHECK( !terminalRendererPrint(
-        stream,
-        &invalid_chord,
-        5,
-        TERMINAL_RENDER_COMPACT_TAB
-    ) );
-    CHECK( terminalRendererPrint(
-        stream,
-        chord,
-        5,
-        TERMINAL_RENDER_COMPACT_TAB
-    ) );
-    CHECK( terminalRendererPrint(
-        stream,
-        chord,
-        5,
-        TERMINAL_RENDER_FULL_NECK
-    ) );
-    CHECK( !terminalRendererPrint(
-        stream,
-        chord,
-        0,
-        TERMINAL_RENDER_COMPACT_TAB
-    ) );
-    CHECK( !terminalRendererPrint(
-        stream,
-        chord,
-        5,
-        ( TerminalRenderMode )99
-    ) );
-
-    rewind( stream );
-    bytes_read = fread( output, 1, sizeof( output ) - 1, stream );
-    output[ bytes_read ] = '\0';
-    fclose( stream );
-
-    CHECK( strstr( output, "Chord: C (variation 1)" ) != NULL );
-    CHECK( strstr( output, "Fret numbers ->" ) != NULL );
-    CHECK( strstr( output, "Fingers: 1 index" ) != NULL );
-    CHECK( strstr( output, "e O|" ) != NULL );
-    CHECK( strstr( output, "B  |--1--" ) != NULL );
-    CHECK( strstr( output, "E X|" ) != NULL );
-    CHECK( strstr( output, " 0 " ) == NULL );
-    CHECK( strstr( output, " 5 " ) != NULL );
-
-    return 1;
-}
-
 int main( void )
 {
     if ( !testDefaultLibrary( ) ||
          !testLookup( ) ||
-         !testChordTones( ) ||
-         !testRenderer( ) ) {
+         !testChordApi( ) ||
+         !testChordTones( ) ) {
         return 1;
     }
 
