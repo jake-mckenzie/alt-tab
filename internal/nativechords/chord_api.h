@@ -1,5 +1,5 @@
-#ifndef ALT_TAB_BACKEND_CHORD_API_H
-#define ALT_TAB_BACKEND_CHORD_API_H
+#ifndef ALT_TAB_NATIVE_CHORD_API_H
+#define ALT_TAB_NATIVE_CHORD_API_H
 
 #include <stddef.h>
 

@@ -1,6 +1,6 @@
-#include "backend/chord_api.h"
+#include "chord_api.h"
 #include <string.h>
-#include "theory/chord_library.h"
+#include "chord_library.h"
 
 _Static_assert(
     ALT_TAB_STRING_COUNT == GUITAR_STRING_COUNT,

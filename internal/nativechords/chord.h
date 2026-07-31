@@ -1,5 +1,5 @@
-#ifndef ALT_TAB_THEORY_CHORD_H
-#define ALT_TAB_THEORY_CHORD_H
+#ifndef ALT_TAB_NATIVE_CHORD_H
+#define ALT_TAB_NATIVE_CHORD_H
 
 /* Identifies strings in the high-to-low order used by standard tablature. */
 typedef enum {

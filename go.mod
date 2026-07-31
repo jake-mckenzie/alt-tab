@@ -1,4 +1,4 @@
-module alt-tab
+module github.com/jake-mckenzie/alt-tab
 
 go 1.25.0
 

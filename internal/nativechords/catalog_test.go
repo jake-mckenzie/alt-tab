@@ -1,9 +1,11 @@
-package chords
+package nativechords
 
 import (
 	"errors"
 	"reflect"
 	"testing"
+
+	"github.com/jake-mckenzie/alt-tab/internal/chords"
 )
 
 func TestNativeCatalogNames(t *testing.T) {
@@ -28,7 +30,7 @@ func TestNativeCatalogLoadsOwnedVoicing(t *testing.T) {
 	if voicing.Name != "C" || voicing.Variation != 2 {
 		t.Fatalf("Load() identity = %q:%d, want C:2", voicing.Name, voicing.Variation)
 	}
-	if voicing.Strings[0] != (StringPlacement{Fret: 3, Finger: 1}) {
+	if voicing.Strings[0] != (chords.StringPlacement{Fret: 3, Finger: 1}) {
 		t.Fatalf("high e placement = %+v, want fret 3 finger 1", voicing.Strings[0])
 	}
 	if voicing.Strings[5].Fret != -1 {
@@ -42,7 +44,7 @@ func TestNativeCatalogRejectsMissingVariation(t *testing.T) {
 	if count := catalog.VariationCount("C"); count != 2 {
 		t.Fatalf("VariationCount() = %d, want 2", count)
 	}
-	if _, err := catalog.Load("C", 3); !errors.Is(err, ErrChordNotFound) {
+	if _, err := catalog.Load("C", 3); !errors.Is(err, chords.ErrChordNotFound) {
 		t.Fatalf("Load() error = %v, want ErrChordNotFound", err)
 	}
 }

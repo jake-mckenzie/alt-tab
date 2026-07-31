@@ -6,7 +6,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"alt-tab/internal/chords"
+	"github.com/jake-mckenzie/alt-tab/internal/chords"
 )
 
 // Model holds the terminal UI state.

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"alt-tab/internal/chords"
+	"github.com/jake-mckenzie/alt-tab/internal/nativechords"
 )
 
 var ansiSequence = regexp.MustCompile(`\x1b\[[0-?]*[ -/]*[@-~]`)
@@ -27,7 +27,7 @@ func TestReadmeContainsCurrentTUIOutput(t *testing.T) {
 		t.Fatal("README verified TUI output block is missing")
 	}
 
-	model := New(chords.NewNativeCatalog())
+	model := New(nativechords.NewNativeCatalog())
 	model.width = 80
 	model.height = 30
 	actual := ansiSequence.ReplaceAllString(model.View().Content, "")

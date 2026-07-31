@@ -1,28 +1,30 @@
-CC = gcc
-GO = go
+GO ?= go
+CC ?= cc
 
-SRC_DIR = src
-INC_DIR = include
+APP = alt-tab
+CMD = ./cmd/alt-tab
+BIN_DIR = bin
 BUILD_DIR = build
+NATIVE_DIR = internal/nativechords
 TEST_DIR = tests
 
-TARGET = alt-tab
-TEST_TARGET = $(BUILD_DIR)/test-chord-backend
-GO_PACKAGE = ./cmd/alt-tab
+TARGET = $(BIN_DIR)/$(APP)
+NATIVE_BUILD_DIR = $(BUILD_DIR)/native
+NATIVE_TEST_TARGET = $(NATIVE_BUILD_DIR)/test-chord-backend
 
 BUILD ?= debug
 
-BACKEND_SRCS = $(SRC_DIR)/theory/chord_library.c \
-               $(SRC_DIR)/backend/chord_api.c
-TEST_SRCS = $(TEST_DIR)/test_chord_library.c
-GO_SRCS = $(shell find cmd internal -type f \
-          \( -name '*.go' -o -name '*.c' \) 2>/dev/null)
-
-BACKEND_OBJS = $(BACKEND_SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
-TEST_OBJS = $(TEST_SRCS:$(TEST_DIR)/%.c=$(BUILD_DIR)/tests/%.o)
+GO_SOURCES = $(shell find cmd internal -type f \
+             \( -name '*.go' -o -name '*.c' -o -name '*.h' \) 2>/dev/null)
+NATIVE_SOURCES = $(NATIVE_DIR)/chord_library.c \
+                 $(NATIVE_DIR)/chord_api.c
+NATIVE_HEADERS = $(NATIVE_DIR)/chord.h \
+                 $(NATIVE_DIR)/chord_library.h \
+                 $(NATIVE_DIR)/chord_api.h
+NATIVE_OBJECTS = $(NATIVE_SOURCES:$(NATIVE_DIR)/%.c=$(NATIVE_BUILD_DIR)/%.o)
+NATIVE_TEST_OBJECT = $(NATIVE_BUILD_DIR)/test_chord_library.o
 
 CFLAGS_BASE = -std=c11 -Wall -Wextra -pedantic
-CPPFLAGS = -I$(INC_DIR)
 SANITIZERS = -fsanitize=address,undefined
 GO_BUILD_FLAGS =
 
@@ -37,7 +39,9 @@ else
     $(error Unknown BUILD type: $(BUILD))
 endif
 
-all: $(TARGET)
+all: build
+
+build: $(TARGET)
 
 check-deps:
 	@command -v $(GO) >/dev/null 2>&1 || { \
@@ -55,28 +59,39 @@ check-deps:
 	@$(GO) list -mod=readonly -deps ./... >/dev/null
 	@$(GO) mod verify >/dev/null
 
-$(TARGET): check-deps go.mod go.sum $(GO_SRCS) $(BACKEND_SRCS)
-	$(GO) build $(GO_BUILD_FLAGS) -o $@ $(GO_PACKAGE)
-
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+$(TARGET): check-deps go.mod go.sum $(GO_SOURCES)
 	mkdir -p $(dir $@)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	$(GO) build $(GO_BUILD_FLAGS) -o $@ $(CMD)
 
-$(BUILD_DIR)/tests/%.o: $(TEST_DIR)/%.c
+$(NATIVE_BUILD_DIR)/%.o: $(NATIVE_DIR)/%.c $(NATIVE_HEADERS)
 	mkdir -p $(dir $@)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	$(CC) -I$(NATIVE_DIR) $(CFLAGS) -c $< -o $@
 
-$(TEST_TARGET): $(TEST_OBJS) $(BACKEND_OBJS)
-	$(CC) $(TEST_OBJS) $(BACKEND_OBJS) $(LDFLAGS) -o $@
+$(NATIVE_TEST_OBJECT): $(TEST_DIR)/test_chord_library.c $(NATIVE_HEADERS)
+	mkdir -p $(dir $@)
+	$(CC) -I$(NATIVE_DIR) $(CFLAGS) -c $< -o $@
 
-test: check-deps $(TEST_TARGET)
-	./$(TEST_TARGET)
+$(NATIVE_TEST_TARGET): $(NATIVE_TEST_OBJECT) $(NATIVE_OBJECTS)
+	$(CC) $^ $(LDFLAGS) -o $@
+
+test-native: $(NATIVE_TEST_TARGET)
+	./$(NATIVE_TEST_TARGET)
+
+test-go: check-deps
 	$(GO) test ./...
 
-clean:
-	rm -rf $(BUILD_DIR) $(TARGET)
+test: test-native test-go
+
+race: check-deps
+	$(GO) test -race ./internal/...
+
+vet: check-deps
+	$(GO) vet ./...
 
 run: $(TARGET)
 	./$(TARGET)
 
-.PHONY: all check-deps clean run test
+clean:
+	rm -rf $(BUILD_DIR) $(BIN_DIR) $(APP)
+
+.PHONY: all build check-deps clean race run test test-go test-native vet

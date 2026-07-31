@@ -6,12 +6,12 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"alt-tab/internal/chords"
-	"alt-tab/internal/tui"
+	"github.com/jake-mckenzie/alt-tab/internal/nativechords"
+	"github.com/jake-mckenzie/alt-tab/internal/tui"
 )
 
 func main() {
-	catalog := chords.NewNativeCatalog()
+	catalog := nativechords.NewNativeCatalog()
 	program := tea.NewProgram(tui.New(catalog))
 
 	if _, err := program.Run(); err != nil {

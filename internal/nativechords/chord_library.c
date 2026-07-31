@@ -1,4 +1,4 @@
-#include "theory/chord_library.h"
+#include "chord_library.h"
 #include <ctype.h>
 
 #define ARRAY_COUNT( array ) ( sizeof( array ) / sizeof( ( array )[ 0 ] ) )

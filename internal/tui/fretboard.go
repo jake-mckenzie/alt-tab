@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"alt-tab/internal/chords"
+	"github.com/jake-mckenzie/alt-tab/internal/chords"
 )
 
 const fullNeckLastFret = 27

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-#include "backend/chord_api.h"
-#include "theory/chord_library.h"
+#include "chord_api.h"
+#include "chord_library.h"
 
 #define ARRAY_COUNT( array ) ( sizeof( array ) / sizeof( ( array )[ 0 ] ) )
 

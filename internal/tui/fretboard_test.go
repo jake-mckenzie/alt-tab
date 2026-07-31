@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"alt-tab/internal/chords"
+	"github.com/jake-mckenzie/alt-tab/internal/chords"
 )
 
 func TestCompactFretboardUsesExactFretsAndFingers(t *testing.T) {

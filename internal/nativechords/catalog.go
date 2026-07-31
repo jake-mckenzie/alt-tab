@@ -1,15 +1,18 @@
-package chords
+// Package nativechords adapts the native C chord library to Go chord types.
+package nativechords
 
 /*
-#cgo CFLAGS: -std=c11 -Wall -Wextra -pedantic -I${SRCDIR}/../../include
+#cgo CFLAGS: -std=c11 -Wall -Wextra -pedantic
 #include <stdlib.h>
-#include "backend/chord_api.h"
+#include "chord_api.h"
 */
 import "C"
 
 import (
 	"strings"
 	"unsafe"
+
+	"github.com/jake-mckenzie/alt-tab/internal/chords"
 )
 
 // NativeCatalog reads the built-in C chord library through its public API.
@@ -44,9 +47,12 @@ func (NativeCatalog) VariationCount(name string) int {
 }
 
 // Load copies one native voicing into Go-owned memory.
-func (catalog NativeCatalog) Load(name string, variation int) (Voicing, error) {
+func (catalog NativeCatalog) Load(
+	name string,
+	variation int,
+) (chords.Voicing, error) {
 	if variation < 1 || variation > catalog.VariationCount(name) {
-		return Voicing{}, ErrChordNotFound
+		return chords.Voicing{}, chords.ErrChordNotFound
 	}
 
 	cName := C.CString(name)
@@ -54,15 +60,15 @@ func (catalog NativeCatalog) Load(name string, variation int) (Voicing, error) {
 
 	var native C.AltTabChordVoicing
 	if C.altTabChordLoad(cName, C.int(variation), &native) == 0 {
-		return Voicing{}, ErrChordNotFound
+		return chords.Voicing{}, chords.ErrChordNotFound
 	}
 
-	voicing := Voicing{
+	voicing := chords.Voicing{
 		Name:      catalog.canonicalName(name),
 		Variation: int(native.variation),
 	}
 	for index := range voicing.Strings {
-		voicing.Strings[index] = StringPlacement{
+		voicing.Strings[index] = chords.StringPlacement{
 			Fret:   int(native.strings[index].fret),
 			Finger: int(native.strings[index].finger),
 		}
