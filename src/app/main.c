@@ -46,7 +46,7 @@ static int isAllVariationsCommand( const char *input )
 static const char *renderModeName( TerminalRenderMode mode )
 {
     return mode == TERMINAL_RENDER_FULL_NECK
-        ? "full neck (frets 0-27)"
+        ? "full neck (frets 1-27)"
         : "compact horizontal tab";
 }
 
@@ -119,7 +119,7 @@ static void printHelp(
     puts( "  <chord> -a        Draw every variation" );
     puts( "  <chord> -f        Draw on the complete neck" );
     puts( "  -a, --all-variations  Show all variations of a chord" );
-    puts( "  -f, --full-neck   Switch to the complete 0-27 fret neck" );
+    puts( "  -f, --full-neck   Switch to the complete 1-27 fret neck" );
     puts( "  -c, --compact     Switch to compact horizontal tab" );
     puts( "  ?, help           Show this help" );
     puts( "  q                 Quit\n" );
@@ -291,7 +291,7 @@ static int renderChordSelection(
                  !terminalRendererPrint(
                      stdout,
                      chord,
-                     TERMINAL_FRET_COUNT,
+                     TERMINAL_LAST_FRET,
                      mode
                  ) ) {
                 return 0;
@@ -321,7 +321,7 @@ static int renderChordSelection(
         return terminalRendererPrint(
             stdout,
             chord,
-            TERMINAL_FRET_COUNT,
+            TERMINAL_LAST_FRET,
             mode
         );
     }

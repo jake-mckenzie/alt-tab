@@ -1,8 +1,8 @@
 # Alt-Tab
 
 Alt-Tab is a C11 terminal application that renders guitar chord voicings as
-readable horizontal tablature. The default diagram shows frets 0–4 or extends
-to the highest required fret, while full-neck mode displays frets 0–27.
+readable horizontal tablature. The default diagram shows frets 1–4 or extends
+to the highest required fret, while full-neck mode displays frets 1–27.
 Each supported chord includes two conventional voicings at different neck
 positions.
 
@@ -34,13 +34,13 @@ chord> C
 Chord: C (variation 1)
 
     Fret numbers ->
-      0    1    2    3    4
-e  |--O----------------------|
-B  |-------1-----------------|
-G  |--O----------------------|
-D  |------------2------------|
-A  |-----------------3-------|
-E  |--X----------------------|
+      1    2    3    4
+e O|--------------------|
+B  |--1-----------------|
+G O|--------------------|
+D  |-------2------------|
+A  |------------3-------|
+E X|--------------------|
 
     Fingers: 1 index  2 middle  3 ring  4 little
     Symbols: O open   X muted
@@ -135,7 +135,7 @@ Select one numbered variation or display every variation:
 ./alt-tab C --all-variations
 ```
 
-Start interactively with the complete 0–27 fret neck:
+Start interactively with the complete 1–27 fret neck:
 
 ```bash
 ./alt-tab --full-neck

@@ -10,12 +10,12 @@ static const char *const STRING_NAMES[ GUITAR_STRING_COUNT ] = {
 #define FULL_NECK_CELL_WIDTH 3
 
 /* Rejects invalid fret ranges and missing finger assignments. */
-static int chordIsRenderable( const Chord *chord, size_t fret_count )
+static int chordIsRenderable( const Chord *chord, size_t last_fret )
 {
     if ( chord == NULL ||
          chord->name == NULL ||
          chord->variation < 1 ||
-         fret_count == 0 ) {
+         last_fret < 1 ) {
         return 0;
     }
 
@@ -24,7 +24,7 @@ static int chordIsRenderable( const Chord *chord, size_t fret_count )
 
         if ( placement.fret < GUITAR_MUTED_FRET ||
              ( placement.fret >= 0 &&
-               ( size_t )placement.fret >= fret_count ) ) {
+               ( size_t )placement.fret > last_fret ) ) {
             return 0;
         }
 
@@ -61,7 +61,7 @@ static size_t highestPlayedFret( const Chord *chord )
 /* Keeps compact diagrams short while showing every occupied fret. */
 static size_t compactLastFret(
     const Chord *chord,
-    size_t fret_count
+    size_t maximum_fret
 )
 {
     size_t highest = highestPlayedFret( chord );
@@ -69,10 +69,10 @@ static size_t compactLastFret(
         ? highest
         : COMPACT_MINIMUM_LAST_FRET;
 
-    return last_fret < fret_count ? last_fret : fret_count - 1;
+    return last_fret < maximum_fret ? last_fret : maximum_fret;
 }
 
-/* Selects the symbol displayed at one string-and-fret intersection. */
+/* Selects the finger number displayed at one fretted position. */
 static char markerAt(
     const Chord *chord,
     size_t string,
@@ -81,19 +81,27 @@ static char markerAt(
 {
     StringPlacement placement = chord->strings[ string ];
 
-    if ( fret == 0 && placement.fret == GUITAR_MUTED_FRET ) {
-        return 'X';
-    }
-
-    if ( fret == 0 && placement.fret == 0 ) {
-        return 'O';
-    }
-
     if ( placement.fret > 0 && ( size_t )placement.fret == fret ) {
         return ( char )( '0' + placement.finger );
     }
 
     return '\0';
+}
+
+/* Places open and muted indicators before the numbered fret columns. */
+static char stringStatus( const Chord *chord, size_t string )
+{
+    int fret = chord->strings[ string ].fret;
+
+    if ( fret == GUITAR_MUTED_FRET ) {
+        return 'X';
+    }
+
+    if ( fret == 0 ) {
+        return 'O';
+    }
+
+    return ' ';
 }
 
 /* Draws one fixed-width segment of a horizontal string. */
@@ -158,14 +166,19 @@ static void printTab(
 )
 {
     fputs( "    ", stream );
-    for ( size_t fret = 0; fret <= last_fret; fret++ ) {
+    for ( size_t fret = 1; fret <= last_fret; fret++ ) {
         printFretNumber( stream, fret, cell_width );
     }
     fputc( '\n', stream );
 
     for ( size_t string = 0; string < GUITAR_STRING_COUNT; string++ ) {
-        fprintf( stream, "%s  |", STRING_NAMES[ string ] );
-        for ( size_t fret = 0; fret <= last_fret; fret++ ) {
+        fprintf(
+            stream,
+            "%s %c|",
+            STRING_NAMES[ string ],
+            stringStatus( chord, string )
+        );
+        for ( size_t fret = 1; fret <= last_fret; fret++ ) {
             printCell(
                 stream,
                 markerAt( chord, string, fret ),
@@ -180,7 +193,7 @@ static void printTab(
 int terminalRendererPrint(
     FILE *stream,
     const Chord *chord,
-    size_t fret_count,
+    size_t maximum_fret,
     TerminalRenderMode mode
 )
 {
@@ -188,17 +201,17 @@ int terminalRendererPrint(
     size_t cell_width;
 
     if ( stream == NULL ||
-         !chordIsRenderable( chord, fret_count ) ||
+         !chordIsRenderable( chord, maximum_fret ) ||
          ( mode != TERMINAL_RENDER_COMPACT_TAB &&
            mode != TERMINAL_RENDER_FULL_NECK ) ) {
         return 0;
     }
 
     if ( mode == TERMINAL_RENDER_FULL_NECK ) {
-        last_fret = fret_count - 1;
+        last_fret = maximum_fret;
         cell_width = FULL_NECK_CELL_WIDTH;
     } else {
-        last_fret = compactLastFret( chord, fret_count );
+        last_fret = compactLastFret( chord, maximum_fret );
         cell_width = COMPACT_CELL_WIDTH;
     }
 

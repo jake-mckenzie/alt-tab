@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "theory/chord.h"
 
-#define TERMINAL_FRET_COUNT 28
+#define TERMINAL_LAST_FRET 27
 
 /* Selects a truncated or complete horizontal fretboard. */
 typedef enum {
@@ -17,7 +17,7 @@ typedef enum {
 int terminalRendererPrint(
     FILE *stream,
     const Chord *chord,
-    size_t fret_count,
+    size_t last_fret,
     TerminalRenderMode mode
 );
 

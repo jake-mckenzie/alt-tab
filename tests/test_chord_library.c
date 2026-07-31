@@ -186,19 +186,19 @@ static int testRenderer( void )
     CHECK( !terminalRendererPrint(
         stream,
         &invalid_chord,
-        6,
+        5,
         TERMINAL_RENDER_COMPACT_TAB
     ) );
     CHECK( terminalRendererPrint(
         stream,
         chord,
-        6,
+        5,
         TERMINAL_RENDER_COMPACT_TAB
     ) );
     CHECK( terminalRendererPrint(
         stream,
         chord,
-        6,
+        5,
         TERMINAL_RENDER_FULL_NECK
     ) );
     CHECK( !terminalRendererPrint(
@@ -210,7 +210,7 @@ static int testRenderer( void )
     CHECK( !terminalRendererPrint(
         stream,
         chord,
-        6,
+        5,
         ( TerminalRenderMode )99
     ) );
 
@@ -222,9 +222,10 @@ static int testRenderer( void )
     CHECK( strstr( output, "Chord: C (variation 1)" ) != NULL );
     CHECK( strstr( output, "Fret numbers ->" ) != NULL );
     CHECK( strstr( output, "Fingers: 1 index" ) != NULL );
-    CHECK( strstr( output, "e  |--O--" ) != NULL );
-    CHECK( strstr( output, "B  |-------1-" ) != NULL );
-    CHECK( strstr( output, "E  |--X--" ) != NULL );
+    CHECK( strstr( output, "e O|" ) != NULL );
+    CHECK( strstr( output, "B  |--1--" ) != NULL );
+    CHECK( strstr( output, "E X|" ) != NULL );
+    CHECK( strstr( output, " 0 " ) == NULL );
     CHECK( strstr( output, " 5 " ) != NULL );
 
     return 1;
