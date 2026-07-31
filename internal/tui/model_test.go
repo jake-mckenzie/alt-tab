@@ -73,8 +73,8 @@ func TestFullNeckAndHelpToggles(t *testing.T) {
 	updated, _ := model.Update(tea.KeyPressMsg{Code: 'f', Text: "f"})
 	model = updated.(Model)
 	if !model.fullNeck ||
-		!strings.Contains(model.View().Content, "111111111122222222") ||
-		!strings.Contains(model.View().Content, "12345678901234567") {
+		!strings.Contains(model.View().Content, "Fret   1 2 3 4 5 6 7 8 9") ||
+		!strings.Contains(model.View().Content, " 5 6 7") {
 		t.Fatal("f did not enable the full-neck view")
 	}
 

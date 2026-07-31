@@ -20,7 +20,7 @@ func TestCompactFretboardUsesExactFretsAndFingers(t *testing.T) {
 			{Fret: -1},
 		},
 	}
-	output := renderFretboard(voicing, false)
+	output := renderFretboard(voicing, false, 80)
 
 	for _, expected := range []string{
 		"  1  ", "  4  ",
@@ -47,7 +47,7 @@ func TestCompactFretboardStartsAtHigherPosition(t *testing.T) {
 			{Fret: 8, Finger: 1},
 		},
 	}
-	output := renderFretboard(voicing, false)
+	output := renderFretboard(voicing, false, 80)
 
 	if !strings.Contains(output, "  8  ") || !strings.Contains(output, "  11 ") {
 		t.Fatalf("higher-position labels are missing:\n%s", output)
@@ -58,13 +58,28 @@ func TestCompactFretboardStartsAtHigherPosition(t *testing.T) {
 }
 
 func TestFullFretboardLabelsAllTwentySevenFrets(t *testing.T) {
-	output := renderFretboard(chords.Voicing{}, true)
+	output := renderFretboard(chords.Voicing{}, true, 80)
 
-	if !strings.Contains(output, "111111111122222222") ||
-		!strings.Contains(output, "12345678901234567") {
+	if !strings.Contains(output, "Fret   1 2 3 4 5 6 7 8 9 0 1") ||
+		!strings.Contains(output, " 5 6 7") {
 		t.Fatalf("full-neck labels are incomplete:\n%s", output)
 	}
-	if !strings.Contains(output, "e  O |---------------------------|") {
+	if !strings.Contains(
+		output,
+		"e  O |"+strings.Repeat("-", fullNeckLastFret*2)+"|",
+	) {
 		t.Fatalf("full-neck string does not span 27 frets:\n%s", output)
+	}
+}
+
+func TestFullFretboardFallsBackAtNarrowWidths(t *testing.T) {
+	output := renderFretboard(chords.Voicing{}, true, 50)
+
+	if !strings.Contains(output, "111111111122222222") ||
+		!strings.Contains(output, "Fret  12345678901234567") {
+		t.Fatalf("narrow full-neck labels are incomplete:\n%s", output)
+	}
+	if !strings.Contains(output, "e  O |"+strings.Repeat("-", 27)+"|") {
+		t.Fatalf("narrow full-neck string does not span 27 frets:\n%s", output)
 	}
 }
