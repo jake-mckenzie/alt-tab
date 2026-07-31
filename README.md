@@ -55,6 +55,8 @@ voicing. `O` is an open string and `X` is a muted string.
 ```text
 .
 ├── include/
+│   ├── backend/
+│   │   └── chord_api.h
 │   ├── render/
 │   │   └── terminal_renderer.h
 │   └── theory/
@@ -70,6 +72,8 @@ voicing. `O` is an open string and `X` is a muted string.
 ├── src/
 │   ├── app/
 │   │   └── main.c
+│   ├── backend/
+│   │   └── chord_api.c
 │   ├── render/
 │   │   └── terminal_renderer.c
 │   └── theory/
@@ -199,6 +203,8 @@ supported name.
 - `theory` defines variation numbers, fret placement, and finger placement for
   six-string chord voicings. It owns the immutable chord library and performs
   no terminal input or output.
+- `backend` provides a stable, UI-independent C API for listing chord names and
+  copying chord voicings into caller-owned memory.
 - `render` validates a chord and provides compact and full-neck horizontal tab.
 - `app` owns the input loop and coordinates lookup and rendering.
 - `cmd/alt-tab-tui` starts the Bubble Tea application, while `internal/tui`

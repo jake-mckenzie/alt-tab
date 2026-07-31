@@ -15,7 +15,8 @@ BUILD ?= debug
 
 APP_SRCS = $(SRC_DIR)/app/main.c
 CORE_SRCS = $(SRC_DIR)/theory/chord_library.c \
-            $(SRC_DIR)/render/terminal_renderer.c
+            $(SRC_DIR)/render/terminal_renderer.c \
+            $(SRC_DIR)/backend/chord_api.c
 SRCS = $(APP_SRCS) $(CORE_SRCS)
 TEST_SRCS = $(TEST_DIR)/test_chord_library.c
 GO_SRCS = $(shell find cmd internal -name '*.go' 2>/dev/null)

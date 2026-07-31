@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include "backend/chord_api.h"
 #include "render/terminal_renderer.h"
 #include "theory/chord_library.h"
 
@@ -98,6 +99,52 @@ static int testLookup( void )
     CHECK( chordLibraryVariationCount( &library, "missing" ) == 0 );
     CHECK( chordLibraryFindVariation( &library, "C", 2 ) != NULL );
     CHECK( chordLibraryFindVariation( &library, "C", 3 ) == NULL );
+
+    return 1;
+}
+
+/* Verifies the UI-independent backend API and its ownership boundary. */
+static int testChordApi( void )
+{
+    static const char *const EXPECTED_NAMES[ ] = {
+        "A", "Am", "B", "Bb", "C", "Cm", "D",
+        "Dm", "E", "Em", "F", "F#", "G", "Gm"
+    };
+    AltTabChordVoicing voicing;
+
+    CHECK( altTabChordCount( ) == ARRAY_COUNT( EXPECTED_NAMES ) );
+    for ( size_t index = 0; index < ARRAY_COUNT( EXPECTED_NAMES ); index++ ) {
+        CHECK(
+            strcmp( altTabChordNameAt( index ), EXPECTED_NAMES[ index ] ) == 0
+        );
+    }
+    CHECK( altTabChordNameAt( ARRAY_COUNT( EXPECTED_NAMES ) ) == NULL );
+    CHECK( altTabChordVariationCount( "c" ) == 2 );
+    CHECK( altTabChordVariationCount( "missing" ) == 0 );
+
+    for ( size_t index = 0; index < ARRAY_COUNT( EXPECTED_CHORDS ); index++ ) {
+        const ExpectedChord *expected = &EXPECTED_CHORDS[ index ];
+
+        CHECK(
+            altTabChordLoad(
+                expected->name,
+                expected->variation,
+                &voicing
+            )
+        );
+        CHECK( voicing.variation == expected->variation );
+        for ( size_t string = 0; string < ALT_TAB_STRING_COUNT; string++ ) {
+            CHECK( voicing.strings[ string ].fret == expected->frets[ string ] );
+            CHECK(
+                voicing.strings[ string ].finger ==
+                expected->fingers[ string ]
+            );
+        }
+    }
+
+    CHECK( !altTabChordLoad( "C", 3, &voicing ) );
+    CHECK( !altTabChordLoad( "missing", 1, &voicing ) );
+    CHECK( !altTabChordLoad( "C", 1, NULL ) );
 
     return 1;
 }
@@ -235,6 +282,7 @@ int main( void )
 {
     if ( !testDefaultLibrary( ) ||
          !testLookup( ) ||
+         !testChordApi( ) ||
          !testChordTones( ) ||
          !testRenderer( ) ) {
         return 1;
