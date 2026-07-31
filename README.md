@@ -150,6 +150,7 @@ are omitted here; Alt-Tab adapts them to light and dark backgrounds.
   │                                                                        │
   │ Fingers: 1 index  2 middle                                             │
   │          3 ring   4 little                                             │
+  │                                                                        │
   │ Symbols: O open  X muted                                               │
   ╰────────────────────────────────────────────────────────────────────────╯
 

@@ -37,7 +37,7 @@ func renderFretboard(
 
 	output.WriteString("\nFingers: 1 index  2 middle")
 	output.WriteString("\n         3 ring   4 little")
-	output.WriteString("\nSymbols: O open  X muted")
+	output.WriteString("\n\nSymbols: O open  X muted")
 	return output.String()
 }
 

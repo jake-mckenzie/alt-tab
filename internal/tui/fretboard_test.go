@@ -29,6 +29,7 @@ func TestCompactFretboardUsesExactFretsAndFingers(t *testing.T) {
 		"D    |-------2------------|",
 		"A    |------------3-------|",
 		"E    X--------------------|",
+		"4 little\n\nSymbols:",
 	} {
 		if !strings.Contains(output, expected) {
 			t.Fatalf("fretboard does not contain %q:\n%s", expected, output)
