@@ -24,7 +24,7 @@ func renderFretboard(
 	writeFretLabels(&output, firstFret, lastFret, cellWidth)
 
 	for index, placement := range voicing.Strings {
-		fmt.Fprintf(&output, "%s  %c |", stringNames[index], stringStatus(placement))
+		fmt.Fprintf(&output, "%s    %c", stringNames[index], stringBoundary(placement))
 		for fret := firstFret; fret <= lastFret; fret++ {
 			marker := ""
 			if placement.Fret == fret {
@@ -84,14 +84,14 @@ func writeFretLabels(output *strings.Builder, first, last, cellWidth int) {
 	output.WriteByte('\n')
 }
 
-func stringStatus(placement chords.StringPlacement) byte {
+func stringBoundary(placement chords.StringPlacement) byte {
 	switch placement.Fret {
 	case -1:
 		return 'X'
 	case 0:
 		return 'O'
 	default:
-		return ' '
+		return '|'
 	}
 }
 

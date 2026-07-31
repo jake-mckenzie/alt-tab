@@ -24,11 +24,11 @@ func TestCompactFretboardUsesExactFretsAndFingers(t *testing.T) {
 
 	for _, expected := range []string{
 		"  1  ", "  4  ",
-		"e  O |--------------------|",
+		"e    O--------------------|",
 		"B    |--1-----------------|",
 		"D    |-------2------------|",
 		"A    |------------3-------|",
-		"E  X |--------------------|",
+		"E    X--------------------|",
 	} {
 		if !strings.Contains(output, expected) {
 			t.Fatalf("fretboard does not contain %q:\n%s", expected, output)
@@ -66,7 +66,7 @@ func TestFullFretboardLabelsAllTwentySevenFrets(t *testing.T) {
 	}
 	if !strings.Contains(
 		output,
-		"e  O |"+strings.Repeat("-", fullNeckLastFret*fullNeckCellWidth)+"|",
+		"e    O"+strings.Repeat("-", fullNeckLastFret*fullNeckCellWidth)+"|",
 	) {
 		t.Fatalf("full-neck string does not span 27 frets:\n%s", output)
 	}
