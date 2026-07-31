@@ -23,6 +23,9 @@ make
 make run
 ```
 
+Before building or running, Make automatically checks for Go, a C compiler,
+cgo, a resolvable dependency graph, and valid dependency checksums.
+
 Alt-Tab is an interactive TUI and must be run in a terminal. It does not accept
 the command-line chord and display flags used by the former interface.
 
@@ -49,6 +52,12 @@ go env CGO_ENABLED
 
 ## Building
 
+Run the dependency check by itself:
+
+```bash
+make check-deps
+```
+
 Build the development binary in the project root:
 
 ```bash
@@ -73,8 +82,10 @@ You can also build directly with Go:
 go build -o alt-tab ./cmd/alt-tab
 ```
 
-Dependencies listed in `go.mod` and `go.sum` are downloaded automatically when
-needed.
+Missing dependencies listed in `go.mod` and `go.sum` are downloaded
+automatically, while cached dependencies work offline. Modules are resolved in
+read-only mode and verified against their recorded checksums. The check runs
+automatically before `make`, `make run`, and `make test`.
 
 ## Running
 

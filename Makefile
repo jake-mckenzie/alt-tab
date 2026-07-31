@@ -39,7 +39,23 @@ endif
 
 all: $(TARGET)
 
-$(TARGET): FORCE go.mod go.sum $(GO_SRCS) $(BACKEND_SRCS)
+check-deps:
+	@command -v $(GO) >/dev/null 2>&1 || { \
+		echo "error: Go is required but '$(GO)' was not found"; \
+		exit 1; \
+	}
+	@command -v $(firstword $(CC)) >/dev/null 2>&1 || { \
+		echo "error: a C compiler is required but '$(firstword $(CC))' was not found"; \
+		exit 1; \
+	}
+	@test "$$($(GO) env CGO_ENABLED)" = "1" || { \
+		echo "error: cgo is disabled; run with CGO_ENABLED=1"; \
+		exit 1; \
+	}
+	@$(GO) list -mod=readonly -deps ./... >/dev/null
+	@$(GO) mod verify >/dev/null
+
+$(TARGET): check-deps go.mod go.sum $(GO_SRCS) $(BACKEND_SRCS)
 	$(GO) build $(GO_BUILD_FLAGS) -o $@ $(GO_PACKAGE)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
@@ -53,7 +69,7 @@ $(BUILD_DIR)/tests/%.o: $(TEST_DIR)/%.c
 $(TEST_TARGET): $(TEST_OBJS) $(BACKEND_OBJS)
 	$(CC) $(TEST_OBJS) $(BACKEND_OBJS) $(LDFLAGS) -o $@
 
-test: $(TEST_TARGET)
+test: check-deps $(TEST_TARGET)
 	./$(TEST_TARGET)
 	$(GO) test ./...
 
@@ -63,6 +79,4 @@ clean:
 run: $(TARGET)
 	./$(TARGET)
 
-FORCE:
-
-.PHONY: FORCE all clean run test
+.PHONY: all check-deps clean run test
