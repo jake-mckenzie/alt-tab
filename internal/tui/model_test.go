@@ -85,13 +85,21 @@ func TestFullNeckAndHelpToggles(t *testing.T) {
 	}
 }
 
-func TestFullNeckRequestsMoreWidthInsteadOfWrapping(t *testing.T) {
+func TestFullNeckRequiresNinetyEightColumns(t *testing.T) {
 	model := New(fakeCatalog{})
 	model.width = fullNeckMinimumTerminalWidth - 1
 	model.fullNeck = true
 
 	if !strings.Contains(model.View().Content, "Widen the terminal") {
 		t.Fatal("narrow full-neck view does not request a wider terminal")
+	}
+
+	model.width = fullNeckMinimumTerminalWidth
+	if strings.Contains(model.View().Content, "Widen the terminal") {
+		t.Fatal("full-neck view rejects a 98-column terminal")
+	}
+	if !strings.Contains(model.View().Content, " 25 26 27") {
+		t.Fatal("full-neck view does not render at 98 columns")
 	}
 }
 

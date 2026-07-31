@@ -9,7 +9,7 @@ import (
 
 const fullNeckLastFret = 27
 const fullNeckCellWidth = 3
-const fullNeckMinimumTerminalWidth = 94
+const fullNeckMinimumTerminalWidth = 98
 
 var stringNames = [chords.StringCount]string{"e", "B", "G", "D", "A", "E"}
 

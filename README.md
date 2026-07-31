@@ -119,6 +119,7 @@ Launch an existing build:
 
 The layout responds to terminal resizing. Wide terminals show the chord list
 beside the fretboard; narrow terminals stack the chord selector above it.
+Full-neck mode requires a terminal width of at least 98 columns.
 
 ## TUI Output
 
