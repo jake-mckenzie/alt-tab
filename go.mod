@@ -2,7 +2,10 @@ module alt-tab
 
 go 1.25.0
 
-require charm.land/bubbletea/v2 v2.0.6
+require (
+	charm.land/bubbletea/v2 v2.0.6
+	charm.land/lipgloss/v2 v2.0.3
+)
 
 require (
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect

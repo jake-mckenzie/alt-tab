@@ -1,25 +1,92 @@
 package tui
 
 import (
+	"errors"
 	"strings"
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
+
+	"alt-tab/internal/chords"
 )
 
-func TestViewContainsApplicationName(t *testing.T) {
-	view := New().View()
+type fakeCatalog struct{}
 
-	if !strings.Contains(view.Content, "ALT-TAB") {
-		t.Fatal("view does not contain application name")
+func (fakeCatalog) Names() []string {
+	return []string{"C", "G"}
+}
+
+func (fakeCatalog) VariationCount(string) int {
+	return 2
+}
+
+func (fakeCatalog) Load(name string, variation int) (chords.Voicing, error) {
+	if variation < 1 || variation > 2 {
+		return chords.Voicing{}, errors.New("missing variation")
+	}
+
+	return chords.Voicing{
+		Name:      name,
+		Variation: variation,
+		Strings: [chords.StringCount]chords.StringPlacement{
+			{Fret: 0},
+			{Fret: 1, Finger: 1},
+			{Fret: 0},
+			{Fret: 2, Finger: 2},
+			{Fret: 3, Finger: 3},
+			{Fret: -1},
+		},
+	}, nil
+}
+
+func TestViewContainsChordAndFingering(t *testing.T) {
+	view := New(fakeCatalog{}).View()
+
+	for _, expected := range []string{"ALT-TAB", "C", "variation 1 of 2", "--1--", "X"} {
+		if !strings.Contains(view.Content, expected) {
+			t.Fatalf("view does not contain %q", expected)
+		}
 	}
 	if !view.AltScreen {
 		t.Fatal("view does not request the alternate screen")
 	}
 }
 
+func TestNavigationUpdatesSelection(t *testing.T) {
+	model := New(fakeCatalog{})
+	updated, _ := model.Update(tea.KeyPressMsg{Code: tea.KeyDown})
+	model = updated.(Model)
+
+	if model.voicing.Name != "G" || model.voicing.Variation != 1 {
+		t.Fatalf("down selected %s:%d, want G:1", model.voicing.Name, model.voicing.Variation)
+	}
+
+	updated, _ = model.Update(tea.KeyPressMsg{Code: tea.KeyRight})
+	model = updated.(Model)
+	if model.voicing.Variation != 2 {
+		t.Fatalf("right selected variation %d, want 2", model.voicing.Variation)
+	}
+}
+
+func TestFullNeckAndHelpToggles(t *testing.T) {
+	model := New(fakeCatalog{})
+	updated, _ := model.Update(tea.KeyPressMsg{Code: 'f', Text: "f"})
+	model = updated.(Model)
+	if !model.fullNeck ||
+		!strings.Contains(model.View().Content, "111111111122222222") ||
+		!strings.Contains(model.View().Content, "12345678901234567") {
+		t.Fatal("f did not enable the full-neck view")
+	}
+
+	updated, _ = model.Update(tea.KeyPressMsg{Code: '?', Text: "?"})
+	model = updated.(Model)
+	if !model.showHelp || !strings.Contains(model.View().Content, "KEYBOARD HELP") {
+		t.Fatal("? did not open help")
+	}
+}
+
 func TestQuitKeyReturnsCommand(t *testing.T) {
-	model := New()
+	model := New(fakeCatalog{})
 	_, command := model.Update(tea.KeyPressMsg{Code: 'q', Text: "q"})
 
 	if command == nil {

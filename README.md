@@ -107,7 +107,7 @@ make clean
 make BUILD=release
 ```
 
-Build the Bubble Tea interface scaffold:
+Build the Bubble Tea interface:
 
 ```bash
 make tui
@@ -120,6 +120,16 @@ make clean
 ```
 
 ## Running
+
+Launch the Bubble Tea interface:
+
+```bash
+make run-tui
+```
+
+Use the arrow keys or `h`/`j`/`k`/`l` to select chords and variations. Press
+`f` to toggle the complete neck, `?` for help, and `q` to quit. The legacy
+command-line interface remains available until the TUI replacement is complete.
 
 Build and run:
 
@@ -215,7 +225,8 @@ supported name.
 - `render` validates a chord and provides compact and full-neck horizontal tab.
 - `app` owns the input loop and coordinates lookup and rendering.
 - `cmd/alt-tab-tui` starts the Bubble Tea application, while `internal/tui`
-  owns its state, event handling, and views.
+  owns responsive chord navigation, variation selection, fretboard views, help,
+  and terminal styling.
 
 String placements are ordered from high e to low E. A fret value of `-1` means
 muted, `0` means open, and a positive value is the played fret. Fretted strings
