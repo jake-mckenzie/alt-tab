@@ -60,13 +60,13 @@ func TestCompactFretboardStartsAtHigherPosition(t *testing.T) {
 func TestFullFretboardLabelsAllTwentySevenFrets(t *testing.T) {
 	output := renderFretboard(chords.Voicing{}, true)
 
-	if !strings.Contains(output, " 1 2 3 4 5 6 7 8 9101112") ||
-		!strings.Contains(output, "252627") {
+	if !strings.Contains(output, " 1  2  3  4  5  6  7  8  9  10 11 12") ||
+		!strings.Contains(output, " 25 26 27") {
 		t.Fatalf("full-neck labels are incomplete:\n%s", output)
 	}
 	if !strings.Contains(
 		output,
-		"e  O |"+strings.Repeat("-", fullNeckLastFret*2)+"|",
+		"e  O |"+strings.Repeat("-", fullNeckLastFret*fullNeckCellWidth)+"|",
 	) {
 		t.Fatalf("full-neck string does not span 27 frets:\n%s", output)
 	}
@@ -82,7 +82,7 @@ func TestFullFretboardAlignsFingerAtFinalFret(t *testing.T) {
 
 	if !strings.Contains(
 		output,
-		"e    |"+strings.Repeat("-", fullNeckLastFret*2-1)+"4|",
+		"e    |"+strings.Repeat("-", fullNeckLastFret*fullNeckCellWidth-2)+"4-|",
 	) {
 		t.Fatalf("fret 27 marker is misaligned:\n%s", output)
 	}

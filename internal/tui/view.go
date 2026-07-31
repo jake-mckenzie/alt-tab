@@ -27,7 +27,7 @@ func (model Model) render() string {
 	var body string
 	useWideLayout := width >= wideLayoutMinimum &&
 		model.height >= 24 &&
-		(!model.fullNeck || width >= 88)
+		(!model.fullNeck || width >= 115)
 	if model.showHelp {
 		body = model.styles.panel.
 			Width(contentWidth - 2).
@@ -119,8 +119,19 @@ func (model Model) renderDetail() string {
 		model.voicing.Variation,
 		variationCount,
 	)
-	return model.styles.heading.Render(heading) + "\n" +
-		model.styles.accent.Render(mode) + "\n\n" +
+	header := model.styles.heading.Render(heading) + "\n" +
+		model.styles.accent.Render(mode)
+	if model.fullNeck && model.width < fullNeckMinimumTerminalWidth {
+		return header + "\n\n" + model.styles.err.Render(
+			fmt.Sprintf(
+				"Widen the terminal to at least %d columns (currently %d).",
+				fullNeckMinimumTerminalWidth,
+				model.width,
+			),
+		)
+	}
+
+	return header + "\n\n" +
 		model.styles.normal.Render(renderFretboard(model.voicing, model.fullNeck))
 }
 

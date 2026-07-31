@@ -8,6 +8,8 @@ import (
 )
 
 const fullNeckLastFret = 27
+const fullNeckCellWidth = 3
+const fullNeckMinimumTerminalWidth = 94
 
 var stringNames = [chords.StringCount]string{"e", "B", "G", "D", "A", "E"}
 
@@ -45,7 +47,7 @@ func fretRange(
 	fullNeck bool,
 ) (int, int, int) {
 	if fullNeck {
-		return 1, fullNeckLastFret, 2
+		return 1, fullNeckLastFret, fullNeckCellWidth
 	}
 
 	lowest := fullNeckLastFret

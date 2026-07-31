@@ -73,8 +73,8 @@ func TestFullNeckAndHelpToggles(t *testing.T) {
 	updated, _ := model.Update(tea.KeyPressMsg{Code: 'f', Text: "f"})
 	model = updated.(Model)
 	if !model.fullNeck ||
-		!strings.Contains(model.View().Content, " 1 2 3 4 5 6 7 8 910") ||
-		!strings.Contains(model.View().Content, "252627") {
+		!strings.Contains(model.View().Content, " 1  2  3  4  5  6  7  8  9") ||
+		!strings.Contains(model.View().Content, " 25 26 27") {
 		t.Fatal("f did not enable the full-neck view")
 	}
 
@@ -82,6 +82,16 @@ func TestFullNeckAndHelpToggles(t *testing.T) {
 	model = updated.(Model)
 	if !model.showHelp || !strings.Contains(model.View().Content, "KEYBOARD HELP") {
 		t.Fatal("? did not open help")
+	}
+}
+
+func TestFullNeckRequestsMoreWidthInsteadOfWrapping(t *testing.T) {
+	model := New(fakeCatalog{})
+	model.width = fullNeckMinimumTerminalWidth - 1
+	model.fullNeck = true
+
+	if !strings.Contains(model.View().Content, "Widen the terminal") {
+		t.Fatal("narrow full-neck view does not request a wider terminal")
 	}
 }
 
