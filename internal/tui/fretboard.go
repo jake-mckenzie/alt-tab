@@ -24,7 +24,7 @@ func renderFretboard(
 	writeFretLabels(&output, firstFret, lastFret, cellWidth)
 
 	for index, placement := range voicing.Strings {
-		fmt.Fprintf(&output, "%s    %c", stringNames[index], stringBoundary(placement))
+		fmt.Fprintf(&output, "%s  %c", stringNames[index], stringBoundary(placement))
 		for fret := firstFret; fret <= lastFret; fret++ {
 			marker := ""
 			if placement.Fret == fret {
@@ -77,7 +77,7 @@ func fretRange(
 
 // writeFretLabels places every complete fret number above its string cell.
 func writeFretLabels(output *strings.Builder, first, last, cellWidth int) {
-	output.WriteString("      ")
+	output.WriteString("    ")
 	for fret := first; fret <= last; fret++ {
 		output.WriteString(centerText(fmt.Sprintf("%d", fret), cellWidth, ' '))
 	}

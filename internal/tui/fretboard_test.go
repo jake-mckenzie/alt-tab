@@ -24,11 +24,11 @@ func TestCompactFretboardUsesExactFretsAndFingers(t *testing.T) {
 
 	for _, expected := range []string{
 		"  1  ", "  4  ",
-		"e    O--------------------|",
-		"B    |--1-----------------|",
-		"D    |-------2------------|",
-		"A    |------------3-------|",
-		"E    X--------------------|",
+		"e  O--------------------|",
+		"B  |--1-----------------|",
+		"D  |-------2------------|",
+		"A  |------------3-------|",
+		"E  X--------------------|",
 		"4 little\n\nSymbols:",
 	} {
 		if !strings.Contains(output, expected) {
@@ -67,7 +67,7 @@ func TestFullFretboardLabelsAllTwentySevenFrets(t *testing.T) {
 	}
 	if !strings.Contains(
 		output,
-		"e    O"+strings.Repeat("-", fullNeckLastFret*fullNeckCellWidth)+"|",
+		"e  O"+strings.Repeat("-", fullNeckLastFret*fullNeckCellWidth)+"|",
 	) {
 		t.Fatalf("full-neck string does not span 27 frets:\n%s", output)
 	}
@@ -83,7 +83,7 @@ func TestFullFretboardAlignsFingerAtFinalFret(t *testing.T) {
 
 	if !strings.Contains(
 		output,
-		"e    |"+strings.Repeat("-", fullNeckLastFret*fullNeckCellWidth-2)+"4-|",
+		"e  |"+strings.Repeat("-", fullNeckLastFret*fullNeckCellWidth-2)+"4-|",
 	) {
 		t.Fatalf("fret 27 marker is misaligned:\n%s", output)
 	}
