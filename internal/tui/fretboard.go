@@ -8,7 +8,6 @@ import (
 )
 
 const fullNeckLastFret = 27
-const readableFullNeckWidth = 61
 
 var stringNames = [chords.StringCount]string{"e", "B", "G", "D", "A", "E"}
 
@@ -16,13 +15,8 @@ var stringNames = [chords.StringCount]string{"e", "B", "G", "D", "A", "E"}
 func renderFretboard(
 	voicing chords.Voicing,
 	fullNeck bool,
-	availableWidth int,
 ) string {
-	firstFret, lastFret, cellWidth := fretRange(
-		voicing,
-		fullNeck,
-		availableWidth,
-	)
+	firstFret, lastFret, cellWidth := fretRange(voicing, fullNeck)
 	var output strings.Builder
 
 	writeFretLabels(&output, firstFret, lastFret, cellWidth)
@@ -49,13 +43,9 @@ func renderFretboard(
 func fretRange(
 	voicing chords.Voicing,
 	fullNeck bool,
-	availableWidth int,
 ) (int, int, int) {
 	if fullNeck {
-		if availableWidth >= readableFullNeckWidth {
-			return 1, fullNeckLastFret, 2
-		}
-		return 1, fullNeckLastFret, 1
+		return 1, fullNeckLastFret, 2
 	}
 
 	lowest := fullNeckLastFret
@@ -83,27 +73,8 @@ func fretRange(
 	return lowest, last, 5
 }
 
-// writeFretLabels uses an aligned tens-and-ones ruler for the complete neck.
+// writeFretLabels places every complete fret number above its string cell.
 func writeFretLabels(output *strings.Builder, first, last, cellWidth int) {
-	if first == 1 && last == fullNeckLastFret {
-		output.WriteString("      ")
-		for fret := first; fret <= last; fret++ {
-			tens := ""
-			if fret >= 10 {
-				tens = fmt.Sprintf("%d", fret/10)
-			}
-			output.WriteString(centerText(tens, cellWidth, ' '))
-		}
-		output.WriteString("\nFret  ")
-		for fret := first; fret <= last; fret++ {
-			output.WriteString(
-				centerText(fmt.Sprintf("%d", fret%10), cellWidth, ' '),
-			)
-		}
-		output.WriteByte('\n')
-		return
-	}
-
 	output.WriteString("      ")
 	for fret := first; fret <= last; fret++ {
 		output.WriteString(centerText(fmt.Sprintf("%d", fret), cellWidth, ' '))

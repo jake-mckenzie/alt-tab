@@ -20,7 +20,7 @@ func TestCompactFretboardUsesExactFretsAndFingers(t *testing.T) {
 			{Fret: -1},
 		},
 	}
-	output := renderFretboard(voicing, false, 80)
+	output := renderFretboard(voicing, false)
 
 	for _, expected := range []string{
 		"  1  ", "  4  ",
@@ -47,7 +47,7 @@ func TestCompactFretboardStartsAtHigherPosition(t *testing.T) {
 			{Fret: 8, Finger: 1},
 		},
 	}
-	output := renderFretboard(voicing, false, 80)
+	output := renderFretboard(voicing, false)
 
 	if !strings.Contains(output, "  8  ") || !strings.Contains(output, "  11 ") {
 		t.Fatalf("higher-position labels are missing:\n%s", output)
@@ -58,10 +58,10 @@ func TestCompactFretboardStartsAtHigherPosition(t *testing.T) {
 }
 
 func TestFullFretboardLabelsAllTwentySevenFrets(t *testing.T) {
-	output := renderFretboard(chords.Voicing{}, true, 80)
+	output := renderFretboard(chords.Voicing{}, true)
 
-	if !strings.Contains(output, "Fret   1 2 3 4 5 6 7 8 9 0 1") ||
-		!strings.Contains(output, " 5 6 7") {
+	if !strings.Contains(output, " 1 2 3 4 5 6 7 8 9101112") ||
+		!strings.Contains(output, "252627") {
 		t.Fatalf("full-neck labels are incomplete:\n%s", output)
 	}
 	if !strings.Contains(
@@ -72,14 +72,18 @@ func TestFullFretboardLabelsAllTwentySevenFrets(t *testing.T) {
 	}
 }
 
-func TestFullFretboardFallsBackAtNarrowWidths(t *testing.T) {
-	output := renderFretboard(chords.Voicing{}, true, 50)
-
-	if !strings.Contains(output, "111111111122222222") ||
-		!strings.Contains(output, "Fret  12345678901234567") {
-		t.Fatalf("narrow full-neck labels are incomplete:\n%s", output)
+func TestFullFretboardAlignsFingerAtFinalFret(t *testing.T) {
+	voicing := chords.Voicing{
+		Strings: [chords.StringCount]chords.StringPlacement{
+			{Fret: 27, Finger: 4},
+		},
 	}
-	if !strings.Contains(output, "e  O |"+strings.Repeat("-", 27)+"|") {
-		t.Fatalf("narrow full-neck string does not span 27 frets:\n%s", output)
+	output := renderFretboard(voicing, true)
+
+	if !strings.Contains(
+		output,
+		"e    |"+strings.Repeat("-", fullNeckLastFret*2-1)+"4|",
+	) {
+		t.Fatalf("fret 27 marker is misaligned:\n%s", output)
 	}
 }

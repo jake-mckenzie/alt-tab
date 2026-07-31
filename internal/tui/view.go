@@ -56,7 +56,7 @@ func (model Model) renderWide(width int) string {
 		Render(model.renderChordList())
 	detail := model.styles.panel.
 		Width(detailWidth).
-		Render(model.renderDetail(detailWidth))
+		Render(model.renderDetail())
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, sidebar, strings.Repeat(" ", gap), detail)
 }
@@ -67,7 +67,7 @@ func (model Model) renderNarrow(width int) string {
 		Render(model.renderChordSelector())
 	detail := model.styles.panel.
 		Width(width - 2).
-		Render(model.renderDetail(width - 2))
+		Render(model.renderDetail())
 
 	return lipgloss.JoinVertical(lipgloss.Left, selector, detail)
 }
@@ -102,7 +102,7 @@ func (model Model) renderChordSelector() string {
 		model.styles.muted.Render(next)
 }
 
-func (model Model) renderDetail(availableWidth int) string {
+func (model Model) renderDetail() string {
 	if model.err != nil {
 		return model.styles.err.Render(model.err.Error())
 	}
@@ -121,9 +121,7 @@ func (model Model) renderDetail(availableWidth int) string {
 	)
 	return model.styles.heading.Render(heading) + "\n" +
 		model.styles.accent.Render(mode) + "\n\n" +
-		model.styles.normal.Render(
-			renderFretboard(model.voicing, model.fullNeck, availableWidth),
-		)
+		model.styles.normal.Render(renderFretboard(model.voicing, model.fullNeck))
 }
 
 func (model Model) renderHelp() string {
