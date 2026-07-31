@@ -117,37 +117,54 @@ Launch an existing build:
 | `Esc` | Close help |
 | `q` / `Ctrl+C` | Quit |
 
-The layout responds to terminal resizing. Wide terminals show the chord list
-beside the fretboard; narrow terminals stack the chord selector above it.
-Full-neck mode requires a terminal width of at least 98 columns.
+The complete vertical chord list appears above the fretboard in both compact
+and full-neck modes. Full-neck mode requires a terminal width of at least 98
+columns.
 
 ## TUI Output
 
-The default wide layout appears as follows in an 80-column terminal. Terminal
-colors are omitted here; Alt-Tab adapts them to light and dark backgrounds.
+The default layout appears as follows in an 80-column terminal. Terminal colors
+are omitted here; Alt-Tab adapts them to light and dark backgrounds.
 
 <!-- BEGIN VERIFIED TUI OUTPUT -->
 ```text
   ALT-TAB  Guitar Chord Viewer
 
-  ╭─────────────╮  ╭───────────────────────────────────────────────────╮
-  │ CHORDS      │  │ A  ·  variation 1 of 2                            │
-  │             │  │ compact                                           │
-  │ › A         │  │                                                   │
-  │   Am        │  │         1    2    3    4                          │
-  │   B         │  │ e  O |--------------------|                       │
-  │   Bb        │  │ B    |-------3------------|                       │
-  │   C         │  │ G    |-------2------------|                       │
-  │   Cm        │  │ D    |-------1------------|                       │
-  │   D         │  │ A  O |--------------------|                       │
-  │   Dm        │  │ E  X |--------------------|                       │
-  │   E         │  │                                                   │
-  │   Em        │  │ Fingers: 1 index  2 middle                        │
-  │   F         │  │          3 ring   4 little                        │
-  │   F#        │  │ Symbols: O open  X muted                          │
-  │   G         │  ╰───────────────────────────────────────────────────╯
-  │   Gm        │
-  ╰─────────────╯
+  ╭────────────────────────────────────────────────────────────────────────╮
+  │ CHORDS                                                                 │
+  │                                                                        │
+  │ › A                                                                    │
+  │   Am                                                                   │
+  │   B                                                                    │
+  │   Bb                                                                   │
+  │   C                                                                    │
+  │   Cm                                                                   │
+  │   D                                                                    │
+  │   Dm                                                                   │
+  │   E                                                                    │
+  │   Em                                                                   │
+  │   F                                                                    │
+  │   F#                                                                   │
+  │   G                                                                    │
+  │   Gm                                                                   │
+  ╰────────────────────────────────────────────────────────────────────────╯
+
+  ╭────────────────────────────────────────────────────────────────────────╮
+  │ A  ·  variation 1 of 2                                                 │
+  │ compact                                                                │
+  │                                                                        │
+  │         1    2    3    4                                               │
+  │ e  O |--------------------|                                            │
+  │ B    |-------3------------|                                            │
+  │ G    |-------2------------|                                            │
+  │ D    |-------1------------|                                            │
+  │ A  O |--------------------|                                            │
+  │ E  X |--------------------|                                            │
+  │                                                                        │
+  │ Fingers: 1 index  2 middle                                             │
+  │          3 ring   4 little                                             │
+  │ Symbols: O open  X muted                                               │
+  ╰────────────────────────────────────────────────────────────────────────╯
 
   ←/→ chord  ↑/↓ variation  f full neck  ? help  q quit
 ```

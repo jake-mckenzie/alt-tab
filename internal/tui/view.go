@@ -7,9 +7,7 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-const wideLayoutMinimum = 78
-
-// render composes responsive wide and narrow layouts.
+// render composes the stacked chord-list and fretboard layout.
 func (model Model) render() string {
 	width := model.width
 	if width < 40 {
@@ -25,17 +23,12 @@ func (model Model) render() string {
 	)
 
 	var body string
-	useWideLayout := width >= wideLayoutMinimum &&
-		model.height >= 24 &&
-		(!model.fullNeck || width >= 115)
 	if model.showHelp {
 		body = model.styles.panel.
 			Width(contentWidth - 2).
 			Render(model.renderHelp())
-	} else if useWideLayout {
-		body = model.renderWide(contentWidth)
 	} else {
-		body = model.renderNarrow(contentWidth)
+		body = model.renderStacked(contentWidth)
 	}
 
 	footer := model.styles.muted.Render(
@@ -46,30 +39,15 @@ func (model Model) render() string {
 		Render(header + "\n\n" + body + "\n\n" + footer)
 }
 
-func (model Model) renderWide(width int) string {
-	const sidebarWidth = 15
-	gap := 2
-	detailWidth := width - sidebarWidth - gap - 6
-
-	sidebar := model.styles.panel.
-		Width(sidebarWidth).
+func (model Model) renderStacked(width int) string {
+	chordList := model.styles.panel.
+		Width(width - 2).
 		Render(model.renderChordList())
 	detail := model.styles.panel.
-		Width(detailWidth).
-		Render(model.renderDetail())
-
-	return lipgloss.JoinHorizontal(lipgloss.Top, sidebar, strings.Repeat(" ", gap), detail)
-}
-
-func (model Model) renderNarrow(width int) string {
-	selector := model.styles.panel.
-		Width(width - 2).
-		Render(model.renderChordSelector())
-	detail := model.styles.panel.
 		Width(width - 2).
 		Render(model.renderDetail())
 
-	return lipgloss.JoinVertical(lipgloss.Left, selector, detail)
+	return lipgloss.JoinVertical(lipgloss.Left, chordList, "", detail)
 }
 
 func (model Model) renderChordList() string {
@@ -87,19 +65,6 @@ func (model Model) renderChordList() string {
 	}
 
 	return strings.TrimSuffix(output.String(), "\n")
-}
-
-func (model Model) renderChordSelector() string {
-	if len(model.names) == 0 {
-		return model.styles.err.Render("No chords available")
-	}
-
-	previous := model.names[wrap(model.selected-1, len(model.names))]
-	current := model.names[model.selected]
-	next := model.names[wrap(model.selected+1, len(model.names))]
-	return model.styles.muted.Render(previous) + "   " +
-		model.styles.selected.Render("‹  "+current+"  ›") + "   " +
-		model.styles.muted.Render(next)
 }
 
 func (model Model) renderDetail() string {
