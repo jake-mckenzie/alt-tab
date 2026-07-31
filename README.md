@@ -66,6 +66,11 @@ voicing. `O` is an open string and `X` is a muted string.
 │   └── alt-tab-tui/
 │       └── main.go
 ├── internal/
+│   ├── chords/
+│   │   ├── catalog.go
+│   │   ├── native.go
+│   │   ├── native_backend.c
+│   │   └── native_test.go
 │   └── tui/
 │       ├── model.go
 │       └── model_test.go
@@ -205,6 +210,8 @@ supported name.
   no terminal input or output.
 - `backend` provides a stable, UI-independent C API for listing chord names and
   copying chord voicings into caller-owned memory.
+- `internal/chords` adapts that API into Go-owned data behind a catalog
+  interface, keeping cgo out of the TUI and future audio packages.
 - `render` validates a chord and provides compact and full-neck horizontal tab.
 - `app` owns the input loop and coordinates lookup and rendering.
 - `cmd/alt-tab-tui` starts the Bubble Tea application, while `internal/tui`
