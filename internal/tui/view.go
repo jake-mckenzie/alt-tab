@@ -39,7 +39,7 @@ func (model Model) render() string {
 	}
 
 	footer := model.styles.muted.Render(
-		"↑/↓ chord  ←/→ variation  f full neck  ? help  q quit",
+		"←/→ chord  ↑/↓ variation  f full neck  ? help  q quit",
 	)
 	return lipgloss.NewStyle().
 		Padding(1, 2).
@@ -137,10 +137,10 @@ func (model Model) renderDetail() string {
 
 func (model Model) renderHelp() string {
 	return model.styles.heading.Render("KEYBOARD HELP") + "\n\n" +
-		"↑ / k     Previous chord\n" +
-		"↓ / j     Next chord\n" +
-		"← / h     Previous variation\n" +
-		"→ / l     Next variation\n" +
+		"← / h     Previous chord\n" +
+		"→ / l     Next chord\n" +
+		"↑ / k     Previous variation\n" +
+		"↓ / j     Next variation\n" +
 		"f         Toggle compact/full neck\n" +
 		"?         Open or close help\n" +
 		"esc       Close help\n" +

@@ -54,17 +54,17 @@ func TestViewContainsChordAndFingering(t *testing.T) {
 
 func TestNavigationUpdatesSelection(t *testing.T) {
 	model := New(fakeCatalog{})
-	updated, _ := model.Update(tea.KeyPressMsg{Code: tea.KeyDown})
+	updated, _ := model.Update(tea.KeyPressMsg{Code: tea.KeyRight})
 	model = updated.(Model)
 
 	if model.voicing.Name != "G" || model.voicing.Variation != 1 {
-		t.Fatalf("down selected %s:%d, want G:1", model.voicing.Name, model.voicing.Variation)
+		t.Fatalf("right selected %s:%d, want G:1", model.voicing.Name, model.voicing.Variation)
 	}
 
-	updated, _ = model.Update(tea.KeyPressMsg{Code: tea.KeyRight})
+	updated, _ = model.Update(tea.KeyPressMsg{Code: tea.KeyDown})
 	model = updated.(Model)
 	if model.voicing.Variation != 2 {
-		t.Fatalf("right selected variation %d, want 2", model.voicing.Variation)
+		t.Fatalf("down selected variation %d, want 2", model.voicing.Variation)
 	}
 }
 

@@ -108,10 +108,10 @@ Launch an existing build:
 
 | Key | Action |
 | --- | --- |
-| `↑` / `k` | Previous chord |
-| `↓` / `j` | Next chord |
-| `←` / `h` | Previous variation |
-| `→` / `l` | Next variation |
+| `←` / `h` | Previous chord |
+| `→` / `l` | Next chord |
+| `↑` / `k` | Previous variation |
+| `↓` / `j` | Next variation |
 | `f` | Toggle compact or full-neck view |
 | `?` | Open or close help |
 | `Esc` | Close help |
@@ -149,7 +149,7 @@ colors are omitted here; Alt-Tab adapts them to light and dark backgrounds.
   │   Gm        │
   ╰─────────────╯
 
-  ↑/↓ chord  ←/→ variation  f full neck  ? help  q quit
+  ←/→ chord  ↑/↓ variation  f full neck  ? help  q quit
 ```
 <!-- END VERIFIED TUI OUTPUT -->
 

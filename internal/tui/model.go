@@ -71,13 +71,13 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch key {
 		case "up", "k":
-			model.moveChord(-1)
-		case "down", "j":
-			model.moveChord(1)
-		case "left", "h":
 			model.moveVariation(-1)
-		case "right", "l":
+		case "down", "j":
 			model.moveVariation(1)
+		case "left", "h":
+			model.moveChord(-1)
+		case "right", "l":
+			model.moveChord(1)
 		case "f":
 			model.fullNeck = !model.fullNeck
 		case "?":
