@@ -1,4 +1,5 @@
 CC = gcc
+GO = go
 
 SRC_DIR   = src
 INC_DIR   = include
@@ -7,6 +8,8 @@ TEST_DIR  = tests
 
 TARGET = alt-tab
 TEST_TARGET = $(BUILD_DIR)/test-alt-tab
+TUI_TARGET = $(BUILD_DIR)/alt-tab-tui
+TUI_PACKAGE = ./cmd/alt-tab-tui
 
 BUILD ?= debug
 
@@ -15,6 +18,7 @@ CORE_SRCS = $(SRC_DIR)/theory/chord_library.c \
             $(SRC_DIR)/render/terminal_renderer.c
 SRCS = $(APP_SRCS) $(CORE_SRCS)
 TEST_SRCS = $(TEST_DIR)/test_chord_library.c
+GO_SRCS = $(shell find cmd internal -name '*.go' 2>/dev/null)
 
 OBJS = $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 CORE_OBJS = $(CORE_SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
@@ -36,6 +40,8 @@ endif
 
 all: $(TARGET)
 
+tui: $(TUI_TARGET)
+
 $(TARGET): $(OBJS)
 	$(CC) $(OBJS) $(LDFLAGS) -o $@
 
@@ -49,6 +55,10 @@ $(BUILD_DIR)/tests/%.o: $(TEST_DIR)/%.c
 
 $(TEST_TARGET): $(TEST_OBJS) $(CORE_OBJS)
 	$(CC) $(TEST_OBJS) $(CORE_OBJS) $(LDFLAGS) -o $@
+
+$(TUI_TARGET): go.mod go.sum $(GO_SRCS)
+	mkdir -p $(dir $@)
+	$(GO) build -o $@ $(TUI_PACKAGE)
 
 test: $(TARGET) $(TEST_TARGET)
 	./$(TEST_TARGET)
@@ -64,6 +74,7 @@ test: $(TARGET) $(TEST_TARGET)
 	./$(TARGET) C -a | grep -q 'Chord: C (variation 2)'
 	printf '%s\n' 'C:2' 'q' | ./$(TARGET) | grep -q 'Chord: C (variation 2)'
 	./$(TARGET) --help | grep -q 'SUPPORTED CHORDS'
+	$(GO) test ./...
 
 clean:
 	rm -rf $(BUILD_DIR) $(TARGET)
@@ -74,4 +85,7 @@ run: $(TARGET)
 run-full: $(TARGET)
 	./$(TARGET) --full-neck
 
-.PHONY: all clean run run-full test
+run-tui: $(TUI_TARGET)
+	./$(TUI_TARGET)
+
+.PHONY: all clean run run-full run-tui test tui

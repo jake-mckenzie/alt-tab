@@ -14,6 +14,7 @@ low E is on the bottom, and fret numbers increase from left to right.
 
 - A C11 compiler such as GCC or Clang
 - Make
+- Go 1.25 or newer for the Bubble Tea interface
 - AddressSanitizer and UndefinedBehaviorSanitizer support for the default
   debug build
 
@@ -59,6 +60,13 @@ voicing. `O` is an open string and `X` is a muted string.
 │   └── theory/
 │       ├── chord.h
 │       └── chord_library.h
+├── cmd/
+│   └── alt-tab-tui/
+│       └── main.go
+├── internal/
+│   └── tui/
+│       ├── model.go
+│       └── model_test.go
 ├── src/
 │   ├── app/
 │   │   └── main.c
@@ -68,6 +76,8 @@ voicing. `O` is an open string and `X` is a muted string.
 │       └── chord_library.c
 ├── tests/
 │   └── test_chord_library.c
+├── go.mod
+├── go.sum
 ├── Makefile
 └── README.md
 ```
@@ -86,6 +96,12 @@ Build an optimized release binary:
 ```bash
 make clean
 make BUILD=release
+```
+
+Build the Bubble Tea interface scaffold:
+
+```bash
+make tui
 ```
 
 Remove generated objects and binaries:
@@ -110,6 +126,7 @@ make run ARGS=--full-neck
 make run ARGS="A -f"
 make run ARGS="C -a"
 make run-full
+make run-tui
 ```
 
 Do not use `make run -f`: `-f` is an option consumed by Make itself.
@@ -184,6 +201,8 @@ supported name.
   no terminal input or output.
 - `render` validates a chord and provides compact and full-neck horizontal tab.
 - `app` owns the input loop and coordinates lookup and rendering.
+- `cmd/alt-tab-tui` starts the Bubble Tea application, while `internal/tui`
+  owns its state, event handling, and views.
 
 String placements are ordered from high e to low E. A fret value of `-1` means
 muted, `0` means open, and a positive value is the played fret. Fretted strings
