@@ -8,6 +8,41 @@ Diagrams follow standard tablature orientation: high e is on top, low E is on
 the bottom, and fret numbers increase from left to right. Compact mode shows the
 relevant neck position; full-neck mode shows frets 1–27.
 
+## TUI Output
+
+The default wide layout appears as follows in an 80-column terminal. Terminal
+colors are omitted here; Alt-Tab adapts them to light and dark backgrounds.
+
+<!-- BEGIN VERIFIED TUI OUTPUT -->
+```text
+  ALT-TAB  Guitar Chord Viewer
+
+  ╭─────────────╮  ╭───────────────────────────────────────────────────╮
+  │ CHORDS      │  │ A  ·  variation 1 of 2                            │
+  │             │  │ compact                                           │
+  │ › A         │  │                                                   │
+  │   Am        │  │         1    2    3    4                          │
+  │   B         │  │ e  O |--------------------|                       │
+  │   Bb        │  │ B    |-------3------------|                       │
+  │   C         │  │ G    |-------2------------|                       │
+  │   Cm        │  │ D    |-------1------------|                       │
+  │   D         │  │ A  O |--------------------|                       │
+  │   Dm        │  │ E  X |--------------------|                       │
+  │   E         │  │                                                   │
+  │   Em        │  │ Fingers: 1 index  2 middle                        │
+  │   F         │  │          3 ring   4 little                        │
+  │   F#        │  │ Symbols: O open  X muted                          │
+  │   G         │  ╰───────────────────────────────────────────────────╯
+  │   Gm        │
+  ╰─────────────╯
+
+  ↑/↓ chord  ←/→ variation  f full neck  ? help  q quit
+```
+<!-- END VERIFIED TUI OUTPUT -->
+
+On narrower terminals, the chord selector stacks above the fretboard while
+retaining the same controls and chord data.
+
 ## Requirements
 
 - Go 1.25 or newer with cgo enabled
@@ -40,6 +75,7 @@ relevant neck position; full-neck mode shows frets 1–27.
 │       ├── fretboard_test.go
 │       ├── model.go
 │       ├── model_test.go
+│       ├── readme_test.go
 │       ├── styles.go
 │       └── view.go
 ├── src/
