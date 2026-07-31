@@ -117,7 +117,7 @@ Launch an existing build:
 | `Esc` | Close help |
 | `q` / `Ctrl+C` | Quit |
 
-The complete vertical chord list appears above the fretboard in both compact
+The complete horizontal chord list appears above the fretboard in both compact
 and full-neck modes. Full-neck mode requires a terminal width of at least 98
 columns.
 
@@ -133,20 +133,7 @@ are omitted here; Alt-Tab adapts them to light and dark backgrounds.
   ╭────────────────────────────────────────────────────────────────────────╮
   │ CHORDS                                                                 │
   │                                                                        │
-  │ › A                                                                    │
-  │   Am                                                                   │
-  │   B                                                                    │
-  │   Bb                                                                   │
-  │   C                                                                    │
-  │   Cm                                                                   │
-  │   D                                                                    │
-  │   Dm                                                                   │
-  │   E                                                                    │
-  │   Em                                                                   │
-  │   F                                                                    │
-  │   F#                                                                   │
-  │   G                                                                    │
-  │   Gm                                                                   │
+  │ ‹ A ›   Am   B   Bb   C   Cm   D   Dm   E   Em   F   F#   G   Gm       │
   ╰────────────────────────────────────────────────────────────────────────╯
 
   ╭────────────────────────────────────────────────────────────────────────╮

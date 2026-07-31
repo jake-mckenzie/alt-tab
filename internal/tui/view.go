@@ -56,15 +56,17 @@ func (model Model) renderChordList() string {
 	output.WriteString("\n\n")
 
 	for index, name := range model.names {
-		if index == model.selected {
-			output.WriteString(model.styles.selected.Render("› " + name))
-		} else {
-			output.WriteString(model.styles.normal.Render("  " + name))
+		if index > 0 {
+			output.WriteString("   ")
 		}
-		output.WriteByte('\n')
+		if index == model.selected {
+			output.WriteString(model.styles.selected.Render("‹ " + name + " ›"))
+		} else {
+			output.WriteString(model.styles.normal.Render(name))
+		}
 	}
 
-	return strings.TrimSuffix(output.String(), "\n")
+	return output.String()
 }
 
 func (model Model) renderDetail() string {

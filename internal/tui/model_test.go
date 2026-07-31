@@ -52,14 +52,14 @@ func TestViewContainsChordAndFingering(t *testing.T) {
 	}
 }
 
-func TestChordListIsVerticalAndAboveBothFretboardModes(t *testing.T) {
+func TestChordListIsHorizontalAndAboveBothFretboardModes(t *testing.T) {
 	for _, fullNeck := range []bool{false, true} {
 		model := New(fakeCatalog{})
 		model.fullNeck = fullNeck
 		plain := ansiSequence.ReplaceAllString(model.View().Content, "")
 
-		if !strings.Contains(plain, "│ › C") || !strings.Contains(plain, "│   G") {
-			t.Fatalf("fullNeck=%t does not show the vertical chord list", fullNeck)
+		if !strings.Contains(plain, "‹ C ›   G") {
+			t.Fatalf("fullNeck=%t does not show the horizontal chord list", fullNeck)
 		}
 		if strings.Index(plain, "CHORDS") > strings.Index(plain, "variation 1 of 2") {
 			t.Fatalf("fullNeck=%t places the chord list below the fretboard", fullNeck)
