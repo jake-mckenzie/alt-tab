@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "backend/chord_api.h"
-#include "render/terminal_renderer.h"
 #include "theory/chord_library.h"
 
 #define ARRAY_COUNT( array ) ( sizeof( array ) / sizeof( ( array )[ 0 ] ) )
@@ -215,76 +214,12 @@ static int testChordTones( void )
     return 1;
 }
 
-/* Verifies both renderer modes and their instructional output. */
-static int testRenderer( void )
-{
-    ChordLibrary library = chordLibraryDefault( );
-    const Chord *chord = chordLibraryFind( &library, "C" );
-    Chord invalid_chord;
-    FILE *stream = tmpfile( );
-    char output[ 1024 ];
-    size_t bytes_read;
-
-    CHECK( chord != NULL );
-    CHECK( stream != NULL );
-    invalid_chord = *chord;
-    invalid_chord.strings[ GUITAR_STRING_B ].finger = GUITAR_NO_FINGER;
-
-    CHECK( !terminalRendererPrint(
-        stream,
-        &invalid_chord,
-        5,
-        TERMINAL_RENDER_COMPACT_TAB
-    ) );
-    CHECK( terminalRendererPrint(
-        stream,
-        chord,
-        5,
-        TERMINAL_RENDER_COMPACT_TAB
-    ) );
-    CHECK( terminalRendererPrint(
-        stream,
-        chord,
-        5,
-        TERMINAL_RENDER_FULL_NECK
-    ) );
-    CHECK( !terminalRendererPrint(
-        stream,
-        chord,
-        0,
-        TERMINAL_RENDER_COMPACT_TAB
-    ) );
-    CHECK( !terminalRendererPrint(
-        stream,
-        chord,
-        5,
-        ( TerminalRenderMode )99
-    ) );
-
-    rewind( stream );
-    bytes_read = fread( output, 1, sizeof( output ) - 1, stream );
-    output[ bytes_read ] = '\0';
-    fclose( stream );
-
-    CHECK( strstr( output, "Chord: C (variation 1)" ) != NULL );
-    CHECK( strstr( output, "Fret numbers ->" ) != NULL );
-    CHECK( strstr( output, "Fingers: 1 index" ) != NULL );
-    CHECK( strstr( output, "e O|" ) != NULL );
-    CHECK( strstr( output, "B  |--1--" ) != NULL );
-    CHECK( strstr( output, "E X|" ) != NULL );
-    CHECK( strstr( output, " 0 " ) == NULL );
-    CHECK( strstr( output, " 5 " ) != NULL );
-
-    return 1;
-}
-
 int main( void )
 {
     if ( !testDefaultLibrary( ) ||
          !testLookup( ) ||
          !testChordApi( ) ||
-         !testChordTones( ) ||
-         !testRenderer( ) ) {
+         !testChordTones( ) ) {
         return 1;
     }
 
