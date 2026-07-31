@@ -1,5 +1,7 @@
 # Alt-Tab
 
+[![CI](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml/badge.svg)](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml)
+
 Alt-Tab is an interactive guitar-chord viewer for the terminal. A responsive
 Bubble Tea interface displays chord voicings from a C11 chord library connected
 to Go through cgo.
@@ -14,7 +16,7 @@ the relevant neck position; full-neck mode shows frets 1–27.
 git clone https://github.com/jake-mckenzie/alt-tab.git
 cd alt-tab
 make
-./alt-tab
+./bin/alt-tab
 ```
 
 `make run` combines the build and run steps:
@@ -58,7 +60,7 @@ Run the dependency check by itself:
 make check-deps
 ```
 
-Build the development binary in the project root:
+Build the development binary:
 
 ```bash
 make
@@ -67,7 +69,7 @@ make
 The resulting executable is:
 
 ```text
-./alt-tab
+./bin/alt-tab
 ```
 
 Build a smaller release binary with paths and debug symbols removed:
@@ -79,7 +81,8 @@ make BUILD=release
 You can also build directly with Go:
 
 ```bash
-go build -o alt-tab ./cmd/alt-tab
+mkdir -p bin
+go build -o bin/alt-tab ./cmd/alt-tab
 ```
 
 Missing dependencies listed in `go.mod` and `go.sum` are downloaded
@@ -98,7 +101,7 @@ make run
 Launch an existing build:
 
 ```bash
-./alt-tab
+./bin/alt-tab
 ```
 
 ### Controls
@@ -169,9 +172,16 @@ make BUILD=release test
 Optional Go-only checks:
 
 ```bash
-go test ./...
-go test -race ./internal/...
-go vet ./...
+make fmt-check
+make test-go
+make race
+make vet
+```
+
+Run every formatting, test, race, and vet check used by CI:
+
+```bash
+make check
 ```
 
 The suite verifies every stored fret and finger assignment, chord pitch
@@ -223,12 +233,12 @@ string and `X` marks a muted string.
 - `cmd/alt-tab` contains the application entry point.
 - `internal/tui` owns Bubble Tea state, navigation, layout, styling, and
   fretboard rendering.
-- `internal/chords` copies native chord data into Go-owned types behind a
-  catalog interface.
-- `src/backend` and `include/backend` provide the stable C API used through
-  cgo.
-- `src/theory` and `include/theory` own the immutable chord library.
+- `internal/chords` defines Go-owned chord types and the catalog interface.
+- `internal/nativechords` owns the cgo adapter, stable C API, and immutable
+  chord library.
 - `tests` contains the native backend regression suite.
+- `.github/workflows` runs builds and quality checks for pushes and pull
+  requests.
 
 Terminal concerns remain separate from the chord model so future audio input or
 output packages can consume the same Go chord types.
@@ -237,13 +247,11 @@ output packages can consume the same Go chord types.
 
 ```text
 .
+├── .github/workflows/
 ├── cmd/alt-tab/
-├── include/backend/
-├── include/theory/
 ├── internal/chords/
+├── internal/nativechords/
 ├── internal/tui/
-├── src/backend/
-├── src/theory/
 ├── tests/
 ├── go.mod
 ├── go.sum

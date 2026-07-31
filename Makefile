@@ -16,6 +16,7 @@ BUILD ?= debug
 
 GO_SOURCES = $(shell find cmd internal -type f \
              \( -name '*.go' -o -name '*.c' -o -name '*.h' \) 2>/dev/null)
+GO_FILES = $(shell find cmd internal -type f -name '*.go' 2>/dev/null)
 NATIVE_SOURCES = $(NATIVE_DIR)/chord_library.c \
                  $(NATIVE_DIR)/chord_api.c
 NATIVE_HEADERS = $(NATIVE_DIR)/chord.h \
@@ -42,6 +43,17 @@ endif
 all: build
 
 build: $(TARGET)
+
+fmt:
+	$(GO) fmt ./...
+
+fmt-check:
+	@unformatted="$$(gofmt -l $(GO_FILES))"; \
+	test -z "$$unformatted" || { \
+		echo "error: these Go files require formatting:"; \
+		echo "$$unformatted"; \
+		exit 1; \
+	}
 
 check-deps:
 	@command -v $(GO) >/dev/null 2>&1 || { \
@@ -88,10 +100,12 @@ race: check-deps
 vet: check-deps
 	$(GO) vet ./...
 
+check: fmt-check test race vet
+
 run: $(TARGET)
 	./$(TARGET)
 
 clean:
 	rm -rf $(BUILD_DIR) $(BIN_DIR) $(APP)
 
-.PHONY: all build check-deps clean race run test test-go test-native vet
+.PHONY: all build check check-deps clean fmt fmt-check race run test test-go test-native vet
