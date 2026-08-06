@@ -20,6 +20,9 @@ type Model struct {
 	showHelp  bool
 	dark      bool
 	theme     int
+	waveform  bool
+	waveFrame int
+	waveTimer uint64
 	width     int
 	err       error
 	styles    styles
@@ -31,6 +34,7 @@ func New(catalog chords.Catalog) Model {
 		catalog:   catalog,
 		variation: 1,
 		dark:      true,
+		waveform:  true,
 		width:     100,
 		styles:    newStyles(true, 0),
 	}
@@ -45,9 +49,12 @@ func New(catalog chords.Catalog) Model {
 	return model
 }
 
-// Init asks Bubble Tea to report the terminal background color.
-func (Model) Init() tea.Cmd {
-	return tea.RequestBackgroundColor
+// Init requests terminal colors and starts the default waveform animation.
+func (model Model) Init() tea.Cmd {
+	return tea.Batch(
+		tea.RequestBackgroundColor,
+		waveformTick(model.waveTimer),
+	)
 }
 
 // Update handles application-level key events.
@@ -58,6 +65,12 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		model.styles = newStyles(model.dark, model.theme)
 	case tea.WindowSizeMsg:
 		model.width = message.Width
+	case waveformTickMsg:
+		if !model.waveform || message.generation != model.waveTimer {
+			return model, nil
+		}
+		model.waveFrame = wrap(model.waveFrame+1, len(waveformPattern))
+		return model, waveformTick(model.waveTimer)
 	case tea.KeyPressMsg:
 		key := message.String()
 		if key == "ctrl+c" || key == "q" {
@@ -66,6 +79,15 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		if key == "t" {
 			model.theme = wrap(model.theme+1, len(palettes))
 			model.styles = newStyles(model.dark, model.theme)
+			return model, nil
+		}
+		if key == "w" {
+			model.waveform = !model.waveform
+			// A new generation invalidates any timer scheduled before this toggle.
+			model.waveTimer++
+			if model.waveform {
+				return model, waveformTick(model.waveTimer)
+			}
 			return model, nil
 		}
 		if model.showHelp {

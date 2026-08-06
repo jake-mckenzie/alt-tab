@@ -114,6 +114,7 @@ Launch an existing build:
 | `↓` / `j` | Next variation |
 | `f` | Toggle compact or full-neck view |
 | `t` | Cycle color theme |
+| `w` | Toggle animated ASCII waveform |
 | `?` | Open or close help |
 | `Esc` | Close help |
 | `q` / `Ctrl+C` | Quit |
@@ -121,6 +122,9 @@ Launch an existing build:
 The complete horizontal chord list appears above the fretboard in both compact
 and full-neck modes. Full-neck mode requires a terminal width of at least 98
 columns.
+
+The animated ASCII waveform below the title is enabled by default. Press `w`
+to hide it and stop its animation timer; press `w` again to restart it.
 
 ### Themes
 
@@ -142,6 +146,11 @@ are omitted here; Alt-Tab adapts them to light and dark backgrounds.
 <!-- BEGIN VERIFIED TUI OUTPUT -->
 ```text
   ALT-TAB  Guitar Chord Viewer · Synthwave
+    *       *       *       *       *       *       *       *       *       *
+   * *     * *     * *     * *     * *     * *     * *     * *     * *     * *
+  *---*---*---*---*---*---*---*---*---*---*---*---*---*---*---*---*---*---*---
+       * *     * *     * *     * *     * *     * *     * *     * *     * *
+        *       *       *       *       *       *       *       *       *
 
   ╭────────────────────────────────────────────────────────────────────────╮
   │ CHORDS                                                                 │
@@ -167,7 +176,7 @@ are omitted here; Alt-Tab adapts them to light and dark backgrounds.
   │ Symbols: O open  X muted                                               │
   ╰────────────────────────────────────────────────────────────────────────╯
 
-  ←/→ chord  ↑/↓ variation  f full neck  t theme  ? help  q quit
+  ←/→ chord  ↑/↓ variation  f neck  t theme  w wave  ? help  q quit
 ```
 <!-- END VERIFIED TUI OUTPUT -->
 

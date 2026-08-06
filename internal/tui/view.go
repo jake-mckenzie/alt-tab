@@ -26,6 +26,11 @@ func (model Model) render() string {
 			fmt.Sprintf("Guitar Chord Viewer · %s", paletteAt(model.theme).name),
 		),
 	)
+	if model.waveform {
+		header += "\n" + model.styles.accent.Render(
+			renderWaveform(contentWidth, model.waveFrame),
+		)
+	}
 
 	var body string
 	if model.showHelp {
@@ -37,7 +42,7 @@ func (model Model) render() string {
 	}
 
 	footer := model.styles.muted.Render(
-		"←/→ chord  ↑/↓ variation  f full neck  t theme  ? help  q quit",
+		"←/→ chord  ↑/↓ variation  f neck  t theme  w wave  ? help  q quit",
 	)
 	return lipgloss.NewStyle().
 		Padding(1, 2).
@@ -117,6 +122,7 @@ func (model Model) renderHelp() string {
 		"↓ / j     Next variation\n" +
 		"f         Toggle compact/full neck\n" +
 		"t         Cycle color theme\n" +
+		"w         Toggle animated waveform\n" +
 		"?         Open or close help\n" +
 		"esc       Close help\n" +
 		"q         Quit\n\n" +
