@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 
 	"github.com/jake-mckenzie/alt-tab/internal/chords"
 )
@@ -52,8 +53,8 @@ func TestViewContainsChordAndFingering(t *testing.T) {
 			t.Fatalf("view does not contain %q", expected)
 		}
 	}
-	if !view.AltScreen {
-		t.Fatal("view does not request the alternate screen")
+	if view.AltScreen {
+		t.Fatal("view uses the alternate screen, which converts scrolling to keys")
 	}
 }
 
@@ -67,9 +68,42 @@ func TestChordListIsHorizontalAndAboveBothFretboardModes(t *testing.T) {
 		if !strings.Contains(plain, "‹ C ›   G") {
 			t.Fatalf("fullNeck=%t does not show the horizontal chord list", fullNeck)
 		}
-		if strings.Index(plain, "CHORDS") > strings.Index(plain, "variation 1 of 2") {
+		if strings.Index(plain, "CHORD SELECTOR") >
+			strings.Index(plain, "variation 1 of 2") {
 			t.Fatalf("fullNeck=%t places the chord list below the fretboard", fullNeck)
 		}
+	}
+}
+
+// TestSectionsAreClearlyLabeledAndOrdered checks the complete screen hierarchy.
+func TestSectionsAreClearlyLabeledAndOrdered(t *testing.T) {
+	plain := ansiSequence.ReplaceAllString(New(fakeCatalog{}).View().Content, "")
+	titles := []string{"CHORD SELECTOR", "CONTROLS", "CHORD DIAGRAM", "NOTE WAVEFORM"}
+	previous := -1
+	for _, title := range titles {
+		position := strings.Index(plain, title)
+		if position <= previous {
+			t.Fatalf("section %q is missing or out of order", title)
+		}
+		previous = position
+	}
+}
+
+// TestCompactPanelsShrinkToContent checks compact and full-neck width policy.
+func TestCompactPanelsShrinkToContent(t *testing.T) {
+	model := New(fakeCatalog{})
+	const maximumWidth = 76
+
+	selector := model.renderPanel(model.renderChordSelector(), maximumWidth, true)
+	diagram := model.renderPanel(model.renderChordDiagram(), maximumWidth, true)
+	if lipgloss.Width(selector) >= maximumWidth || lipgloss.Width(diagram) >= maximumWidth {
+		t.Fatal("compact selector or diagram retains unnecessary trailing width")
+	}
+
+	model.fullNeck = true
+	diagram = model.renderPanel(model.renderChordDiagram(), maximumWidth, false)
+	if lipgloss.Width(diagram) != maximumWidth {
+		t.Fatalf("full-neck diagram width = %d, want %d", lipgloss.Width(diagram), maximumWidth)
 	}
 }
 

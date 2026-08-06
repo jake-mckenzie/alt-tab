@@ -123,7 +123,15 @@ The complete horizontal chord list appears above the fretboard in both compact
 and full-neck modes. Full-neck mode requires a terminal width of at least 98
 columns.
 
-The stationary Braille waveform below the title plots 25 milliseconds of an
+The title, chord selector, and controls appear first. The chord diagram and
+note waveform are grouped below them in separately titled sections.
+The selector and compact diagram shrink to their content instead of filling the
+terminal width; full-neck and waveform sections retain their required width.
+
+Alt-Tab renders in the terminal's normal screen buffer, so the scroll wheel
+controls scrollback instead of changing the selected chord variation.
+
+The stationary Braille waveform at the bottom plots 25 milliseconds of an
 ideal equal-amplitude signal combining every sounding string in the selected
 voicing. Braille subcells increase detail without increasing its character
 width. Its amplitude scale, time axis, and note labels are shown explicitly;
@@ -149,47 +157,58 @@ are omitted here; Alt-Tab adapts them to light and dark backgrounds.
 <!-- BEGIN VERIFIED TUI OUTPUT -->
 ```text
   ALT-TAB  Guitar Chord Viewer · Synthwave
-  +1.0 |   ⡀
-       |  ⡎⠸⡀                                               ⢰⠉⢆
-       | ⢸  ⢣                                               ⡇ ⠘⡄
-       | ⡇  ⠈⡆                                             ⢸   ⢣
-       |⢰⠁   ⢣                                             ⡎   ⠘⡄
-       |⡸    ⠘⡄                   ⢀⠤⠤⡀   ⡠⠒⠑⠢⡀   ⡠⠒⢢      ⢀⠇    ⢣    ⣀⣀
-   0.0 +⠧⠤⠤⠤⠤⠤⢵⠤⠤⢤⠼⠭⠵⡤⠤⠤⠤⠤⡤⠶⠶⢤⠤⠤⠤⡤⠧⠤⠤⠬⠵⠶⠮⠤⠤⠤⠤⠬⠦⠤⠮⠤⠤⠤⢧⠤⠤⠤⠤⠤⢼⠤⠤⠤⠤⠤⠼⡤⠤⠤⡼⠤⠤⢧⠤⠤⠤⠤⢤⠮
-       |       ⠣⠤⠃   ⠈⢆ ⢀⠜    ⠑⠒⠊                   ⠘⡄    ⡎      ⠘⠤⠊    ⢣  ⢀⠎
-       |               ⠉⠁                            ⢣   ⢀⠇              ⠑⠒⠁
-       |                                             ⠘⡄  ⢸
-       |                                              ⢣  ⡇
-       |                                              ⠈⢆⡸
-  -1.0 |                                               ⠈
-        0 ms                                                             25 ms
-  Notes: E4  C#4  A3  E3  A2
 
-  ╭────────────────────────────────────────────────────────────────────────╮
-  │ CHORDS                                                                 │
-  │                                                                        │
-  │ ‹ A ›   Am   B   Bb   C   Cm   D   Dm   E   Em   F   F#   G   Gm       │
-  ╰────────────────────────────────────────────────────────────────────────╯
+  ╭──────────────────────────────────────────────────────────────────╮
+  │ CHORD SELECTOR                                                   │
+  │                                                                  │
+  │ ‹ A ›   Am   B   Bb   C   Cm   D   Dm   E   Em   F   F#   G   Gm │
+  ╰──────────────────────────────────────────────────────────────────╯
 
-  ╭────────────────────────────────────────────────────────────────────────╮
-  │ A  ·  variation 1 of 2                                                 │
-  │ compact                                                                │
-  │                                                                        │
-  │       1    2    3    4                                                 │
-  │ e  O--------------------|                                              │
-  │ B  |-------3------------|                                              │
-  │ G  |-------2------------|                                              │
-  │ D  |-------1------------|                                              │
-  │ A  O--------------------|                                              │
-  │ E  X--------------------|                                              │
-  │                                                                        │
-  │ Fingers: 1 index  2 middle                                             │
-  │          3 ring   4 little                                             │
-  │                                                                        │
-  │ Symbols: O open  X muted                                               │
-  ╰────────────────────────────────────────────────────────────────────────╯
+  ╭───────────────────────────────────────────────────────────────────╮
+  │ CONTROLS                                                          │
+  │                                                                   │
+  │ ←/→ chord  ↑/↓ variation  f neck  t theme  w wave  ? help  q quit │
+  ╰───────────────────────────────────────────────────────────────────╯
 
-  ←/→ chord  ↑/↓ variation  f neck  t theme  w wave  ? help  q quit
+  ╭────────────────────────────╮
+  │ CHORD DIAGRAM              │
+  │                            │
+  │ A  ·  variation 1 of 2     │
+  │ compact                    │
+  │                            │
+  │       1    2    3    4     │
+  │ e  O--------------------|  │
+  │ B  |-------3------------|  │
+  │ G  |-------2------------|  │
+  │ D  |-------1------------|  │
+  │ A  O--------------------|  │
+  │ E  X--------------------|  │
+  │                            │
+  │ Fingers: 1 index  2 middle │
+  │          3 ring   4 little │
+  │                            │
+  │ Symbols: O open  X muted   │
+  ╰────────────────────────────╯
+
+  ╭──────────────────────────────────────────────────────────────────────────╮
+  │ NOTE WAVEFORM                                                            │
+  │                                                                          │
+  │ +1.0 |  ⢀                                                                │
+  │      | ⢀⠎⢣                                            ⡎⢱                 │
+  │      | ⡸ ⠈⡆                                          ⢸  ⡇                │
+  │      | ⡇  ⢱                                          ⡇  ⢸                │
+  │      |⢰⠁  ⠈⡆                                        ⢠⠃  ⠈⡆               │
+  │      |⡸    ⢣                  ⢀⠤⢄   ⡠⠒⠑⠢⡀  ⢀⠔⠢⡀     ⢸    ⢱    ⣀⡀         │
+  │  0.0 +⠧⠤⠤⠤⠤⠼⡤⠤⠤⡴⠭⠵⡤⠤⠤⠤⢤⠴⠶⢤⠤⠤⠤⡴⠥⠤⠤⠭⠶⠮⠤⠤⠤⠤⠵⠤⠤⠧⠤⠤⢧⠤⠤⠤⠤⠤⡧⠤⠤⠤⠤⠬⡦⠤⢤⠮⠤⠼⡤⠤⠤⠤⢤⠼   │
+  │      |      ⠘⠤⠊   ⠘⢄ ⡠⠃   ⠑⠒⠊                 ⠈⡆   ⢀⠇     ⠘⠤⠊   ⠘⡄ ⢀⠎    │
+  │      |              ⠉                          ⢣   ⢸             ⠈⠒⠊     │
+  │      |                                         ⠘⡄  ⡜                     │
+  │      |                                          ⢣ ⢀⠇                     │
+  │      |                                          ⠘⡄⡜                      │
+  │ -1.0 |                                           ⠈                       │
+  │       0 ms                                                       25 ms   │
+  │ Notes: E4  C#4  A3  E3  A2                                               │
+  ╰──────────────────────────────────────────────────────────────────────────╯
 ```
 <!-- END VERIFIED TUI OUTPUT -->
 

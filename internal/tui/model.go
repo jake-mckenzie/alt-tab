@@ -103,7 +103,6 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 // View renders the full-screen application.
 func (model Model) View() tea.View {
 	view := tea.NewView(model.render())
-	view.AltScreen = true
 	view.WindowTitle = "Alt-Tab"
 	return view
 }

@@ -7,9 +7,13 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-const minimumTerminalWidth = 40
+const (
+	minimumTerminalWidth  = 40
+	twoColumnMinimumWidth = 64
+	sectionGapWidth       = 2
+)
 
-// render composes the stacked chord-list and fretboard layout.
+// render composes the titled selector, controls, diagram, and waveform sections.
 func (model Model) render() string {
 	width := model.width
 	if width < minimumTerminalWidth {
@@ -26,43 +30,81 @@ func (model Model) render() string {
 			fmt.Sprintf("Guitar Chord Viewer · %s", paletteAt(model.theme).name),
 		),
 	)
-	if model.waveform {
-		header += "\n" + model.styles.accent.Render(
-			renderWaveform(contentWidth, model.voicing),
-		)
-	}
-
-	var body string
-	if model.showHelp {
-		body = model.styles.panel.
-			Width(contentWidth - 2).
-			Render(model.renderHelp())
-	} else {
-		body = model.renderStacked(contentWidth)
-	}
-
-	footer := model.styles.muted.Render(
-		"←/→ chord  ↑/↓ variation  f neck  t theme  w wave  ? help  q quit",
-	)
 	return lipgloss.NewStyle().
 		Padding(1, 2).
-		Render(header + "\n\n" + body + "\n\n" + footer)
+		Render(header + "\n\n" + model.renderSections(contentWidth))
 }
 
-// renderStacked places the shared chord selector above the active voicing.
-func (model Model) renderStacked(width int) string {
-	// Lip Gloss adds one border column to each side of the requested width.
-	panel := model.styles.panel.Width(width - 2)
-	chordList := panel.Render(model.renderChordList())
-	detail := panel.Render(model.renderDetail())
+// renderSections keeps navigation above the diagram and waveform output.
+func (model Model) renderSections(width int) string {
+	var top string
+	if width >= twoColumnMinimumWidth {
+		leftWidth := (width - sectionGapWidth) / 2
+		rightWidth := width - sectionGapWidth - leftWidth
+		selector := model.renderPanel(model.renderChordSelector(), leftWidth, false)
+		controls := model.renderPanel(model.renderControls(), rightWidth, false)
+		top = lipgloss.JoinHorizontal(
+			lipgloss.Top,
+			selector,
+			strings.Repeat(" ", sectionGapWidth),
+			controls,
+		)
+	} else {
+		selector := model.renderPanel(model.renderChordSelector(), width, true)
+		controls := model.renderPanel(model.renderControls(), width, true)
+		top = lipgloss.JoinVertical(lipgloss.Left, selector, "", controls)
+	}
 
-	return lipgloss.JoinVertical(lipgloss.Left, chordList, "", detail)
+	if model.showHelp {
+		help := model.renderPanel(model.renderHelp(), width, true)
+		return lipgloss.JoinVertical(lipgloss.Left, top, "", help)
+	}
+
+	diagramContent := model.renderChordDiagram()
+	if !model.fullNeck && width >= twoColumnMinimumWidth {
+		diagram := model.renderPanel(diagramContent, width, true)
+		waveformWidth := width - sectionGapWidth - lipgloss.Width(diagram)
+		// Leave two spare cells because some terminals treat Braille width loosely.
+		waveform := model.renderPanel(
+			model.renderWaveformSection(waveformWidth-6),
+			waveformWidth,
+			false,
+		)
+		bottom := lipgloss.JoinHorizontal(
+			lipgloss.Top,
+			diagram,
+			strings.Repeat(" ", sectionGapWidth),
+			waveform,
+		)
+		return lipgloss.JoinVertical(lipgloss.Left, top, "", bottom)
+	}
+
+	diagram := model.renderPanel(diagramContent, width, !model.fullNeck)
+	waveform := model.renderPanel(model.renderWaveformSection(width-6), width, false)
+	return lipgloss.JoinVertical(
+		lipgloss.Left,
+		top,
+		"",
+		diagram,
+		"",
+		waveform,
+	)
 }
 
-// renderChordList draws every chord in one horizontal navigation row.
-func (model Model) renderChordList() string {
+// renderPanel optionally shrinks a bordered section to its widest content line.
+func (model Model) renderPanel(content string, maximumWidth int, shrink bool) string {
+	// Add both border and padding cells when fitting raw content.
+	styleWidth := maximumWidth
+	if shrink {
+		styleWidth = min(styleWidth, lipgloss.Width(content)+4)
+	}
+	return model.styles.panel.Width(styleWidth).Render(content)
+}
+
+// renderChordSelector draws every chord in one horizontal navigation row.
+func (model Model) renderChordSelector() string {
 	var output strings.Builder
-	output.WriteString(model.styles.heading.Render("CHORDS"))
+	output.WriteString(model.styles.heading.Render("CHORD SELECTOR"))
 	output.WriteString("\n\n")
 
 	for index, name := range model.names {
@@ -79,8 +121,18 @@ func (model Model) renderChordList() string {
 	return output.String()
 }
 
-// renderDetail draws the current chord heading, mode, and fretboard.
-func (model Model) renderDetail() string {
+// renderControls summarizes every available runtime command.
+func (model Model) renderControls() string {
+	return model.styles.heading.Render("CONTROLS") + "\n\n" +
+		model.styles.muted.Render(
+			"←/→ chord   ↑/↓ variation\n"+
+				"f neck   t theme   w wave\n"+
+				"? help   q quit",
+		)
+}
+
+// renderChordDiagram draws the current chord heading, mode, and fretboard.
+func (model Model) renderChordDiagram() string {
 	if model.err != nil {
 		return model.styles.err.Render(model.err.Error())
 	}
@@ -97,7 +149,8 @@ func (model Model) renderDetail() string {
 		model.voicing.Variation,
 		variationCount,
 	)
-	header := model.styles.heading.Render(heading) + "\n" +
+	header := model.styles.heading.Render("CHORD DIAGRAM") + "\n\n" +
+		model.styles.heading.Render(heading) + "\n" +
 		model.styles.accent.Render(mode)
 	if model.fullNeck && model.width < fullNeckMinimumTerminalWidth {
 		return header + "\n\n" + model.styles.err.Render(
@@ -111,6 +164,22 @@ func (model Model) renderDetail() string {
 
 	return header + "\n\n" +
 		model.styles.normal.Render(renderFretboard(model.voicing, model.fullNeck))
+}
+
+// renderWaveformSection labels the note plot or explains how to restore it.
+func (model Model) renderWaveformSection(width int) string {
+	heading := model.styles.heading.Render("NOTE WAVEFORM")
+	if !model.waveform {
+		return heading + "\n\n" +
+			model.styles.muted.Render("Hidden · press w to show")
+	}
+	if model.err != nil {
+		return heading + "\n\n" + model.styles.err.Render(model.err.Error())
+	}
+
+	return heading + "\n\n" + model.styles.accent.Render(
+		renderWaveform(width, model.voicing),
+	)
 }
 
 // renderHelp lists every keyboard command in a dedicated panel.
