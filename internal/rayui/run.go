@@ -487,6 +487,11 @@ func (gui *viewer) drawWaveform(bounds rl.Rectangle, theme palette) {
 	}
 	notes := signal.Notes(gui.controller.Voicing())
 	center := plot.Y + plot.Height/2
+	// Matching vertical endpoints make the waveform's sampled time range explicit.
+	rl.DrawLineEx(rl.Vector2{X: plot.X, Y: plot.Y},
+		rl.Vector2{X: plot.X, Y: plot.Y + plot.Height}, 2, theme.border)
+	rl.DrawLineEx(rl.Vector2{X: plot.X + plot.Width, Y: plot.Y},
+		rl.Vector2{X: plot.X + plot.Width, Y: plot.Y + plot.Height}, 2, theme.border)
 	rl.DrawLineEx(rl.Vector2{X: plot.X, Y: center},
 		rl.Vector2{X: plot.X + plot.Width, Y: center}, 1, theme.border)
 	points := make([]rl.Vector2, maxInt(2, int(plot.Width)))
@@ -626,11 +631,12 @@ func drawPanel(bounds rl.Rectangle, theme palette) {
 
 // drawSectionTitle positions one concise label at a panel's upper-left edge.
 func drawSectionTitle(bounds rl.Rectangle, title string, theme palette) {
-	drawText(title, bounds.X+panelPadding, bounds.Y+14, 16, theme.accent)
-	underlineWidth := minFloat(measureText(title, 16).X, 48)
+	const titleSize = 20
+	drawText(title, bounds.X+panelPadding, bounds.Y+12, titleSize, theme.accent)
+	underlineWidth := measureText(title, titleSize).X + 1
 	rl.DrawLineEx(
-		rl.Vector2{X: bounds.X + panelPadding, Y: bounds.Y + 34},
-		rl.Vector2{X: bounds.X + panelPadding + underlineWidth, Y: bounds.Y + 34},
+		rl.Vector2{X: bounds.X + panelPadding, Y: bounds.Y + 36},
+		rl.Vector2{X: bounds.X + panelPadding + underlineWidth, Y: bounds.Y + 36},
 		3,
 		theme.secondary,
 	)
