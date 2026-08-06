@@ -24,7 +24,7 @@ const (
 	minimumWindowHeight = 800
 	panelGap            = 12
 	panelPadding        = 18
-	diagramLeftPadding  = 72
+	diagramLeftPadding  = 88
 	diagramRightPadding = 28
 	graphTopPadding     = 60
 	waveLeftPadding     = 50
@@ -32,6 +32,7 @@ const (
 	waveBottomPadding   = 42
 	spectrumSidePadding = 46
 	spectrumBottomPad   = 62
+	bodyTextSpacing     = 1.7
 	audioSampleRate     = 48000
 	audioBufferFrames   = 2048
 	waveformSeconds     = 0.025
@@ -187,7 +188,7 @@ func computeLayout(width, height int, fullNeck bool) screenLayout {
 	h := float32(height)
 	margin := float32(panelGap)
 	headerHeight := clamp(h*0.105, 78, 102)
-	dialHeight := clamp(h*0.17, 140, 160)
+	dialHeight := clamp(h*0.19, 160, 180)
 	header := rl.Rectangle{X: margin, Y: margin, Width: w - 2*margin, Height: headerHeight}
 	dial := rl.Rectangle{
 		X: margin, Y: header.Y + header.Height + margin,
@@ -215,8 +216,8 @@ func computeLayout(width, height int, fullNeck bool) screenLayout {
 		}
 	}
 
-	diagramHeight := contentHeight * 0.40
-	waveHeight := contentHeight * 0.30
+	diagramHeight := contentHeight * 0.41
+	waveHeight := contentHeight * 0.28
 	return screenLayout{
 		header:  header,
 		dial:    dial,
@@ -368,7 +369,7 @@ func (gui *viewer) drawDial(bounds rl.Rectangle, theme palette) {
 	family := gui.families[gui.controller.SelectedIndex()]
 	center := rl.Rectangle{
 		X:      bounds.X + bounds.Width/2 - 62,
-		Y:      bounds.Y + bounds.Height - 50,
+		Y:      bounds.Y + bounds.Height - 65,
 		Width:  124,
 		Height: 24,
 	}
@@ -509,9 +510,9 @@ func drawFretboard(
 		rl.DrawLineEx(rl.Vector2{X: x, Y: bounds.Y + stringGap},
 			rl.Vector2{X: x, Y: bounds.Y + stringGap*6}, 1, theme.border)
 		label := fmt.Sprintf("%d", fret)
-		drawCenteredText(label, rl.Rectangle{
+		drawHeavyCenteredText(label, rl.Rectangle{
 			X: x, Y: bounds.Y - 2, Width: cellWidth, Height: stringGap,
-		}, clamp(cellWidth*0.42, 12, 17), theme.muted)
+		}, clamp(cellWidth*0.55, 17, 24), theme.text)
 	}
 	right := bounds.X + bounds.Width
 	rl.DrawLineEx(rl.Vector2{X: right, Y: bounds.Y + stringGap},
@@ -519,7 +520,7 @@ func drawFretboard(
 
 	for index, placement := range voicing.Strings {
 		y := bounds.Y + stringGap*float32(index+1)
-		drawText(stringNames[index], bounds.X-48, y-9, 18, theme.muted)
+		drawText(stringNames[index], bounds.X-58, y-9, 18, theme.muted)
 		rl.DrawLineEx(rl.Vector2{X: bounds.X, Y: y}, rl.Vector2{X: right, Y: y}, 2, theme.text)
 		if placement.Fret <= 0 {
 			marker := "O"
@@ -533,16 +534,16 @@ func drawFretboard(
 			continue
 		}
 		x := bounds.X + (float32(placement.Fret-first)+0.5)*cellWidth
-		radius := clamp(minFloat(cellWidth*0.27, stringGap*0.30), 7, 14)
+		radius := clamp(minFloat(cellWidth*0.30, stringGap*0.40), 8, 16)
 		rl.DrawCircleV(rl.Vector2{X: x, Y: y}, radius+5, rl.Fade(theme.accent, 0.10))
 		rl.DrawCircleV(rl.Vector2{X: x, Y: y}, radius, theme.accent)
 		label := fmt.Sprintf("%d", placement.Finger)
 		if tabNumbers {
 			label = fmt.Sprintf("%d", placement.Fret)
 		}
-		drawCenteredText(label, rl.Rectangle{
+		drawHeavyCenteredText(label, rl.Rectangle{
 			X: x - radius, Y: y - radius, Width: radius * 2, Height: radius * 2,
-		}, clamp(radius*1.3, 12, 18), theme.panel)
+		}, clamp(radius*1.65, 15, 23), theme.panel)
 	}
 }
 
@@ -725,9 +726,9 @@ func drawSectionTitle(bounds rl.Rectangle, title string, theme palette) {
 	)
 }
 
-// drawText uses standard body copy spacing with the heavier console treatment.
+// drawText applies consistent tracking and the heavier console treatment.
 func drawText(text string, x, y, size float32, color rl.Color) {
-	drawTextSpaced(text, x, y, size, 1, color)
+	drawTextSpaced(text, x, y, size, bodyTextSpacing, color)
 }
 
 // drawTextSpaced adds configurable tracking and a tight pass for heavier glyphs.
@@ -750,9 +751,19 @@ func drawCenteredText(text string, bounds rl.Rectangle, size float32, color rl.C
 	)
 }
 
+// drawHeavyCenteredText gives small diagram numbers an additional weight pass.
+func drawHeavyCenteredText(text string, bounds rl.Rectangle, size float32, color rl.Color) {
+	measured := measureText(text, size)
+	x := bounds.X + (bounds.Width-measured.X)/2 - 0.7
+	y := bounds.Y + (bounds.Height-measured.Y)/2 - 0.3
+	drawTextSpaced(text, x, y, size, bodyTextSpacing, color)
+	drawTextSpaced(text, x+0.7, y, size, bodyTextSpacing, color)
+	drawTextSpaced(text, x, y+0.6, size, bodyTextSpacing, color)
+}
+
 // measureText returns default-font dimensions matching drawText.
 func measureText(text string, size float32) rl.Vector2 {
-	return measureTextSpaced(text, size, 1)
+	return measureTextSpaced(text, size, bodyTextSpacing)
 }
 
 // measureTextSpaced mirrors the tracking used by drawTextSpaced.
