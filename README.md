@@ -123,10 +123,12 @@ The complete horizontal chord list appears above the fretboard in both compact
 and full-neck modes. Full-neck mode requires a terminal width of at least 98
 columns.
 
-The title, chord selector, and controls appear first. The chord diagram and
-note waveform are grouped below them in separately titled sections.
-The selector and compact diagram shrink to their content instead of filling the
-terminal width; full-neck and waveform sections retain their required width.
+The title appears first, followed by the chord selector beside the controls.
+Compact mode places the chord diagram beside the note waveform to reduce
+height. Full-neck mode stacks those lower sections so the complete neck retains
+its required width; narrow terminals also stack sections to avoid damage. The
+layout redraws when the terminal is resized and shows a width notice below 40
+columns instead of wrapping the fretboard.
 
 Alt-Tab renders in the terminal's normal screen buffer, so the scroll wheel
 controls scrollback instead of changing the selected chord variation.
@@ -158,57 +160,32 @@ are omitted here; Alt-Tab adapts them to light and dark backgrounds.
 ```text
   ALT-TAB  Guitar Chord Viewer · Synthwave
 
-  ╭──────────────────────────────────────────────────────────────────╮
-  │ CHORD SELECTOR                                                   │
-  │                                                                  │
-  │ ‹ A ›   Am   B   Bb   C   Cm   D   Dm   E   Em   F   F#   G   Gm │
-  ╰──────────────────────────────────────────────────────────────────╯
+  ╭───────────────────────────────────╮  ╭───────────────────────────────────╮
+  │ CHORD SELECTOR                    │  │ CONTROLS                          │
+  │                                   │  │                                   │
+  │ ‹ A ›   Am   B   Bb   C   Cm   D  │  │ ←→  ↑↓  f  t  w  ?  q             │
+  │ Dm   E   Em   F   F#   G   Gm     │  │                                   │
+  ╰───────────────────────────────────╯  ╰───────────────────────────────────╯
 
-  ╭───────────────────────────────────────────────────────────────────╮
-  │ CONTROLS                                                          │
-  │                                                                   │
-  │ ←/→ chord  ↑/↓ variation  f neck  t theme  w wave  ? help  q quit │
-  ╰───────────────────────────────────────────────────────────────────╯
-
-  ╭────────────────────────────╮
-  │ CHORD DIAGRAM              │
-  │                            │
-  │ A  ·  variation 1 of 2     │
-  │ compact                    │
-  │                            │
-  │       1    2    3    4     │
-  │ e  O--------------------|  │
-  │ B  |-------3------------|  │
-  │ G  |-------2------------|  │
-  │ D  |-------1------------|  │
-  │ A  O--------------------|  │
-  │ E  X--------------------|  │
-  │                            │
-  │ Fingers: 1 index  2 middle │
-  │          3 ring   4 little │
-  │                            │
-  │ Symbols: O open  X muted   │
-  ╰────────────────────────────╯
-
-  ╭──────────────────────────────────────────────────────────────────────────╮
-  │ NOTE WAVEFORM                                                            │
-  │                                                                          │
-  │ +1.0 |  ⢀                                                                │
-  │      | ⢀⠎⢣                                            ⡎⢱                 │
-  │      | ⡸ ⠈⡆                                          ⢸  ⡇                │
-  │      | ⡇  ⢱                                          ⡇  ⢸                │
-  │      |⢰⠁  ⠈⡆                                        ⢠⠃  ⠈⡆               │
-  │      |⡸    ⢣                  ⢀⠤⢄   ⡠⠒⠑⠢⡀  ⢀⠔⠢⡀     ⢸    ⢱    ⣀⡀         │
-  │  0.0 +⠧⠤⠤⠤⠤⠼⡤⠤⠤⡴⠭⠵⡤⠤⠤⠤⢤⠴⠶⢤⠤⠤⠤⡴⠥⠤⠤⠭⠶⠮⠤⠤⠤⠤⠵⠤⠤⠧⠤⠤⢧⠤⠤⠤⠤⠤⡧⠤⠤⠤⠤⠬⡦⠤⢤⠮⠤⠼⡤⠤⠤⠤⢤⠼   │
-  │      |      ⠘⠤⠊   ⠘⢄ ⡠⠃   ⠑⠒⠊                 ⠈⡆   ⢀⠇     ⠘⠤⠊   ⠘⡄ ⢀⠎    │
-  │      |              ⠉                          ⢣   ⢸             ⠈⠒⠊     │
-  │      |                                         ⠘⡄  ⡜                     │
-  │      |                                          ⢣ ⢀⠇                     │
-  │      |                                          ⠘⡄⡜                      │
-  │ -1.0 |                                           ⠈                       │
-  │       0 ms                                                       25 ms   │
-  │ Notes: E4  C#4  A3  E3  A2                                               │
-  ╰──────────────────────────────────────────────────────────────────────────╯
+  ╭────────────────────────────╮  ╭──────────────────────────────────────────╮
+  │ CHORD DIAGRAM              │  │ NOTE WAVEFORM                            │
+  │                            │  │                                          │
+  │ A  ·  variation 1 of 2     │  │ +1.0 |                                   │
+  │ compact                    │  │      | ⣿                      ⣷          │
+  │                            │  │      |⢰⠁⡇                    ⢸⠘⡄         │
+  │       1    2    3    4     │  │      |⢸ ⡇                    ⢸ ⡇         │
+  │ e  O--------------------|  │  │      |⢸ ⢸                    ⡎ ⢣         │
+  │ B  |-------3------------|  │  │      |⡇ ⢸         ⡠⢄ ⡰⠱⡀⢀⢶   ⡇ ⢸  ⡀      │
+  │ G  |-------2------------|  │  │  0.0 +⠧⠤⠤⡧⢤⠿⡤⠤⡴⠦⡤⢴⠥⠬⠶⠥⠤⠵⠮⠤⡧⠤⠤⡧⠤⠼⡤⡼⠼⡤⠤⡼   │
+  │ D  |-------1------------|  │  │      |   ⠱⠃ ⢱⢠⠃ ⠑⠁        ⢣ ⢠⠃  ⠳⠁ ⢇⢠⠃   │
+  │ A  O--------------------|  │  │      |       ⠁            ⢸ ⢸      ⠈⠊    │
+  │ E  X--------------------|  │  │      |                    ⠸⡀⢸            │
+  │                            │  │      |                     ⡇⡎            │
+  │ Fingers: 1 index  2 middle │  │      |                     ⢣⠇            │
+  │          3 ring   4 little │  │ -1.0 |                     ⠈             │
+  │                            │  │       0 ms                       25 ms   │
+  │ Symbols: O open  X muted   │  │ Notes: E4  C#4  A3  E3  A2               │
+  ╰────────────────────────────╯  ╰──────────────────────────────────────────╯
 ```
 <!-- END VERIFIED TUI OUTPUT -->
 

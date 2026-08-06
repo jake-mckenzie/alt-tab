@@ -59,7 +59,9 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		model.dark = message.IsDark()
 		model.styles = newStyles(model.dark, model.theme)
 	case tea.WindowSizeMsg:
-		model.width = message.Width
+		model.width = max(1, message.Width)
+		// Resizing can change both row wrapping and the inline renderer's height.
+		return model, tea.ClearScreen
 	case tea.KeyPressMsg:
 		key := message.String()
 		if key == "ctrl+c" || key == "q" {

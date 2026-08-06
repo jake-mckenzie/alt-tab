@@ -107,6 +107,85 @@ func TestCompactPanelsShrinkToContent(t *testing.T) {
 	}
 }
 
+// lineWith returns the rendered line containing a section title.
+func lineWith(output, title string) string {
+	for _, line := range strings.Split(output, "\n") {
+		if strings.Contains(line, title) {
+			return line
+		}
+	}
+	return ""
+}
+
+// TestCompactLayoutUsesColumnsAndFullNeckStacks checks responsive grouping.
+func TestCompactLayoutUsesColumnsAndFullNeckStacks(t *testing.T) {
+	model := New(fakeCatalog{})
+	plain := ansiSequence.ReplaceAllString(model.View().Content, "")
+	if !strings.Contains(lineWith(plain, "CHORD SELECTOR"), "CONTROLS") {
+		t.Fatal("selector and controls are not side-by-side")
+	}
+	if !strings.Contains(lineWith(plain, "CHORD DIAGRAM"), "NOTE WAVEFORM") {
+		t.Fatal("compact diagram and waveform are not side-by-side")
+	}
+
+	model.fullNeck = true
+	plain = ansiSequence.ReplaceAllString(model.View().Content, "")
+	if strings.Contains(lineWith(plain, "CHORD DIAGRAM"), "NOTE WAVEFORM") {
+		t.Fatal("full-neck diagram and waveform remain side-by-side")
+	}
+}
+
+// TestTopPanelsShareHeightAndControlsStayOnOneLine checks the compact header row.
+func TestTopPanelsShareHeightAndControlsStayOnOneLine(t *testing.T) {
+	model := New(chords.NewCatalog())
+	selector, controls := model.renderMatchedPanels(
+		model.renderChordSelector(),
+		37,
+		model.renderControls(),
+		37,
+	)
+	if lipgloss.Height(selector) != lipgloss.Height(controls) {
+		t.Fatalf(
+			"panel heights differ: selector=%d controls=%d",
+			lipgloss.Height(selector),
+			lipgloss.Height(controls),
+		)
+	}
+	if strings.Count(model.renderControls(), "\n") != 2 {
+		t.Fatal("controls are not rendered on one line")
+	}
+}
+
+// TestResizeRedrawsWithinTerminalWidth prevents wrapping outside Bubble Tea's frame.
+func TestResizeRedrawsWithinTerminalWidth(t *testing.T) {
+	for _, fullNeck := range []bool{false, true} {
+		model := New(chords.NewCatalog())
+		model.fullNeck = fullNeck
+		for _, width := range []int{120, 80, 40, 20, 98, 30, 64, 39, 97, 79} {
+			updated, command := model.Update(tea.WindowSizeMsg{Width: width, Height: 40})
+			model = updated.(Model)
+			if command == nil {
+				t.Fatalf("width %d did not request a clean redraw", width)
+			}
+
+			plain := ansiSequence.ReplaceAllString(model.View().Content, "")
+			for lineNumber, line := range strings.Split(plain, "\n") {
+				if lineWidth := lipgloss.Width(line); lineWidth > width {
+					t.Fatalf(
+						"fullNeck=%t width %d line %d renders %d columns: %q\n%s",
+						fullNeck,
+						width,
+						lineNumber+1,
+						lineWidth,
+						line,
+						plain,
+					)
+				}
+			}
+		}
+	}
+}
+
 // TestNavigationUpdatesSelection checks the remapped directional controls.
 func TestNavigationUpdatesSelection(t *testing.T) {
 	model := New(fakeCatalog{})

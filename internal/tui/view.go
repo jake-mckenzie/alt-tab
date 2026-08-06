@@ -8,31 +8,42 @@ import (
 )
 
 const (
-	minimumTerminalWidth  = 40
-	twoColumnMinimumWidth = 64
-	sectionGapWidth       = 2
+	minimumTerminalWidth   = 40
+	twoColumnMinimumWidth  = 64
+	sectionGapWidth        = 2
+	outerHorizontalPadding = 2
 )
 
 // render composes the titled selector, controls, diagram, and waveform sections.
 func (model Model) render() string {
-	width := model.width
+	width := max(1, model.width)
+	// Preserve usable content in unusually narrow terminals.
+	padding := min(outerHorizontalPadding, max(0, (width-1)/2))
+	contentWidth := max(1, width-padding*2)
+	header := model.renderHeader(contentWidth)
+	// Avoid unbreakable fretboard cells when no readable diagram can fit.
 	if width < minimumTerminalWidth {
-		width = minimumTerminalWidth
+		return lipgloss.NewStyle().Padding(1, padding).Render(
+			header + "\n\n" + model.styles.muted.Render("Need 40+ columns"),
+		)
 	}
-	// The outer style contributes two columns of padding on both sides.
-	contentWidth := width - 4
 
-	header := lipgloss.JoinHorizontal(
-		lipgloss.Bottom,
-		model.styles.title.Render("ALT-TAB"),
-		"  ",
-		model.styles.subtitle.Render(
-			fmt.Sprintf("Guitar Chord Viewer · %s", paletteAt(model.theme).name),
-		),
-	)
 	return lipgloss.NewStyle().
-		Padding(1, 2).
+		Padding(1, padding).
 		Render(header + "\n\n" + model.renderSections(contentWidth))
+}
+
+// renderHeader omits the subtitle when it cannot fit without terminal wrapping.
+func (model Model) renderHeader(width int) string {
+	title := model.styles.title.Render("ALT-TAB")
+	subtitle := model.styles.subtitle.Render(
+		fmt.Sprintf("Guitar Chord Viewer · %s", paletteAt(model.theme).name),
+	)
+	header := lipgloss.JoinHorizontal(lipgloss.Bottom, title, "  ", subtitle)
+	if lipgloss.Width(header) <= width {
+		return header
+	}
+	return title
 }
 
 // renderSections keeps navigation above the diagram and waveform output.
@@ -41,8 +52,12 @@ func (model Model) renderSections(width int) string {
 	if width >= twoColumnMinimumWidth {
 		leftWidth := (width - sectionGapWidth) / 2
 		rightWidth := width - sectionGapWidth - leftWidth
-		selector := model.renderPanel(model.renderChordSelector(), leftWidth, false)
-		controls := model.renderPanel(model.renderControls(), rightWidth, false)
+		selector, controls := model.renderMatchedPanels(
+			model.renderChordSelector(),
+			leftWidth,
+			model.renderControls(),
+			rightWidth,
+		)
 		top = lipgloss.JoinHorizontal(
 			lipgloss.Top,
 			selector,
@@ -93,12 +108,40 @@ func (model Model) renderSections(width int) string {
 
 // renderPanel optionally shrinks a bordered section to its widest content line.
 func (model Model) renderPanel(content string, maximumWidth int, shrink bool) string {
+	return model.renderPanelAtHeight(content, maximumWidth, shrink, 0)
+}
+
+// renderPanelAtHeight optionally gives a panel an exact rendered height.
+func (model Model) renderPanelAtHeight(
+	content string,
+	maximumWidth int,
+	shrink bool,
+	height int,
+) string {
 	// Add both border and padding cells when fitting raw content.
-	styleWidth := maximumWidth
+	styleWidth := max(1, maximumWidth)
 	if shrink {
 		styleWidth = min(styleWidth, lipgloss.Width(content)+4)
 	}
-	return model.styles.panel.Width(styleWidth).Render(content)
+	style := model.styles.panel.Width(styleWidth)
+	if height > 0 {
+		style = style.Height(height)
+	}
+	return style.Render(content)
+}
+
+// renderMatchedPanels pads two adjacent panels to the same visible height.
+func (model Model) renderMatchedPanels(
+	leftContent string,
+	leftWidth int,
+	rightContent string,
+	rightWidth int,
+) (string, string) {
+	left := model.renderPanel(leftContent, leftWidth, false)
+	right := model.renderPanel(rightContent, rightWidth, false)
+	height := max(lipgloss.Height(left), lipgloss.Height(right))
+	return model.renderPanelAtHeight(leftContent, leftWidth, false, height),
+		model.renderPanelAtHeight(rightContent, rightWidth, false, height)
 }
 
 // renderChordSelector draws every chord in one horizontal navigation row.
@@ -124,11 +167,7 @@ func (model Model) renderChordSelector() string {
 // renderControls summarizes every available runtime command.
 func (model Model) renderControls() string {
 	return model.styles.heading.Render("CONTROLS") + "\n\n" +
-		model.styles.muted.Render(
-			"←/→ chord   ↑/↓ variation\n"+
-				"f neck   t theme   w wave\n"+
-				"? help   q quit",
-		)
+		model.styles.muted.Render("←→  ↑↓  f  t  w  ?  q")
 }
 
 // renderChordDiagram draws the current chord heading, mode, and fretboard.
