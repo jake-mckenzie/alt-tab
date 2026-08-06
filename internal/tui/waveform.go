@@ -13,7 +13,6 @@ const (
 	waveformHeight        = 13
 	waveformLabelWidth    = 6
 	waveformWindowSeconds = 0.025
-	waveformTitle         = "Normalized amplitude over time"
 	spectrumHeight        = 5
 	spectrumLabelWidth    = 6
 	braillePixelWidth     = 2
@@ -197,10 +196,7 @@ func renderWaveform(width int, voicing chords.Voicing) string {
 	}
 
 	plotLines := renderBrailleCanvas(canvas, plotWidth)
-	lines := []string{
-		centerDisplayText(waveformTitle, width),
-		centerDisplayText(strings.Repeat("─", len(waveformTitle)), width),
-	}
+	lines := make([]string, 0, waveformHeight+1)
 	for row, plotLine := range plotLines {
 		label := "     |"
 		boundary := "|"
@@ -229,7 +225,8 @@ func renderTimeAxis(width int) string {
 
 // renderSpectrum plots normalized note peaks across a frequency scale.
 func renderSpectrum(width int, voicing chords.Voicing) string {
-	plotWidth := width - spectrumLabelWidth
+	// Reserve one cell for a closing axis so the graph has a complete frame.
+	plotWidth := width - spectrumLabelWidth - 1
 	notes := voicingNotes(voicing)
 	if len(notes) == 0 || plotWidth < 10 {
 		return ""
@@ -265,14 +262,14 @@ func renderSpectrum(width int, voicing chords.Voicing) string {
 		case spectrumHeight / 2:
 			label = "0.5 |"
 		}
-		lines = append(lines, label+string(plot))
+		lines = append(lines, label+string(plot)+"|")
 	}
 
 	axis := []rune(strings.Repeat("─", plotWidth))
 	for _, position := range positions {
 		axis[position] = '┼'
 	}
-	lines = append(lines, "0.0 +"+string(axis))
+	lines = append(lines, "0.0 +"+string(axis)+"+")
 	prefix := strings.Repeat(" ", spectrumLabelWidth)
 	lines = append(lines, prefix+string(labels))
 	leftFrequency := fmt.Sprintf("%.0f Hz", lowest.frequency)

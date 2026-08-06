@@ -18,7 +18,8 @@ are omitted here; Alt-Tab adapts them to light and dark backgrounds.
 <!-- BEGIN VERIFIED TUI OUTPUT -->
 ```text
   ╭──────────────────────────────────────────────────────────────────────────╮
-  │                 ALT-TAB  Guitar Chord Viewer · Synthwave                 │
+  │                                 ALT-TAB                                  │
+  │                     Guitar Chord Viewer · Synthwave                      │
   │                                                                          │
   │ KEYS ←→ Base ↑↓ Type v Voicing f Neck n Tab t Theme w Wave ? Help q Quit │
   ╰──────────────────────────────────────────────────────────────────────────╯
@@ -38,37 +39,35 @@ are omitted here; Alt-Tab adapts them to light and dark backgrounds.
   ╰──────────────────────────────────────────────────────────────────────────╯
 
   ╭────────────────────────────╮  ╭──────────────────────────────────────────╮
-  │       CHORD DIAGRAM        │  │              NOTE WAVEFORM               │
+  │       CHORD DIAGRAM        │  │       WAVEFORM · AMPLITUDE / TIME        │
   │          COMPACT           │  │                                          │
-  │                            │  │      Normalized amplitude over time      │
-  │             A              │  │      ──────────────────────────────      │
-  │       VOICING 1 OF 2       │  │  +1.0 |                               |  │
-  │                            │  │       | ⣷                     ⡼⡀      |  │
-  │                            │  │       |⢰⠉⡆                    ⡇⡇      |  │
+  │                            │  │  +1.0 |                               |  │
+  │             A              │  │       | ⣷                     ⡼⡀      |  │
+  │       VOICING 1 OF 2       │  │       |⢰⠉⡆                    ⡇⡇      |  │
   │                            │  │       |⢸ ⡇                   ⢸ ⢇      |  │
   │                            │  │       |⢸ ⢱                   ⢸ ⢸      |  │
   │                            │  │       |⡇ ⢸  ⡀      ⡤⡀⢀⠎⡆ ⡰⡄  ⢸ ⠸⡀ ⡀   |  │
   │                            │  │   0.0 +⠧⠤⠬⡦⡴⠽⡤⠤⡴⢦⠤⡼⠤⠵⠮⠤⠼⠴⠥⢵⠤⠤⡧⠤⠤⡧⡴⠽⡤⠤⡼+  │
   │                            │  │       |   ⠱⠃ ⢇⢰⠁ ⠓⠁       ⢸  ⡇  ⠱⠃ ⢣⢠⠃|  │
-  │       1    2    3    4     │  │       |      ⠈⠁           ⠈⡆ ⡇     ⠈⠊ |  │
-  │     ────────────────────   │  │       |                    ⡇⢰⠁        |  │
-  │ e  O--------------------|  │  │       |                    ⢱⢸         |  │
-  │ B  |-------3------------|  │  │       |                    ⠸⡜         |  │
-  │ G  |-------2------------|  │  │  -1.0 |                     ⠁         |  │
-  │ D  |-------1------------|  │  │        0 ms                       25 ms  │
-  │ A  O--------------------|  │  ╰──────────────────────────────────────────╯
-  │ E  X--------------------|  │
-  │                            │  ╭──────────────────────────────────────────╮
+  │                            │  │       |      ⠈⠁           ⠈⡆ ⡇     ⠈⠊ |  │
+  │       1    2    3    4     │  │       |                    ⡇⢰⠁        |  │
+  │     ────────────────────   │  │       |                    ⢱⢸         |  │
+  │ e  O--------------------|  │  │       |                    ⠸⡜         |  │
+  │ B  |-------3------------|  │  │  -1.0 |                     ⠁         |  │
+  │ G  |-------2------------|  │  │        0 ms                       25 ms  │
+  │ D  |-------1------------|  │  ╰──────────────────────────────────────────╯
+  │ A  O--------------------|  │
+  │ E  X--------------------|  │  ╭──────────────────────────────────────────╮
   │                            │  │            FREQUENCY SPECTRUM            │
   │                            │  │                                          │
-  │                            │  │  1.0 |█          █        █     █    █   │
-  │                            │  │      |█          █        █     █    █   │
-  │                            │  │  0.5 |█          █        █     █    █   │
-  │                            │  │      |█          █        █     █    █   │
-  │                            │  │      |█          █        █     █    █   │
-  │                            │  │  0.0 +┼──────────┼────────┼─────┼────┼   │
-  │ Fingers: 1 index  2 middle │  │        A2        E3       A3    C#4  E4  │
-  │          3 ring   4 little │  │        110 Hz                    330 Hz  │
+  │                            │  │  1.0 |█          █       █     █    █|   │
+  │                            │  │      |█          █       █     █    █|   │
+  │                            │  │  0.5 |█          █       █     █    █|   │
+  │                            │  │      |█          █       █     █    █|   │
+  │                            │  │      |█          █       █     █    █|   │
+  │                            │  │  0.0 +┼──────────┼───────┼─────┼────┼+   │
+  │ Fingers: 1 index  2 middle │  │        A2        E3      A3    C#4  E4   │
+  │          3 ring   4 little │  │        110 Hz                   330 Hz   │
   │                            │  │                                          │
   │ Symbols: O open  X muted   │  │        Notes: E4  C#4  A3  E3  A2        │
   ╰────────────────────────────╯  ╰──────────────────────────────────────────╯
@@ -199,7 +198,7 @@ string instead of showing the separate fret scale or finger numbers. `O` and
 The title and clearly labeled key controls share the first centered banner,
 with the chord dial directly beneath it. Inspired by htop++, compact mode uses
 a primary chord panel on the left and stacked waveform and spectrum modules on
-the right. Full-neck mode places the wide neck above side-by-side graph modules.
+the right. Full-neck mode stacks all three modules at the same full width.
 The layout redraws when the terminal is resized and shows a
 width notice below 80 columns instead of wrapping controls or fretboard cells.
 Above 100 columns, the interface keeps its readable width instead of stretching.
@@ -210,8 +209,9 @@ selected chord or voicing.
 
 The stationary Braille waveform plots 25 milliseconds of an ideal
 equal-amplitude signal combining every sounding string in the selected voicing.
-Braille subcells increase detail without increasing its character width. The
-separate frequency spectrum shows a normalized peak for each sounding note,
+Braille subcells increase detail without increasing its character width. Its
+section heading also identifies the amplitude-over-time axes without a redundant
+graph title. The separate frequency spectrum shows a normalized peak for each sounding note,
 with pitch names, frequency endpoints, and a centered note legend. Press `w` to
 hide or restore the time-domain waveform; the spectrum remains visible.
 

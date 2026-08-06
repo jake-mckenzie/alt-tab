@@ -22,10 +22,10 @@ func TestRenderWaveformUsesRequestedDimensions(t *testing.T) {
 	output := renderWaveform(40, voicing)
 	lines := strings.Split(output, "\n")
 
-	if len(lines) != waveformHeight+3 {
-		t.Fatalf("waveform height = %d, want %d", len(lines), waveformHeight+3)
+	if len(lines) != waveformHeight+1 {
+		t.Fatalf("waveform height = %d, want %d", len(lines), waveformHeight+1)
 	}
-	for _, line := range lines[:waveformHeight+3] {
+	for _, line := range lines {
 		if utf8.RuneCountInString(line) != 40 {
 			t.Fatalf(
 				"waveform width = %d, want 40",
@@ -34,7 +34,7 @@ func TestRenderWaveformUsesRequestedDimensions(t *testing.T) {
 		}
 	}
 	for _, expected := range []string{
-		waveformTitle, "+1.0 |", " 0.0 +", "-1.0 |", "25 ms",
+		"+1.0 |", " 0.0 +", "-1.0 |", "25 ms",
 	} {
 		if !strings.Contains(output, expected) {
 			t.Fatalf("waveform is missing %q:\n%s", expected, output)
@@ -43,13 +43,7 @@ func TestRenderWaveformUsesRequestedDimensions(t *testing.T) {
 	if !strings.ContainsFunc(output, isBrailleRune) {
 		t.Fatal("waveform does not contain Braille subcells")
 	}
-	waveformTitleLine := lineIndex(lines, waveformTitle)
-	if waveformTitleLine < 0 || waveformTitleLine+1 >= len(lines) ||
-		strings.TrimSpace(lines[waveformTitleLine+1]) !=
-			strings.Repeat("─", len(waveformTitle)) {
-		t.Fatalf("%q does not have an underline below it", waveformTitle)
-	}
-	for row, line := range lines[2 : waveformHeight+2] {
+	for row, line := range lines[:waveformHeight] {
 		wantBoundary := "|"
 		if row == waveformHeight/2 {
 			wantBoundary = "+"
@@ -58,16 +52,6 @@ func TestRenderWaveformUsesRequestedDimensions(t *testing.T) {
 			t.Fatalf("waveform row %d has no matching right boundary: %q", row, line)
 		}
 	}
-}
-
-// lineIndex finds an exact visible line while ignoring centering spaces.
-func lineIndex(lines []string, value string) int {
-	for index, line := range lines {
-		if strings.TrimSpace(line) == value {
-			return index
-		}
-	}
-	return -1
 }
 
 // TestSpectrumMarksEverySoundingNote checks its peaks and annotations.
@@ -82,6 +66,14 @@ func TestSpectrumMarksEverySoundingNote(t *testing.T) {
 		}
 	}
 	lines := strings.Split(spectrum, "\n")
+	for row, line := range lines[:spectrumHeight] {
+		if !strings.HasSuffix(line, "|") {
+			t.Fatalf("spectrum row %d has no right boundary: %q", row, line)
+		}
+	}
+	if !strings.HasSuffix(lines[spectrumHeight], "+") {
+		t.Fatalf("spectrum axis has no right endpoint: %q", lines[spectrumHeight])
+	}
 	legend := lines[len(lines)-1]
 	legendText := strings.TrimSpace(legend)
 	left := strings.Index(legend, legendText)

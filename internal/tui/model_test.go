@@ -80,7 +80,7 @@ func TestSectionsAreClearlyLabeledAndOrdered(t *testing.T) {
 	plain := ansiSequence.ReplaceAllString(New(fakeCatalog{}).View().Content, "")
 	positions := make(map[string]int)
 	for _, title := range []string{
-		"KEYS", "CHORD DIAL", "CHORD DIAGRAM", "NOTE WAVEFORM", "FREQUENCY SPECTRUM",
+		"KEYS", "CHORD DIAL", "CHORD DIAGRAM", "WAVEFORM · AMPLITUDE / TIME", "FREQUENCY SPECTRUM",
 	} {
 		positions[title] = strings.Index(plain, title)
 		if positions[title] < 0 {
@@ -89,7 +89,7 @@ func TestSectionsAreClearlyLabeledAndOrdered(t *testing.T) {
 	}
 	if positions["KEYS"] > positions["CHORD DIAL"] ||
 		positions["CHORD DIAL"] > positions["CHORD DIAGRAM"] ||
-		positions["CHORD DIAL"] > positions["NOTE WAVEFORM"] ||
+		positions["CHORD DIAL"] > positions["WAVEFORM · AMPLITUDE / TIME"] ||
 		positions["CHORD DIAL"] > positions["FREQUENCY SPECTRUM"] {
 		t.Fatal("title controls, dial, and output sections are out of order")
 	}
@@ -130,15 +130,16 @@ func TestDashboardLayoutGroupsOutputPanels(t *testing.T) {
 	if !hasDoubleTopBorder(plain) {
 		t.Fatal("compact diagram and graph stack are not side-by-side")
 	}
-	if strings.Index(plain, "NOTE WAVEFORM") > strings.Index(plain, "FREQUENCY SPECTRUM") {
+	if strings.Index(plain, "WAVEFORM · AMPLITUDE / TIME") > strings.Index(plain, "FREQUENCY SPECTRUM") {
 		t.Fatal("compact graph stack does not place the waveform above the spectrum")
 	}
 
 	model.fullNeck = true
 	plain = ansiSequence.ReplaceAllString(model.View().Content, "")
-	if !hasDoubleTopBorder(plain) ||
-		strings.Index(plain, "CHORD DIAGRAM") > strings.Index(plain, "NOTE WAVEFORM") {
-		t.Fatal("full-neck dashboard does not stack the neck above paired graphs")
+	if hasDoubleTopBorder(plain) ||
+		strings.Index(plain, "CHORD DIAGRAM") > strings.Index(plain, "WAVEFORM · AMPLITUDE / TIME") ||
+		strings.Index(plain, "WAVEFORM · AMPLITUDE / TIME") > strings.Index(plain, "FREQUENCY SPECTRUM") {
+		t.Fatal("full-neck dashboard does not use three stacked full-width modules")
 	}
 }
 
@@ -189,7 +190,7 @@ func TestHeaderAndDialFillSharedWidthAndCenterContent(t *testing.T) {
 		t.Fatal("title banner and dial do not fill their shared section width")
 	}
 	for output, title := range map[string]string{
-		banner: "ALT-TAB  Guitar Chord Viewer · Synthwave",
+		banner: "ALT-TAB",
 		dial:   "CHORD DIAL",
 	} {
 		line := lineWith(output, title)
@@ -199,6 +200,9 @@ func TestHeaderAndDialFillSharedWidthAndCenterContent(t *testing.T) {
 		if absoluteInt(left-right) > 1 {
 			t.Fatalf("%s is not centered: left=%d right=%d", title, left, right)
 		}
+	}
+	if lineWith(banner, "Guitar Chord Viewer · Synthwave") == "" {
+		t.Fatal("app subtitle is not rendered below ALT-TAB")
 	}
 }
 
@@ -262,11 +266,10 @@ func TestFullNeckPanelsUseNaturalHeights(t *testing.T) {
 		model.renderWaveformSection(maximumLayoutWidth-10),
 		maximumLayoutWidth-4,
 	)
-	if lipgloss.Height(diagram) >= lipgloss.Height(waveform) {
+	if lipgloss.Height(diagram) == lipgloss.Height(waveform) {
 		t.Fatalf(
-			"full-neck diagram height = %d, waveform height = %d; natural heights were lost",
+			"full-neck diagram and waveform were forced to the same height %d",
 			lipgloss.Height(diagram),
-			lipgloss.Height(waveform),
 		)
 	}
 }

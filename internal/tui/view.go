@@ -46,15 +46,14 @@ func (model Model) render() string {
 		Render(banner + "\n\n" + model.renderSections(contentWidth))
 }
 
-// renderHeader omits the subtitle when it cannot fit without terminal wrapping.
+// renderHeader stacks the app identity while avoiding narrow-terminal wrapping.
 func (model Model) renderHeader(width int) string {
 	title := model.styles.title.Render("ALT-TAB")
 	subtitle := model.styles.subtitle.Render(
 		fmt.Sprintf("Guitar Chord Viewer · %s", paletteAt(model.theme).name),
 	)
-	header := lipgloss.JoinHorizontal(lipgloss.Bottom, title, "  ", subtitle)
-	if lipgloss.Width(header) <= width {
-		return header
+	if lipgloss.Width(subtitle) <= width {
+		return lipgloss.JoinVertical(lipgloss.Center, title, subtitle)
 	}
 	return title
 }
@@ -92,28 +91,17 @@ func (model Model) renderSections(width int) string {
 	}
 
 	diagram := model.renderCenteredPanel(diagramContent, width)
-	graphGap := strings.Repeat(" ", sectionGapWidth)
-	leftGraphWidth := (width - sectionGapWidth) / 2
-	rightGraphWidth := width - sectionGapWidth - leftGraphWidth
-	waveform, spectrum := model.renderMatchedCenteredPanels(
-		model.renderWaveformSection(leftGraphWidth-6),
-		leftGraphWidth,
-		model.renderSpectrumSection(rightGraphWidth-6),
-		rightGraphWidth,
-	)
-	graphs := lipgloss.JoinHorizontal(
-		lipgloss.Top,
-		waveform,
-		graphGap,
-		spectrum,
-	)
+	waveform := model.renderCenteredPanel(model.renderWaveformSection(width-6), width)
+	spectrum := model.renderCenteredPanel(model.renderSpectrumSection(width-6), width)
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
 		selector,
 		"",
 		diagram,
 		"",
-		graphs,
+		waveform,
+		"",
+		spectrum,
 	)
 }
 
@@ -367,7 +355,7 @@ func arrangeCompactDiagram(header, board, legend string, height int) string {
 
 // renderWaveformSection labels the note plot or explains how to restore it.
 func (model Model) renderWaveformSection(width int) string {
-	heading := model.styles.heading.Render("NOTE WAVEFORM")
+	heading := model.styles.heading.Render("WAVEFORM · AMPLITUDE / TIME")
 	if !model.waveform {
 		return heading + "\n\n" +
 			model.styles.muted.Render("Hidden · press w to show")
