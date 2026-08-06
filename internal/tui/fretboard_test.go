@@ -61,7 +61,7 @@ func TestCompactFretboardStartsAtHigherPosition(t *testing.T) {
 	}
 }
 
-// TestTabDiagramUsesFretNumbers checks direct, vertically aligned tab notation.
+// TestTabDiagramUsesFretNumbers checks numbering within compact neck geometry.
 func TestTabDiagramUsesFretNumbers(t *testing.T) {
 	voicing := chords.Voicing{
 		Strings: [chords.StringCount]chords.StringPlacement{
@@ -75,12 +75,12 @@ func TestTabDiagramUsesFretNumbers(t *testing.T) {
 	}
 	output := renderTabDiagram(voicing)
 	for _, expected := range []string{
-		"e  ----------0----------",
-		"B  ----------1----------",
-		"G  ----------2----------",
-		"D  ----------2----------",
-		"A  ----------0----------",
-		"E  ----------X----------",
+		"e  O--------------------|",
+		"B  |--1-----------------|",
+		"G  |-------2------------|",
+		"D  |-------2------------|",
+		"A  O--------------------|",
+		"E  X--------------------|",
 	} {
 		if !strings.Contains(output, expected) {
 			t.Fatalf("tab diagram does not contain %q:\n%s", expected, output)
@@ -88,6 +88,9 @@ func TestTabDiagramUsesFretNumbers(t *testing.T) {
 	}
 	if strings.Contains(output, "Fingers:") || strings.Contains(output, "Symbols:") {
 		t.Fatal("tab diagram includes fretboard-only legends")
+	}
+	if strings.Contains(output, "  1  ") || strings.Contains(output, "────") {
+		t.Fatal("tab diagram includes the separate fret scale")
 	}
 }
 

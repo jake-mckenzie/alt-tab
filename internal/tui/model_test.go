@@ -221,6 +221,31 @@ func TestBottomPanelsShareHeightAndCenterContent(t *testing.T) {
 	}
 }
 
+// TestCompactDiagramCentersBoardAndBottomAlignsLegend checks vertical layout.
+func TestCompactDiagramCentersBoardAndBottomAlignsLegend(t *testing.T) {
+	model := New(fakeCatalog{})
+	const height = 25
+	plain := ansiSequence.ReplaceAllString(model.renderCompactChordDiagram(height), "")
+	lines := strings.Split(plain, "\n")
+	firstString := strings.Index(plain, "e  O")
+	lastString := strings.Index(plain, "E  X")
+	if len(lines) != height || firstString < 0 || lastString < 0 {
+		t.Fatal("compact diagram does not contain the expected fixed-height fretboard")
+	}
+	firstRow := strings.Count(plain[:firstString], "\n")
+	lastRow := strings.Count(plain[:lastString], "\n")
+	boardCenter := (firstRow + lastRow) / 2
+	if absoluteInt(boardCenter-(height-1)/2) > 1 {
+		t.Fatalf("fretboard center row = %d, want %d", boardCenter+1, (height-1)/2+1)
+	}
+	if strings.TrimSpace(lines[height-1]) != "Symbols: O open  X muted" {
+		t.Fatalf("compact footer = %q, want symbol legend", lines[height-1])
+	}
+	if !strings.Contains(lines[height-4], "Fingers:") {
+		t.Fatal("finger legend is not anchored with the compact footer")
+	}
+}
+
 // TestFullNeckPanelsUseNaturalHeights avoids padding stacked output sections.
 func TestFullNeckPanelsUseNaturalHeights(t *testing.T) {
 	model := New(chords.NewCatalog())
@@ -467,8 +492,9 @@ func TestDiagramModesAndHelpToggle(t *testing.T) {
 	plain := ansiSequence.ReplaceAllString(model.View().Content, "")
 	if !model.tabNotation || model.fullNeck ||
 		!strings.Contains(plain, "TAB NUMBERS") ||
-		!strings.Contains(plain, "B  ----------1----------") ||
-		strings.Contains(plain, "Fingers:") {
+		!strings.Contains(plain, "B  |--1-----------------|") ||
+		strings.Contains(plain, "Fingers:") ||
+		!strings.Contains(plain, "Symbols: O open  X muted") {
 		t.Fatal("n did not enable the fret-number tab view")
 	}
 

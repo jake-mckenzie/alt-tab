@@ -44,25 +44,25 @@ are omitted here; Alt-Tab adapts them to light and dark backgrounds.
   │             A              │  │       | ⣷                     ⡼⡀      |  │
   │       VOICING 1 OF 2       │  │       |⢰⠉⡆                    ⡇⡇      |  │
   │                            │  │       |⢸ ⡇                   ⢸ ⢇      |  │
-  │       1    2    3    4     │  │       |⢸ ⢱                   ⢸ ⢸      |  │
-  │     ────────────────────   │  │       |⡇ ⢸  ⡀      ⡤⡀⢀⠎⡆ ⡰⡄  ⢸ ⠸⡀ ⡀   |  │
-  │ e  O--------------------|  │  │   0.0 +⠧⠤⠬⡦⡴⠽⡤⠤⡴⢦⠤⡼⠤⠵⠮⠤⠼⠴⠥⢵⠤⠤⡧⠤⠤⡧⡴⠽⡤⠤⡼+  │
-  │ B  |-------3------------|  │  │       |   ⠱⠃ ⢇⢰⠁ ⠓⠁       ⢸  ⡇  ⠱⠃ ⢣⢠⠃|  │
-  │ G  |-------2------------|  │  │       |      ⠈⠁           ⠈⡆ ⡇     ⠈⠊ |  │
-  │ D  |-------1------------|  │  │       |                    ⡇⢰⠁        |  │
-  │ A  O--------------------|  │  │       |                    ⢱⢸         |  │
-  │ E  X--------------------|  │  │       |                    ⠸⡜         |  │
-  │                            │  │  -1.0 |                     ⠁         |  │
-  │ Fingers: 1 index  2 middle │  │        0 ms                       25 ms  │
-  │          3 ring   4 little │  │      Normalized amplitude over time      │
+  │                            │  │       |⢸ ⢱                   ⢸ ⢸      |  │
+  │                            │  │       |⡇ ⢸  ⡀      ⡤⡀⢀⠎⡆ ⡰⡄  ⢸ ⠸⡀ ⡀   |  │
+  │       1    2    3    4     │  │   0.0 +⠧⠤⠬⡦⡴⠽⡤⠤⡴⢦⠤⡼⠤⠵⠮⠤⠼⠴⠥⢵⠤⠤⡧⠤⠤⡧⡴⠽⡤⠤⡼+  │
+  │     ────────────────────   │  │       |   ⠱⠃ ⢇⢰⠁ ⠓⠁       ⢸  ⡇  ⠱⠃ ⢣⢠⠃|  │
+  │ e  O--------------------|  │  │       |      ⠈⠁           ⠈⡆ ⡇     ⠈⠊ |  │
+  │ B  |-------3------------|  │  │       |                    ⡇⢰⠁        |  │
+  │ G  |-------2------------|  │  │       |                    ⢱⢸         |  │
+  │ D  |-------1------------|  │  │       |                    ⠸⡜         |  │
+  │ A  O--------------------|  │  │  -1.0 |                     ⠁         |  │
+  │ E  X--------------------|  │  │        0 ms                       25 ms  │
+  │                            │  │      Normalized amplitude over time      │
   │                            │  │                                          │
-  │ Symbols: O open  X muted   │  │        │          │        │     │    │  │
+  │                            │  │        │          │        │     │    │  │
   │                            │  │        ├──────────┼────────┼─────┼────┤  │
   │                            │  │        A2        E3       A3    C#4  E4  │
-  │                            │  │        110 Hz                    330 Hz  │
-  │                            │  │          Pitch range by semitone         │
+  │ Fingers: 1 index  2 middle │  │        110 Hz                    330 Hz  │
+  │          3 ring   4 little │  │          Pitch range by semitone         │
   │                            │  │                                          │
-  │                            │  │  Notes: E4  C#4  A3  E3  A2              │
+  │ Symbols: O open  X muted   │  │  Notes: E4  C#4  A3  E3  A2              │
   ╰────────────────────────────╯  ╰──────────────────────────────────────────╯
 ```
 <!-- END VERIFIED TUI OUTPUT -->
@@ -184,8 +184,9 @@ When the selected family has a flat, sharp, or minor chord, a nested vertical
 dial shows only those real choices around the base chord. Families without
 variants remain a single center cell, and unavailable directions do nothing.
 Full-neck mode requires a terminal width of at least 98 columns. The fret-number
-tab view uses one vertically aligned number per string, including `0` for open
-strings and `X` for muted strings; selecting it exits full-neck mode.
+tab view preserves the compact neck but places each fret number directly on its
+string instead of showing the separate fret scale or finger numbers. `O` and
+`X` still mark open and muted strings; selecting tab view exits full-neck mode.
 
 The title and clearly labeled key controls share the first centered banner,
 with the chord dial directly beneath it. Compact mode places the chord diagram

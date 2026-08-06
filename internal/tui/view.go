@@ -73,6 +73,9 @@ func (model Model) renderSections(width int) string {
 		waveformWidth := width - sectionGapWidth - diagramWidth
 		// Leave two spare cells because some terminals treat Braille width loosely.
 		waveformContent := model.renderWaveformSection(waveformWidth - 6)
+		diagramContent = model.renderCompactChordDiagram(
+			lipgloss.Height(waveformContent),
+		)
 		diagram, waveform := model.renderMatchedCenteredPanels(
 			diagramContent,
 			diagramWidth,
@@ -273,23 +276,7 @@ func (model Model) renderChordDiagram() string {
 	if model.err != nil {
 		return model.styles.err.Render(model.err.Error())
 	}
-
-	voicingCount := model.catalog.VoicingCount(model.voicing.Name)
-	mode := "COMPACT"
-	if model.fullNeck {
-		mode = fmt.Sprintf("FULL NECK · FRETS 1–%d", fullNeckLastFret)
-	} else if model.tabNotation {
-		mode = "TAB NUMBERS"
-	}
-
-	header := model.styles.heading.Render("CHORD DIAGRAM") + "\n" +
-		model.styles.accent.Render(mode) + "\n\n" +
-		model.styles.selected.Render("  "+model.voicing.Name+"  ") + "\n" +
-		model.styles.muted.Render(fmt.Sprintf(
-			"VOICING %d OF %d",
-			model.voicing.Number,
-			voicingCount,
-		))
+	header := model.renderChordDiagramHeader()
 	if model.fullNeck && model.width < fullNeckMinimumTerminalWidth {
 		return header + "\n\n" + model.styles.err.Render(
 			fmt.Sprintf(
@@ -300,11 +287,69 @@ func (model Model) renderChordDiagram() string {
 		)
 	}
 
-	diagram := renderFretboard(model.voicing, model.fullNeck)
-	if model.tabNotation {
-		diagram = renderTabDiagram(model.voicing)
+	board, legend := renderFretboardParts(
+		model.voicing,
+		model.fullNeck,
+		model.tabNotation,
+	)
+	return header + "\n\n" + model.styles.normal.Render(board) +
+		"\n\n" + model.styles.normal.Render(legend)
+}
+
+// renderChordDiagramHeader stacks the mode, active chord, and voicing number.
+func (model Model) renderChordDiagramHeader() string {
+	voicingCount := model.catalog.VoicingCount(model.voicing.Name)
+	mode := "COMPACT"
+	if model.fullNeck {
+		mode = fmt.Sprintf("FULL NECK · FRETS 1–%d", fullNeckLastFret)
+	} else if model.tabNotation {
+		mode = "TAB NUMBERS"
 	}
-	return header + "\n\n" + model.styles.normal.Render(diagram)
+
+	return model.styles.heading.Render("CHORD DIAGRAM") + "\n" +
+		model.styles.accent.Render(mode) + "\n\n" +
+		model.styles.selected.Render("  "+model.voicing.Name+"  ") + "\n" +
+		model.styles.muted.Render(fmt.Sprintf(
+			"VOICING %d OF %d",
+			model.voicing.Number,
+			voicingCount,
+		))
+}
+
+// renderCompactChordDiagram anchors legends and vertically centers the neck.
+func (model Model) renderCompactChordDiagram(height int) string {
+	if model.err != nil {
+		return model.styles.err.Render(model.err.Error())
+	}
+	board, legend := renderFretboardParts(model.voicing, false, model.tabNotation)
+	return arrangeCompactDiagram(
+		model.renderChordDiagramHeader(),
+		model.styles.normal.Render(board),
+		model.styles.normal.Render(legend),
+		height,
+	)
+}
+
+// arrangeCompactDiagram fixes the header, board center, and legend footer.
+func arrangeCompactDiagram(header, board, legend string, height int) string {
+	headerLines := strings.Split(header, "\n")
+	boardLines := strings.Split(board, "\n")
+	legendLines := strings.Split(legend, "\n")
+	minimumHeight := len(headerLines) + len(boardLines) + len(legendLines) + 2
+	height = max(height, minimumHeight)
+	boardTop := max(len(headerLines)+1, (height-len(boardLines))/2)
+	legendTop := height - len(legendLines)
+	if boardTop+len(boardLines) >= legendTop {
+		boardTop = len(headerLines) + 1
+		legendTop = boardTop + len(boardLines) + 1
+		height = legendTop + len(legendLines)
+	}
+
+	lines := make([]string, height)
+	copy(lines, headerLines)
+	copy(lines[boardTop:], boardLines)
+	copy(lines[legendTop:], legendLines)
+	return strings.Join(lines, "\n")
 }
 
 // renderWaveformSection labels the note plot or explains how to restore it.

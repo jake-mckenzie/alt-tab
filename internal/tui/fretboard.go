@@ -12,7 +12,6 @@ const (
 	fullNeckCellWidth            = 3
 	fullNeckMinimumTerminalWidth = 98
 	compactCellWidth             = 5
-	tabLineWidth                 = 21
 )
 
 // stringNames follows standard tablature order from high e to low E.
@@ -23,10 +22,22 @@ func renderFretboard(
 	voicing chords.Voicing,
 	fullNeck bool,
 ) string {
+	board, legend := renderFretboardParts(voicing, fullNeck, false)
+	return board + "\n\n" + legend
+}
+
+// renderFretboardParts separates the neck from its position legend for layout.
+func renderFretboardParts(
+	voicing chords.Voicing,
+	fullNeck bool,
+	tabNumbers bool,
+) (string, string) {
 	firstFret, lastFret, cellWidth := fretRange(voicing, fullNeck)
 	var output strings.Builder
 
-	writeFretLabels(&output, firstFret, lastFret, cellWidth)
+	if !tabNumbers {
+		writeFretLabels(&output, firstFret, lastFret, cellWidth)
+	}
 
 	for index, placement := range voicing.Strings {
 		fmt.Fprintf(&output, "%s  %c", stringNames[index], stringBoundary(placement))
@@ -34,67 +45,55 @@ func renderFretboard(
 			marker := ""
 			if placement.Fret == fret {
 				marker = fmt.Sprintf("%d", placement.Finger)
+				if tabNumbers {
+					marker = fmt.Sprintf("%d", placement.Fret)
+				}
 			}
 			output.WriteString(centerText(marker, cellWidth, '-'))
 		}
-		output.WriteString("|\n")
-	}
-
-	writeFretboardLegend(
-		&output,
-		4+(lastFret-firstFret+1)*cellWidth+1,
-		fullNeck,
-	)
-	return output.String()
-}
-
-// renderTabDiagram places each string's fret number in one aligned tab column.
-func renderTabDiagram(voicing chords.Voicing) string {
-	var output strings.Builder
-	for index, placement := range voicing.Strings {
-		marker := "X"
-		if placement.Fret >= 0 {
-			marker = fmt.Sprintf("%d", placement.Fret)
-		}
-		fmt.Fprintf(
-			&output,
-			"%s  %s",
-			stringNames[index],
-			centerText(marker, tabLineWidth, '-'),
-		)
+		output.WriteByte('|')
 		if index < len(voicing.Strings)-1 {
 			output.WriteByte('\n')
 		}
 	}
-	return output.String()
+
+	legend := renderFretboardLegend(
+		4+(lastFret-firstFret+1)*cellWidth+1,
+		fullNeck,
+		!tabNumbers,
+	)
+	return output.String(), legend
 }
 
-// writeFretboardLegend explains markers and centers the full-neck legend.
-func writeFretboardLegend(output *strings.Builder, width int, centered bool) {
+// renderTabDiagram preserves the neck while replacing fingers with fret numbers.
+func renderTabDiagram(voicing chords.Voicing) string {
+	board, _ := renderFretboardParts(voicing, false, true)
+	return board
+}
+
+// renderFretboardLegend explains markers and centers the full-neck legend.
+func renderFretboardLegend(width int, centered, includeFingers bool) string {
 	fingerLines := []string{
 		"Fingers: 1 index  2 middle",
 		"         3 ring   4 little",
 	}
 	symbolLine := "Symbols: O open  X muted"
+	if !includeFingers {
+		return symbolLine
+	}
 	if !centered {
-		fmt.Fprintf(output, "\n%s\n%s\n\n%s", fingerLines[0], fingerLines[1], symbolLine)
-		return
+		fingerWidth := max(len(fingerLines[0]), len(fingerLines[1]))
+		fingerLines[1] += strings.Repeat(" ", fingerWidth-len(fingerLines[1]))
+		return fingerLines[0] + "\n" + fingerLines[1] + "\n\n" + symbolLine
 	}
 
 	// Keep the two finger lines aligned while centering them as one block.
 	fingerWidth := max(len(fingerLines[0]), len(fingerLines[1]))
 	fingerPadding := strings.Repeat(" ", max(0, width-fingerWidth)/2)
 	symbolPadding := strings.Repeat(" ", max(0, width-len(symbolLine))/2)
-	fmt.Fprintf(
-		output,
-		"\n%s%s\n%s%s\n\n%s%s",
-		fingerPadding,
-		fingerLines[0],
-		fingerPadding,
-		fingerLines[1],
-		symbolPadding,
-		symbolLine,
-	)
+	return fingerPadding + fingerLines[0] + "\n" +
+		fingerPadding + fingerLines[1] + "\n\n" +
+		symbolPadding + symbolLine
 }
 
 // fretRange keeps common voicings compact while preserving exact fret labels.
