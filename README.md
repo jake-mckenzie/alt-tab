@@ -123,8 +123,9 @@ The complete horizontal chord list appears above the fretboard in both compact
 and full-neck modes. Full-neck mode requires a terminal width of at least 98
 columns.
 
-The animated ASCII waveform below the title is enabled by default. Press `w`
-to hide it and stop its animation timer; press `w` again to restart it.
+The animated ASCII waveform below the title combines the frequencies of every
+sounding string in the selected voicing. It is enabled by default; press `w` to
+hide it and stop its animation timer, or press `w` again to restart it.
 
 ### Themes
 
@@ -146,11 +147,13 @@ are omitted here; Alt-Tab adapts them to light and dark backgrounds.
 <!-- BEGIN VERIFIED TUI OUTPUT -->
 ```text
   ALT-TAB  Guitar Chord Viewer · Synthwave
-    *       *       *       *       *       *       *       *       *       *
-   * *     * *     * *     * *     * *     * *     * *     * *     * *     * *
-  *---*---*---*---*---*---*---*---*---*---*---*---*---*---*---*---*---*---*---
-       * *     * *     * *     * *     * *     * *     * *     * *     * *
-        *       *       *       *       *       *       *       *       *
+    ***********
+               *
+   *            *            *                                   ********
+  *--------------*-------****-****-----------*********-------****--------*****
+                  *******         ***    ****         *******
+                                     ****
+
 
   ╭────────────────────────────────────────────────────────────────────────╮
   │ CHORDS                                                                 │

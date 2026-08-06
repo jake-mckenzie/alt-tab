@@ -28,7 +28,7 @@ func (model Model) render() string {
 	)
 	if model.waveform {
 		header += "\n" + model.styles.accent.Render(
-			renderWaveform(contentWidth, model.waveFrame),
+			renderWaveform(contentWidth, model.waveFrame, model.voicing),
 		)
 	}
 

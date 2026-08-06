@@ -1,15 +1,19 @@
 package tui
 
 import (
+	"math"
 	"strings"
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
+
+	"github.com/jake-mckenzie/alt-tab/internal/chords"
 )
 
 // TestRenderWaveformUsesRequestedDimensions checks stable ASCII geometry.
 func TestRenderWaveformUsesRequestedDimensions(t *testing.T) {
-	output := renderWaveform(16, 0)
+	voicing, _ := fakeCatalog{}.Load("C", 1)
+	output := renderWaveform(16, 0, voicing)
 	lines := strings.Split(output, "\n")
 
 	if len(lines) != waveformHeight {
@@ -22,6 +26,31 @@ func TestRenderWaveformUsesRequestedDimensions(t *testing.T) {
 	}
 	if strings.ContainsAny(output, "0123456789") || !strings.Contains(output, "*") {
 		t.Fatalf("waveform is not portable ASCII:\n%s", output)
+	}
+}
+
+// TestWaveformUsesVoicingFrequencies checks note conversion and chord identity.
+func TestWaveformUsesVoicingFrequencies(t *testing.T) {
+	voicing := chords.Voicing{
+		Strings: [chords.StringCount]chords.StringPlacement{
+			{Fret: 0},
+			{Fret: -1},
+			{Fret: -1},
+			{Fret: -1},
+			{Fret: -1},
+			{Fret: -1},
+		},
+	}
+	frequencies := voicingFrequencies(voicing)
+	if len(frequencies) != 1 || math.Abs(frequencies[0]-329.63) > 0.001 {
+		t.Fatalf("high-e frequencies = %v, want [329.63]", frequencies)
+	}
+
+	cMajor, _ := fakeCatalog{}.Load("C", 1)
+	gMajor := cMajor
+	gMajor.Strings[0].Fret = 3
+	if renderWaveform(40, 0, cMajor) == renderWaveform(40, 0, gMajor) {
+		t.Fatal("different chord notes produced identical waveforms")
 	}
 }
 

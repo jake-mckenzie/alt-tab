@@ -69,7 +69,7 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		if !model.waveform || message.generation != model.waveTimer {
 			return model, nil
 		}
-		model.waveFrame = wrap(model.waveFrame+1, len(waveformPattern))
+		model.waveFrame = wrap(model.waveFrame+1, waveformFrameCount)
 		return model, waveformTick(model.waveTimer)
 	case tea.KeyPressMsg:
 		key := message.String()
@@ -134,6 +134,7 @@ func (model *Model) loadSelection() {
 	voicing, err := model.catalog.Load(model.names[model.selected], model.variation)
 	model.voicing = voicing
 	model.err = err
+	model.waveFrame = 0
 }
 
 // moveChord wraps through chord names and selects their first variation.
