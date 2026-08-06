@@ -22,10 +22,10 @@ func TestRenderWaveformUsesRequestedDimensions(t *testing.T) {
 	output := renderWaveform(40, voicing)
 	lines := strings.Split(output, "\n")
 
-	if len(lines) != waveformHeight+10 {
-		t.Fatalf("waveform height = %d, want %d", len(lines), waveformHeight+10)
+	if len(lines) != waveformHeight+3 {
+		t.Fatalf("waveform height = %d, want %d", len(lines), waveformHeight+3)
 	}
-	for _, line := range lines[:waveformHeight+1] {
+	for _, line := range lines[:waveformHeight+3] {
 		if utf8.RuneCountInString(line) != 40 {
 			t.Fatalf(
 				"waveform width = %d, want 40",
@@ -34,7 +34,7 @@ func TestRenderWaveformUsesRequestedDimensions(t *testing.T) {
 		}
 	}
 	for _, expected := range []string{
-		waveformCaption, pitchCaption, "+1.0 |", " 0.0 +", "-1.0 |", "25 ms", "Notes:",
+		waveformTitle, "+1.0 |", " 0.0 +", "-1.0 |", "25 ms",
 	} {
 		if !strings.Contains(output, expected) {
 			t.Fatalf("waveform is missing %q:\n%s", expected, output)
@@ -43,7 +43,13 @@ func TestRenderWaveformUsesRequestedDimensions(t *testing.T) {
 	if !strings.ContainsFunc(output, isBrailleRune) {
 		t.Fatal("waveform does not contain Braille subcells")
 	}
-	for row, line := range lines[:waveformHeight] {
+	waveformTitleLine := lineIndex(lines, waveformTitle)
+	if waveformTitleLine < 0 || waveformTitleLine+1 >= len(lines) ||
+		strings.TrimSpace(lines[waveformTitleLine+1]) !=
+			strings.Repeat("─", len(waveformTitle)) {
+		t.Fatalf("%q does not have an underline below it", waveformTitle)
+	}
+	for row, line := range lines[2 : waveformHeight+2] {
 		wantBoundary := "|"
 		if row == waveformHeight/2 {
 			wantBoundary = "+"
@@ -54,14 +60,34 @@ func TestRenderWaveformUsesRequestedDimensions(t *testing.T) {
 	}
 }
 
-// TestPitchScaleMarksEverySoundingNote checks semitone-positioned annotations.
-func TestPitchScaleMarksEverySoundingNote(t *testing.T) {
-	voicing, _ := fakeCatalog{}.Load("C", 1)
-	scale := renderPitchScale(40, voicingNotes(voicing))
-	for _, expected := range []string{"C3", "E3", "G3", "C4", "E4", "│", pitchCaption} {
-		if !strings.Contains(scale, expected) {
-			t.Fatalf("pitch scale is missing %q:\n%s", expected, scale)
+// lineIndex finds an exact visible line while ignoring centering spaces.
+func lineIndex(lines []string, value string) int {
+	for index, line := range lines {
+		if strings.TrimSpace(line) == value {
+			return index
 		}
+	}
+	return -1
+}
+
+// TestSpectrumMarksEverySoundingNote checks its peaks and annotations.
+func TestSpectrumMarksEverySoundingNote(t *testing.T) {
+	voicing, _ := fakeCatalog{}.Load("C", 1)
+	spectrum := renderSpectrum(40, voicing)
+	for _, expected := range []string{
+		"1.0 |", "0.5 |", "0.0 +", "C3", "E3", "G3", "C4", "E4", "█", "Notes:",
+	} {
+		if !strings.Contains(spectrum, expected) {
+			t.Fatalf("frequency spectrum is missing %q:\n%s", expected, spectrum)
+		}
+	}
+	lines := strings.Split(spectrum, "\n")
+	legend := lines[len(lines)-1]
+	legendText := strings.TrimSpace(legend)
+	left := strings.Index(legend, legendText)
+	right := utf8.RuneCountInString(legend) - left - len(legendText)
+	if absoluteInt(left-right) > 1 {
+		t.Fatalf("note legend is not centered: left=%d right=%d", left, right)
 	}
 }
 

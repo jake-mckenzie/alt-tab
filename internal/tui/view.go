@@ -17,9 +17,10 @@ const (
 	verticalDialWidth        = 10
 	verticalDialHeight       = 7
 	verticalDialBaseRow      = verticalDialHeight / 2
+	panelFrameHeight         = 2
 )
 
-// render composes the titled selector, controls, diagram, and waveform sections.
+// render composes navigation and the chord, waveform, and spectrum dashboard.
 func (model Model) render() string {
 	// Keep panels readable instead of expanding them across oversized windows.
 	width := min(max(1, model.width), maximumLayoutWidth)
@@ -58,7 +59,7 @@ func (model Model) renderHeader(width int) string {
 	return title
 }
 
-// renderSections keeps navigation above the diagram and waveform output.
+// renderSections keeps navigation above the responsive dashboard modules.
 func (model Model) renderSections(width int) string {
 	selector := model.renderCenteredPanel(model.renderChordSelector(), width)
 
@@ -70,37 +71,49 @@ func (model Model) renderSections(width int) string {
 	diagramContent := model.renderChordDiagram()
 	if !model.fullNeck && width >= bottomColumnMinimumWidth {
 		diagramWidth := min(width, lipgloss.Width(diagramContent)+4)
-		waveformWidth := width - sectionGapWidth - diagramWidth
-		// Leave two spare cells because some terminals treat Braille width loosely.
-		waveformContent := model.renderWaveformSection(waveformWidth - 6)
+		graphWidth := width - sectionGapWidth - diagramWidth
+		graphContentWidth := graphWidth - 6
+		waveformContent := model.renderWaveformSection(graphContentWidth)
+		spectrumContent := model.renderSpectrumSection(graphContentWidth)
+		waveform := model.renderCenteredPanel(waveformContent, graphWidth)
+		spectrum := model.renderCenteredPanel(spectrumContent, graphWidth)
+		graphs := lipgloss.JoinVertical(lipgloss.Left, waveform, "", spectrum)
 		diagramContent = model.renderCompactChordDiagram(
-			lipgloss.Height(waveformContent),
+			max(1, lipgloss.Height(graphs)-panelFrameHeight),
 		)
-		diagram, waveform := model.renderMatchedCenteredPanels(
-			diagramContent,
-			diagramWidth,
-			waveformContent,
-			waveformWidth,
-		)
+		diagram := model.renderCenteredPanel(diagramContent, diagramWidth)
 		bottom := lipgloss.JoinHorizontal(
 			lipgloss.Top,
 			diagram,
 			strings.Repeat(" ", sectionGapWidth),
-			waveform,
+			graphs,
 		)
 		return lipgloss.JoinVertical(lipgloss.Left, selector, "", bottom)
 	}
 
-	waveformContent := model.renderWaveformSection(width - 6)
 	diagram := model.renderCenteredPanel(diagramContent, width)
-	waveform := model.renderCenteredPanel(waveformContent, width)
+	graphGap := strings.Repeat(" ", sectionGapWidth)
+	leftGraphWidth := (width - sectionGapWidth) / 2
+	rightGraphWidth := width - sectionGapWidth - leftGraphWidth
+	waveform, spectrum := model.renderMatchedCenteredPanels(
+		model.renderWaveformSection(leftGraphWidth-6),
+		leftGraphWidth,
+		model.renderSpectrumSection(rightGraphWidth-6),
+		rightGraphWidth,
+	)
+	graphs := lipgloss.JoinHorizontal(
+		lipgloss.Top,
+		waveform,
+		graphGap,
+		spectrum,
+	)
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
 		selector,
 		"",
 		diagram,
 		"",
-		waveform,
+		graphs,
 	)
 }
 
@@ -365,6 +378,18 @@ func (model Model) renderWaveformSection(width int) string {
 
 	return heading + "\n\n" + model.styles.accent.Render(
 		renderWaveform(width, model.voicing),
+	)
+}
+
+// renderSpectrumSection owns the frequency-domain view and its note legend.
+func (model Model) renderSpectrumSection(width int) string {
+	heading := model.styles.heading.Render("FREQUENCY SPECTRUM")
+	if model.err != nil {
+		return heading + "\n\n" + model.styles.err.Render(model.err.Error())
+	}
+
+	return heading + "\n\n" + model.styles.accent.Render(
+		renderSpectrum(width, model.voicing),
 	)
 }
 

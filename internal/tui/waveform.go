@@ -13,8 +13,9 @@ const (
 	waveformHeight        = 13
 	waveformLabelWidth    = 6
 	waveformWindowSeconds = 0.025
-	waveformCaption       = "Normalized amplitude over time"
-	pitchCaption          = "Pitch range by semitone"
+	waveformTitle         = "Normalized amplitude over time"
+	spectrumHeight        = 5
+	spectrumLabelWidth    = 6
 	braillePixelWidth     = 2
 	braillePixelHeight    = 4
 )
@@ -196,7 +197,10 @@ func renderWaveform(width int, voicing chords.Voicing) string {
 	}
 
 	plotLines := renderBrailleCanvas(canvas, plotWidth)
-	lines := make([]string, 0, waveformHeight+9)
+	lines := []string{
+		centerDisplayText(waveformTitle, width),
+		centerDisplayText(strings.Repeat("─", len(waveformTitle)), width),
+	}
 	for row, plotLine := range plotLines {
 		label := "     |"
 		boundary := "|"
@@ -211,11 +215,7 @@ func renderWaveform(width int, voicing chords.Voicing) string {
 		}
 		lines = append(lines, label+plotLine+boundary)
 	}
-	lines = append(lines, renderTimeAxis(width), centerText(waveformCaption, width, ' '))
-	if pitchScale := renderPitchScale(width, notes); pitchScale != "" {
-		lines = append(lines, "", pitchScale)
-	}
-	lines = append(lines, "", renderNoteLegend(notes))
+	lines = append(lines, renderTimeAxis(width))
 	return strings.Join(lines, "\n")
 }
 
@@ -227,10 +227,11 @@ func renderTimeAxis(width int) string {
 	return left + strings.Repeat(" ", gap) + right
 }
 
-// renderPitchScale places each sounding note on a semitone-spaced frequency range.
-func renderPitchScale(width int, notes []noteSample) string {
-	scaleWidth := width - waveformLabelWidth
-	if len(notes) == 0 || scaleWidth < 10 {
+// renderSpectrum plots normalized note peaks across a frequency scale.
+func renderSpectrum(width int, voicing chords.Voicing) string {
+	plotWidth := width - spectrumLabelWidth
+	notes := voicingNotes(voicing)
+	if len(notes) == 0 || plotWidth < 10 {
 		return ""
 	}
 
@@ -241,34 +242,49 @@ func renderPitchScale(width int, notes []noteSample) string {
 	lowest := ordered[0]
 	highest := ordered[len(ordered)-1]
 	span := max(1, highest.midi-lowest.midi)
-	markers := []rune(strings.Repeat(" ", scaleWidth))
-	scale := []rune(strings.Repeat("─", scaleWidth))
-	labels := []rune(strings.Repeat(" ", scaleWidth))
+	positions := make([]int, len(ordered))
+	labels := []rune(strings.Repeat(" ", plotWidth))
 
 	for index, note := range ordered {
-		position := int(math.Round(
-			float64(note.midi-lowest.midi) / float64(span) * float64(scaleWidth-1),
+		positions[index] = int(math.Round(
+			float64(note.midi-lowest.midi) / float64(span) * float64(plotWidth-1),
 		))
-		markers[position] = '│'
-		scale[position] = '┼'
-		placeScaleLabel(labels, note.name, position)
-		if index == 0 {
-			scale[position] = '├'
-		}
-		if index == len(ordered)-1 {
-			scale[position] = '┤'
-		}
+		placeScaleLabel(labels, note.name, positions[index])
 	}
 
+	lines := make([]string, 0, spectrumHeight+5)
+	for row := 0; row < spectrumHeight; row++ {
+		plot := []rune(strings.Repeat(" ", plotWidth))
+		for _, position := range positions {
+			plot[position] = '█'
+		}
+		label := "    |"
+		switch row {
+		case 0:
+			label = "1.0 |"
+		case spectrumHeight / 2:
+			label = "0.5 |"
+		}
+		lines = append(lines, label+string(plot))
+	}
+
+	axis := []rune(strings.Repeat("─", plotWidth))
+	for _, position := range positions {
+		axis[position] = '┼'
+	}
+	lines = append(lines, "0.0 +"+string(axis))
+	prefix := strings.Repeat(" ", spectrumLabelWidth)
+	lines = append(lines, prefix+string(labels))
 	leftFrequency := fmt.Sprintf("%.0f Hz", lowest.frequency)
 	rightFrequency := fmt.Sprintf("%.0f Hz", highest.frequency)
-	frequencyGap := max(1, scaleWidth-len(leftFrequency)-len(rightFrequency))
-	prefix := strings.Repeat(" ", waveformLabelWidth)
-	return prefix + string(markers) + "\n" +
-		prefix + string(scale) + "\n" +
-		prefix + string(labels) + "\n" +
-		prefix + leftFrequency + strings.Repeat(" ", frequencyGap) + rightFrequency + "\n" +
-		centerText(pitchCaption, width, ' ')
+	frequencyGap := max(1, plotWidth-len(leftFrequency)-len(rightFrequency))
+	lines = append(
+		lines,
+		prefix+leftFrequency+strings.Repeat(" ", frequencyGap)+rightFrequency,
+		"",
+		centerDisplayText(renderNoteLegend(notes), width),
+	)
+	return strings.Join(lines, "\n")
 }
 
 // placeScaleLabel centers an ASCII note name while avoiding scale boundaries.

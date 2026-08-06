@@ -79,7 +79,9 @@ func TestChordListIsHorizontalAndAboveBothFretboardModes(t *testing.T) {
 func TestSectionsAreClearlyLabeledAndOrdered(t *testing.T) {
 	plain := ansiSequence.ReplaceAllString(New(fakeCatalog{}).View().Content, "")
 	positions := make(map[string]int)
-	for _, title := range []string{"KEYS", "CHORD DIAL", "CHORD DIAGRAM", "NOTE WAVEFORM"} {
+	for _, title := range []string{
+		"KEYS", "CHORD DIAL", "CHORD DIAGRAM", "NOTE WAVEFORM", "FREQUENCY SPECTRUM",
+	} {
 		positions[title] = strings.Index(plain, title)
 		if positions[title] < 0 {
 			t.Fatalf("section %q is missing", title)
@@ -87,7 +89,8 @@ func TestSectionsAreClearlyLabeledAndOrdered(t *testing.T) {
 	}
 	if positions["KEYS"] > positions["CHORD DIAL"] ||
 		positions["CHORD DIAL"] > positions["CHORD DIAGRAM"] ||
-		positions["CHORD DIAL"] > positions["NOTE WAVEFORM"] {
+		positions["CHORD DIAL"] > positions["NOTE WAVEFORM"] ||
+		positions["CHORD DIAL"] > positions["FREQUENCY SPECTRUM"] {
 		t.Fatal("title controls, dial, and output sections are out of order")
 	}
 }
@@ -120,18 +123,22 @@ func lineWith(output, title string) string {
 	return ""
 }
 
-// TestCompactLayoutUsesColumnsAndFullNeckStacks checks responsive grouping.
-func TestCompactLayoutUsesColumnsAndFullNeckStacks(t *testing.T) {
+// TestDashboardLayoutGroupsOutputPanels checks responsive module placement.
+func TestDashboardLayoutGroupsOutputPanels(t *testing.T) {
 	model := New(fakeCatalog{})
 	plain := ansiSequence.ReplaceAllString(model.View().Content, "")
 	if !hasDoubleTopBorder(plain) {
-		t.Fatal("compact diagram and waveform are not side-by-side")
+		t.Fatal("compact diagram and graph stack are not side-by-side")
+	}
+	if strings.Index(plain, "NOTE WAVEFORM") > strings.Index(plain, "FREQUENCY SPECTRUM") {
+		t.Fatal("compact graph stack does not place the waveform above the spectrum")
 	}
 
 	model.fullNeck = true
 	plain = ansiSequence.ReplaceAllString(model.View().Content, "")
-	if hasDoubleTopBorder(plain) {
-		t.Fatal("full-neck diagram and waveform remain side-by-side")
+	if !hasDoubleTopBorder(plain) ||
+		strings.Index(plain, "CHORD DIAGRAM") > strings.Index(plain, "NOTE WAVEFORM") {
+		t.Fatal("full-neck dashboard does not stack the neck above paired graphs")
 	}
 }
 
