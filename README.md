@@ -224,7 +224,10 @@ make run-raylib
 The graphical interface is resizable, keeps compact graphs beside the chord
 diagram, and stacks the panels in full-neck mode. Its waveform and frequency
 spectrum are derived from the exact pitches of every sounding string; duplicate
-pitches produce proportionally stronger spectrum peaks.
+pitches produce proportionally stronger spectrum peaks. Synthesized playback
+uses 44.1 kHz mono audio and suspends its stream while silent. Signal plots are
+cached, and rendering automatically uses 30 FPS while idle and 60 FPS during
+playback to reduce CPU and GPU use.
 It starts with `Super Famicom`; `t` cycles through ten deliberately distinct
 graphical themes:
 
@@ -353,7 +356,8 @@ marks an open string and `X` marks a muted string.
 - `internal/tui` owns Bubble Tea state, navigation, layout, styling, and
   fretboard rendering.
 - `internal/rayui` owns Raylib input, drawing, responsive layout, and audio
-  streaming.
+  streaming; its embedded Space Mono Bold font is licensed under the SIL Open
+  Font License in `internal/rayui/assets/OFL.txt`.
 - `internal/chords` owns the pure-Go chord model, compact shape definitions,
   generated voicings, and immutable catalog interface.
 - `internal/signal` derives note names, frequencies, and waveform samples shared
@@ -371,6 +375,7 @@ marks an open string and `X` marks a muted string.
 ├── internal/app/
 ├── internal/chords/
 ├── internal/rayui/
+│   └── assets/
 ├── internal/signal/
 ├── internal/tui/
 ├── go.mod

@@ -75,3 +75,13 @@ func TestAggregateNotes(t *testing.T) {
 		t.Fatalf("aggregateNotes() = %#v", peaks)
 	}
 }
+
+// TestRuntimeResourceSettings guards the low-resource rendering and audio targets.
+func TestRuntimeResourceSettings(t *testing.T) {
+	if audioSampleRate != 44100 {
+		t.Fatalf("audio sample rate = %d, want 44100", audioSampleRate)
+	}
+	if idleFrameRate != 30 || activeFrameRate != 60 {
+		t.Fatalf("frame rates = %d/%d, want 30/60", idleFrameRate, activeFrameRate)
+	}
+}

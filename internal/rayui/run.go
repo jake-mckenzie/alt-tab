@@ -4,6 +4,7 @@
 package rayui
 
 import (
+	_ "embed"
 	"errors"
 	"fmt"
 	"math"
@@ -18,26 +19,37 @@ import (
 )
 
 const (
-	windowWidth         = 1280
-	windowHeight        = 900
-	minimumWindowWidth  = 960
-	minimumWindowHeight = 800
-	panelGap            = 12
-	panelPadding        = 18
-	diagramLeftPadding  = 88
-	diagramRightPadding = 28
-	graphTopPadding     = 60
-	waveLeftPadding     = 50
-	waveRightPadding    = 32
-	waveBottomPadding   = 42
-	spectrumSidePadding = 46
-	spectrumBottomPad   = 62
-	bodyTextSpacing     = 1.7
-	audioSampleRate     = 48000
-	audioBufferFrames   = 2048
-	waveformSeconds     = 0.025
-	fullNeckLastFret    = 27
+	windowWidth               = 1280
+	windowHeight              = 900
+	minimumWindowWidth        = 960
+	minimumWindowHeight       = 800
+	panelGap                  = 12
+	panelPadding              = 18
+	diagramLeftPadding        = 88
+	diagramRightPadding       = 28
+	graphTopPadding           = 60
+	waveLeftPadding           = 50
+	waveRightPadding          = 32
+	waveBottomPadding         = 42
+	spectrumSidePadding       = 46
+	spectrumBottomPad         = 62
+	bodyTextSpacing           = 1.7
+	audioSampleRate           = 44100
+	audioBufferFrames         = 2048
+	waveformSeconds           = 0.025
+	fullNeckLastFret          = 27
+	idleFrameRate       int32 = 30
+	activeFrameRate           = 60
+	uiFontSize                = 64
 )
+
+// boldFontData embeds the UI font so release builds remain self-contained.
+//
+//go:embed assets/SpaceMono-Bold.ttf
+var boldFontData []byte
+
+// uiFont is loaded after Raylib creates its graphics context.
+var uiFont rl.Font
 
 // palette defines one graphical equivalent of the terminal themes.
 type palette struct {
@@ -145,6 +157,18 @@ type viewer struct {
 	theme      int
 	quit       bool
 	audio      audioPlayer
+	signal     signalRenderCache
+}
+
+// signalRenderCache retains chord-derived graph data until selection or size changes.
+type signalRenderCache struct {
+	name       string
+	number     int
+	notes      []signal.Note
+	peaks      []spectrumPeak
+	legend     string
+	waveBounds rl.Rectangle
+	wavePoints []rl.Vector2
 }
 
 // Run initializes Raylib and serves frames until the window closes.
@@ -154,7 +178,7 @@ func Run(catalog chords.Catalog) error {
 		return controller.Err()
 	}
 
-	rl.SetConfigFlags(rl.FlagWindowResizable | rl.FlagVsyncHint | rl.FlagMsaa4xHint)
+	rl.SetConfigFlags(rl.FlagWindowResizable | rl.FlagVsyncHint)
 	rl.InitWindow(windowWidth, windowHeight, "Alt-Tab · Raylib")
 	if !rl.IsWindowReady() {
 		return errors.New("raylib window initialization failed")
@@ -162,7 +186,11 @@ func Run(catalog chords.Catalog) error {
 	defer rl.CloseWindow()
 	rl.SetWindowMinSize(minimumWindowWidth, minimumWindowHeight)
 	rl.SetExitKey(rl.KeyNull)
-	rl.SetTargetFPS(60)
+	if err := loadUIFont(); err != nil {
+		return err
+	}
+	defer rl.UnloadFont(uiFont)
+	rl.SetTargetFPS(idleFrameRate)
 
 	rl.InitAudioDevice()
 	if rl.IsAudioDeviceReady() {
@@ -172,14 +200,42 @@ func Run(catalog chords.Catalog) error {
 	gui := viewer{controller: controller, families: controller.Families()}
 	gui.audio = newAudioPlayer(controller.Voicing())
 	defer gui.audio.close()
+	frameRate := idleFrameRate
 
 	for !gui.quit && !rl.WindowShouldClose() {
 		layout := computeLayout(rl.GetScreenWidth(), rl.GetScreenHeight(), gui.fullNeck)
 		gui.update(layout)
 		gui.audio.update()
+		desiredFrameRate := idleFrameRate
+		if gui.audio.audible() {
+			desiredFrameRate = activeFrameRate
+		}
+		if desiredFrameRate != frameRate {
+			rl.SetTargetFPS(desiredFrameRate)
+			frameRate = desiredFrameRate
+		}
 		gui.draw(layout)
 	}
 	return nil
+}
+
+// loadUIFont creates the single bold typeface used for all UI text.
+func loadUIFont() error {
+	uiFont = rl.LoadFontFromMemory(".ttf", boldFontData, uiFontSize, uiGlyphs())
+	if !rl.IsFontValid(uiFont) {
+		return errors.New("embedded UI font initialization failed")
+	}
+	rl.SetTextureFilter(uiFont.Texture, rl.FilterBilinear)
+	return nil
+}
+
+// uiGlyphs limits the font atlas to the characters used by the interface.
+func uiGlyphs() []rune {
+	glyphs := make([]rune, 0, 102)
+	for character := rune(32); character <= 126; character++ {
+		glyphs = append(glyphs, character)
+	}
+	return append(glyphs, '·', '←', '→', '↑', '↓')
 }
 
 // computeLayout keeps compact graphs beside the diagram and full-neck panels stacked.
@@ -336,9 +392,7 @@ func (gui *viewer) drawHeader(bounds rl.Rectangle, theme palette) {
 	drawPanel(bounds, theme)
 	// The small status lamp and recessed controls echo the original console shell.
 	rl.DrawCircleV(rl.Vector2{X: bounds.X + 17, Y: bounds.Y + 27}, 4, theme.secondary)
-	// A second offset pass gives the application wordmark additional visual weight.
 	drawTextSpaced("ALT-TAB", bounds.X+38, bounds.Y+9, 34, 3.5, theme.accent)
-	drawTextSpaced("ALT-TAB", bounds.X+38.8, bounds.Y+9.5, 34, 3.5, theme.accent)
 	drawText("RAYLIB CHORD VIEWER - "+strings.ToUpper(theme.name),
 		bounds.X+38, bounds.Y+53, 15, theme.muted)
 	controls := "LEFT/RIGHT chord  UP/DOWN type  V voicing  F neck  N tab  T theme  SPACE play  F1 help  Q quit"
@@ -558,7 +612,7 @@ func (gui *viewer) drawWaveform(bounds rl.Rectangle, theme palette) {
 	if plot.Width < 20 || plot.Height < 20 {
 		return
 	}
-	notes := signal.Notes(gui.controller.Voicing())
+	data := gui.signalData()
 	center := plot.Y + plot.Height/2
 	// Matching vertical endpoints make the waveform's sampled time range explicit.
 	rl.DrawLineEx(rl.Vector2{X: plot.X, Y: plot.Y},
@@ -567,18 +621,9 @@ func (gui *viewer) drawWaveform(bounds rl.Rectangle, theme palette) {
 		rl.Vector2{X: plot.X + plot.Width, Y: plot.Y + plot.Height}, 2, theme.border)
 	rl.DrawLineEx(rl.Vector2{X: plot.X, Y: center},
 		rl.Vector2{X: plot.X + plot.Width, Y: center}, 1, theme.border)
-	points := make([]rl.Vector2, maxInt(2, int(plot.Width)))
-	for index := range points {
-		t := float64(index) / float64(len(points)-1)
-		sample := signal.CompositeSample(t*waveformSeconds, notes)
-		points[index] = rl.Vector2{
-			X: plot.X + float32(t)*plot.Width,
-			Y: center - float32(sample)*plot.Height*0.43,
-		}
-	}
-	rl.DrawLineStrip(points, rl.Fade(theme.signal, 0.22))
-	for index := 1; index < len(points); index++ {
-		rl.DrawLineEx(points[index-1], points[index], 2, theme.signal)
+	gui.cacheWaveform(plot, data.notes)
+	for index := 1; index < len(gui.signal.wavePoints); index++ {
+		rl.DrawLineEx(gui.signal.wavePoints[index-1], gui.signal.wavePoints[index], 2, theme.signal)
 	}
 	drawAxisLabel("+1", plot.X, plot.Y, theme)
 	drawAxisLabel("0", plot.X, center, theme)
@@ -587,6 +632,43 @@ func (gui *viewer) drawWaveform(bounds rl.Rectangle, theme palette) {
 	right := "25 ms"
 	drawText(right, plot.X+plot.Width-measureText(right, 14).X,
 		plot.Y+plot.Height+8, 14, theme.muted)
+}
+
+// signalData rebuilds sorted notes, peaks, and labels only after a voicing change.
+func (gui *viewer) signalData() *signalRenderCache {
+	voicing := gui.controller.Voicing()
+	if gui.signal.name == voicing.Name && gui.signal.number == voicing.Number {
+		return &gui.signal
+	}
+	notes := signal.Notes(voicing)
+	sort.Slice(notes, func(left, right int) bool { return notes[left].MIDI < notes[right].MIDI })
+	legendNames := make([]string, len(notes))
+	for index, note := range notes {
+		legendNames[index] = note.Name
+	}
+	gui.signal = signalRenderCache{
+		name: voicing.Name, number: voicing.Number, notes: notes,
+		peaks: aggregateNotes(notes), legend: "Notes: " + strings.Join(legendNames, "  "),
+	}
+	return &gui.signal
+}
+
+// cacheWaveform samples the signal only when its voicing or plot geometry changes.
+func (gui *viewer) cacheWaveform(plot rl.Rectangle, notes []signal.Note) {
+	if gui.signal.waveBounds == plot && len(gui.signal.wavePoints) > 0 {
+		return
+	}
+	center := plot.Y + plot.Height/2
+	points := make([]rl.Vector2, maxInt(2, int(plot.Width)))
+	for index := range points {
+		t := float64(index) / float64(len(points)-1)
+		points[index] = rl.Vector2{
+			X: plot.X + float32(t)*plot.Width,
+			Y: center - float32(signal.CompositeSample(t*waveformSeconds, notes))*plot.Height*0.43,
+		}
+	}
+	gui.signal.waveBounds = plot
+	gui.signal.wavePoints = points
 }
 
 // drawAxisLabel right-aligns a value inside the waveform's left gutter.
@@ -605,12 +687,11 @@ func (gui *viewer) drawSpectrum(bounds rl.Rectangle, theme palette) {
 	if plot.Width < 20 || plot.Height < 20 {
 		return
 	}
-	notes := append([]signal.Note(nil), signal.Notes(gui.controller.Voicing())...)
-	sort.Slice(notes, func(left, right int) bool { return notes[left].MIDI < notes[right].MIDI })
-	if len(notes) == 0 {
+	data := gui.signalData()
+	if len(data.notes) == 0 {
 		return
 	}
-	peaks := aggregateNotes(notes)
+	peaks := data.peaks
 	low := peaks[0].note.MIDI
 	high := peaks[len(peaks)-1].note.MIDI
 	span := maxInt(1, high-low)
@@ -632,12 +713,7 @@ func (gui *viewer) drawSpectrum(bounds rl.Rectangle, theme palette) {
 			X: x - 28, Y: axisY + 4, Width: 56, Height: 20,
 		}, 14, theme.text)
 	}
-	legendNames := make([]string, len(notes))
-	for index, note := range notes {
-		legendNames[index] = note.Name
-	}
-	legend := "Notes: " + strings.Join(legendNames, "  ")
-	drawCenteredText(legend, rl.Rectangle{
+	drawCenteredText(data.legend, rl.Rectangle{
 		X: bounds.X, Y: bounds.Y + bounds.Height - 25,
 		Width: bounds.Width, Height: 18,
 	}, 14, theme.muted)
@@ -733,13 +809,10 @@ func drawText(text string, x, y, size float32, color rl.Color) {
 	drawTextSpaced(text, x, y, size, bodyTextSpacing, color)
 }
 
-// drawTextSpaced adds configurable tracking and a tight pass for heavier glyphs.
+// drawTextSpaced renders the bundled bold font with configurable tracking.
 func drawTextSpaced(text string, x, y, size, spacing float32, color rl.Color) {
-	font := rl.GetFontDefault()
 	position := rl.Vector2{X: x, Y: y}
-	rl.DrawTextEx(font, text, position, size, spacing, color)
-	position.X += clamp(size*0.045, 0.5, 0.8)
-	rl.DrawTextEx(font, text, position, size, spacing, color)
+	rl.DrawTextEx(uiFont, text, position, size, spacing, color)
 }
 
 // drawCenteredText centers one label within a rectangular region.
@@ -753,14 +826,13 @@ func drawCenteredText(text string, bounds rl.Rectangle, size float32, color rl.C
 	)
 }
 
-// drawHeavyCenteredText gives small diagram numbers an additional weight pass.
+// drawHeavyCenteredText centers prominent diagram numbers using the bold font.
 func drawHeavyCenteredText(text string, bounds rl.Rectangle, size float32, color rl.Color) {
 	measured := measureText(text, size)
-	x := bounds.X + (bounds.Width-measured.X)/2 - 0.7
-	y := bounds.Y + (bounds.Height-measured.Y)/2 - 0.3
-	drawTextSpaced(text, x, y, size, bodyTextSpacing, color)
-	drawTextSpaced(text, x+0.7, y, size, bodyTextSpacing, color)
-	drawTextSpaced(text, x, y+0.6, size, bodyTextSpacing, color)
+	drawTextSpaced(text,
+		bounds.X+(bounds.Width-measured.X)/2,
+		bounds.Y+(bounds.Height-measured.Y)/2,
+		size, bodyTextSpacing, color)
 }
 
 // measureText returns default-font dimensions matching drawText.
@@ -770,7 +842,7 @@ func measureText(text string, size float32) rl.Vector2 {
 
 // measureTextSpaced mirrors the tracking used by drawTextSpaced.
 func measureTextSpaced(text string, size, spacing float32) rl.Vector2 {
-	return rl.MeasureTextEx(rl.GetFontDefault(), text, size, spacing)
+	return rl.MeasureTextEx(uiFont, text, size, spacing)
 }
 
 // inset removes independent padding from each rectangle side.
@@ -817,6 +889,7 @@ type audioPlayer struct {
 	stream     rl.AudioStream
 	ready      bool
 	active     bool
+	started    bool
 	notes      []signal.Note
 	phases     []float64
 	gain       float64
@@ -839,7 +912,6 @@ func newAudioPlayer(voicing chords.Voicing) audioPlayer {
 	player.buffer = make([]float32, audioBufferFrames)
 	player.setVoicing(voicing)
 	rl.SetAudioStreamVolume(player.stream, 0.65)
-	rl.PlayAudioStream(player.stream)
 	return player
 }
 
@@ -858,12 +930,23 @@ func (player *audioPlayer) toggle() {
 	player.targetGain = 0
 	if player.active {
 		player.targetGain = 0.28
+		if player.started {
+			rl.ResumeAudioStream(player.stream)
+		} else {
+			rl.PlayAudioStream(player.stream)
+			player.started = true
+		}
 	}
 }
 
 // update refills every processed half-buffer from the main thread.
 func (player *audioPlayer) update() {
-	if !player.ready || len(player.notes) == 0 {
+	if !player.ready || !player.started || len(player.notes) == 0 {
+		return
+	}
+	if !player.active && player.gain < 0.0001 {
+		player.gain = 0
+		rl.PauseAudioStream(player.stream)
 		return
 	}
 	for rl.IsAudioStreamProcessed(player.stream) {
@@ -884,11 +967,18 @@ func (player *audioPlayer) update() {
 	}
 }
 
+// audible reports whether smooth playback needs the active frame rate.
+func (player *audioPlayer) audible() bool {
+	return player.ready && player.started && (player.active || player.gain >= 0.0001)
+}
+
 // close releases the native stream before the audio device shuts down.
 func (player *audioPlayer) close() {
 	if !player.ready {
 		return
 	}
-	rl.StopAudioStream(player.stream)
+	if player.started {
+		rl.StopAudioStream(player.stream)
+	}
 	rl.UnloadAudioStream(player.stream)
 }
