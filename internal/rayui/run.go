@@ -335,10 +335,12 @@ func (gui *viewer) draw(layout screenLayout) {
 func (gui *viewer) drawHeader(bounds rl.Rectangle, theme palette) {
 	drawPanel(bounds, theme)
 	// The small status lamp and recessed controls echo the original console shell.
-	rl.DrawCircleV(rl.Vector2{X: bounds.X + 17, Y: bounds.Y + 25}, 4, theme.secondary)
-	drawTextSpaced("ALT-TAB", bounds.X+38, bounds.Y+13, 28, 3, theme.accent)
+	rl.DrawCircleV(rl.Vector2{X: bounds.X + 17, Y: bounds.Y + 27}, 4, theme.secondary)
+	// A second offset pass gives the application wordmark additional visual weight.
+	drawTextSpaced("ALT-TAB", bounds.X+38, bounds.Y+9, 34, 3.5, theme.accent)
+	drawTextSpaced("ALT-TAB", bounds.X+38.8, bounds.Y+9.5, 34, 3.5, theme.accent)
 	drawText("RAYLIB CHORD VIEWER - "+strings.ToUpper(theme.name),
-		bounds.X+38, bounds.Y+46, 15, theme.muted)
+		bounds.X+38, bounds.Y+53, 15, theme.muted)
 	controls := "LEFT/RIGHT chord  UP/DOWN type  V voicing  F neck  N tab  T theme  SPACE play  F1 help  Q quit"
 	size := measureText(controls, 15)
 	controlWell := rl.Rectangle{
