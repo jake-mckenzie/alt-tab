@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"fmt"
 	"math"
 	"strings"
 	"testing"
@@ -97,8 +98,8 @@ func TestWaveformUsesVoicingNotes(t *testing.T) {
 	}
 	notes := voicingNotes(voicing)
 	if len(notes) != 1 || notes[0].name != "E4" ||
-		math.Abs(notes[0].frequency-329.63) > 0.001 {
-		t.Fatalf("high-e notes = %v, want E4 at 329.63 Hz", notes)
+		math.Abs(notes[0].frequency-midiFrequency(64)) > 1e-9 {
+		t.Fatalf("high-e notes = %v, want E4 at %.6f Hz", notes, midiFrequency(64))
 	}
 
 	cMajor, _ := fakeCatalog{}.Load("C", 1)
@@ -106,6 +107,56 @@ func TestWaveformUsesVoicingNotes(t *testing.T) {
 	gMajor.Strings[0].Fret = 3
 	if renderWaveform(60, cMajor) == renderWaveform(60, gMajor) {
 		t.Fatal("different chord notes produced identical waveforms")
+	}
+}
+
+// TestCatalogVoicingsProduceExactPlotNotes validates every audio-data input.
+func TestCatalogVoicingsProduceExactPlotNotes(t *testing.T) {
+	catalog := chords.NewCatalog()
+	for _, name := range catalog.Names() {
+		for number := 1; number <= catalog.VoicingCount(name); number++ {
+			voicing, err := catalog.Load(name, number)
+			if err != nil {
+				t.Fatalf("Load(%s, %d): %v", name, number, err)
+			}
+
+			notes := voicingNotes(voicing)
+			noteIndex := 0
+			for stringIndex, placement := range voicing.Strings {
+				if placement.Fret < 0 {
+					continue
+				}
+				midi := standardTuningMIDI[stringIndex] + placement.Fret
+				expectedName := fmt.Sprintf(
+					"%s%d",
+					noteNames[wrap(midi, len(noteNames))],
+					midi/12-1,
+				)
+				if notes[noteIndex].name != expectedName || notes[noteIndex].midi != midi {
+					t.Fatalf("%s:%d string %d note = %+v, want %s MIDI %d",
+						name, number, stringIndex, notes[noteIndex], expectedName, midi)
+				}
+				if math.Abs(notes[noteIndex].frequency-midiFrequency(midi)) > 1e-9 {
+					t.Fatalf("%s:%d %s frequency = %.9f, want %.9f",
+						name, number, expectedName, notes[noteIndex].frequency, midiFrequency(midi))
+				}
+				noteIndex++
+			}
+			if noteIndex != len(notes) {
+				t.Fatalf("%s:%d produced %d notes, checked %d", name, number, len(notes), noteIndex)
+			}
+
+			spectrum := renderSpectrum(80, voicing)
+			if !strings.Contains(spectrum, renderNoteLegend(notes)) {
+				t.Fatalf("%s:%d spectrum omits its exact note legend", name, number)
+			}
+			if !strings.ContainsFunc(renderWaveform(80, voicing), isBrailleRune) {
+				t.Fatalf("%s:%d waveform has no rendered signal", name, number)
+			}
+		}
+	}
+	if math.Abs(midiFrequency(69)-440) > 1e-12 {
+		t.Fatalf("A4 frequency = %.12f, want 440", midiFrequency(69))
 	}
 }
 

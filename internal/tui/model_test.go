@@ -11,7 +11,7 @@ import (
 	"github.com/jake-mckenzie/alt-tab/internal/chords"
 )
 
-// fakeCatalog isolates model behavior from the native chord table.
+// fakeCatalog isolates model behavior from the built-in chord table.
 type fakeCatalog struct{}
 
 // Names supplies the small ordered chord set used by model tests.
@@ -24,7 +24,7 @@ func (fakeCatalog) VoicingCount(string) int {
 	return 2
 }
 
-// Load constructs a predictable voicing without invoking the C catalog.
+// Load constructs a predictable voicing without invoking the built-in catalog.
 func (fakeCatalog) Load(name string, number int) (chords.Voicing, error) {
 	if number < 1 || number > 2 {
 		return chords.Voicing{}, errors.New("missing voicing")
@@ -460,6 +460,23 @@ func TestNavigationUpdatesSelection(t *testing.T) {
 	model = updated.(Model)
 	if model.voicing.Name != "Gm" || model.voicing.Number != 2 {
 		t.Fatalf("v selected %s:%d, want Gm:2", model.voicing.Name, model.voicing.Number)
+	}
+}
+
+// TestBuiltInCatalogCyclesThreeVoicings checks the expanded runtime catalog.
+func TestBuiltInCatalogCyclesThreeVoicings(t *testing.T) {
+	model := New(chords.NewCatalog())
+	for expected := 2; expected <= 3; expected++ {
+		updated, _ := model.Update(tea.KeyPressMsg{Code: 'v', Text: "v"})
+		model = updated.(Model)
+		if model.voicing.Number != expected {
+			t.Fatalf("v selected voicing %d, want %d", model.voicing.Number, expected)
+		}
+	}
+	updated, _ := model.Update(tea.KeyPressMsg{Code: 'v', Text: "v"})
+	model = updated.(Model)
+	if model.voicing.Number != 1 {
+		t.Fatalf("v wrapped to voicing %d, want 1", model.voicing.Number)
 	}
 }
 

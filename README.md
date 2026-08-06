@@ -2,9 +2,9 @@
 
 [![CI](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml/badge.svg)](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml)
 
-Alt-Tab is an interactive guitar-chord viewer for the terminal. A responsive
-Bubble Tea interface displays chord voicings from a C11 chord library connected
-to Go through cgo.
+Alt-Tab is an interactive guitar-chord viewer for the terminal. Its responsive
+Bubble Tea interface displays explicit open chords and generated movable
+voicings from a compact Go catalog.
 
 Diagrams follow standard tablature orientation: high e is at the top, low E is
 at the bottom, and fret numbers increase from left to right. Compact mode shows
@@ -43,11 +43,11 @@ are omitted here; Alt-Tab adapts them to light and dark backgrounds.
   │          COMPACT           │  │                                          │
   │                            │  │  +1.0 |                               |  │
   │             A              │  │       | ⣷                     ⡼⡀      |  │
-  │       VOICING 1 OF 2       │  │       |⢰⠉⡆                    ⡇⡇      |  │
+  │       VOICING 1 OF 3       │  │       |⢰⠉⡆                    ⡇⡇      |  │
   │                            │  │       |⢸ ⡇                   ⢸ ⢇      |  │
   │                            │  │       |⢸ ⢱                   ⢸ ⢸      |  │
-  │                            │  │       |⡇ ⢸  ⡀      ⡤⡀⢀⠎⡆ ⡰⡄  ⢸ ⠸⡀ ⡀   |  │
-  │                            │  │   0.0 +⠧⠤⠬⡦⡴⠽⡤⠤⡴⢦⠤⡼⠤⠵⠮⠤⠼⠴⠥⢵⠤⠤⡧⠤⠤⡧⡴⠽⡤⠤⡼+  │
+  │                            │  │       |⡇ ⢸         ⡤⡀⢀⠎⡆ ⡰⡄  ⢸ ⠸⡀ ⡀   |  │
+  │                            │  │   0.0 +⠧⠤⠬⡦⡴⠵⡤⠤⡴⢦⠤⡼⠤⠵⠮⠤⠼⠴⠥⢵⠤⠤⡧⠤⠤⡧⡴⠽⡤⠤⡼+  │
   │                            │  │       |   ⠱⠃ ⢇⢰⠁ ⠓⠁       ⢸  ⡇  ⠱⠃ ⢣⢠⠃|  │
   │                            │  │       |      ⠈⠁           ⠈⡆ ⡇     ⠈⠊ |  │
   │       1    2    3    4     │  │       |                    ⡇⢰⠁        |  │
@@ -89,8 +89,8 @@ make
 make run
 ```
 
-Before building or running, Make automatically checks for Go, a C compiler,
-cgo, a resolvable dependency graph, and valid dependency checksums.
+Before building or running, Make automatically checks for Go, a resolvable
+dependency graph, and valid dependency checksums.
 
 Alt-Tab is an interactive TUI and must be run in a terminal. It does not accept
 the command-line chord and display flags used by the former interface.
@@ -98,23 +98,15 @@ the command-line chord and display flags used by the former interface.
 ## Requirements
 
 - macOS, Linux, or another Unix-like environment
-- Go 1.25 or newer with cgo enabled
-- A C11 compiler such as Clang or GCC
+- Go 1.25 or newer
 - Make
-
-The default test build also requires AddressSanitizer and
-UndefinedBehaviorSanitizer support from the C compiler.
 
 Confirm the required tools are available:
 
 ```bash
 go version
-gcc --version
 make --version
-go env CGO_ENABLED
 ```
-
-`go env CGO_ENABLED` must print `1`.
 
 ## Building
 
@@ -229,22 +221,13 @@ colors suited to the terminal's light or dark background.
 
 ## Testing
 
-Run the C backend tests and all Go tests:
+Run all tests:
 
 ```bash
 make test
 ```
 
-The default test configuration enables AddressSanitizer and
-UndefinedBehaviorSanitizer for the C backend. To test an optimized build without
-sanitizers, clean first so every C object is rebuilt with release flags:
-
-```bash
-make clean
-make BUILD=release test
-```
-
-Optional Go-only checks:
+Run individual quality checks:
 
 ```bash
 make fmt-check
@@ -253,38 +236,30 @@ make race
 make vet
 ```
 
+The optional race check, and therefore `make check`, requires a platform and
+toolchain supported by Go's race detector. Normal builds and `make test` do not
+require cgo or a C compiler.
+
 Run every formatting, test, race, and vet check used by CI:
 
 ```bash
 make check
 ```
 
-The suite verifies every stored fret and finger assignment, chord pitch
-classes, the C catalog API, cgo conversion, TUI navigation, compact and full-neck
-diagrams, help behavior, and the README output snapshot.
+The suite verifies every generated fret and finger assignment, chord pitch
+class, waveform frequency and note label, spectrum legend, catalog lookup, TUI
+navigation, compact and full-neck diagrams, help behavior, and the README output
+snapshot.
 
 ## Cleaning
 
-Remove the application binary and generated test objects:
+Remove the application binary and generated build artifacts:
 
 ```bash
 make clean
 ```
 
 ## Build Troubleshooting
-
-If cgo is disabled, enable it for the build:
-
-```bash
-CGO_ENABLED=1 make
-```
-
-Select a specific compiler when the default `cc` is unsuitable:
-
-```bash
-make CC=clang
-make CC=gcc
-```
 
 If dependency checksums or downloads fail, refresh the module cache and retry:
 
@@ -299,7 +274,9 @@ make
 | --- | --- | --- |
 | `A`, `B`, `C`, `D`, `E`, `F`, `G` | `Am`, `Cm`, `Dm`, `Em`, `Gm` | `Bb`, `F#` |
 
-Each chord has two conventional voicings. Finger numbers use `1` for index,
+Each chord has three conventional voicings. Open positions are stored explicitly,
+while movable E-, A-, and D-shape chords are generated at the required fret.
+Finger numbers use `1` for index,
 `2` for middle, `3` for ring, and `4` for little finger. `O` marks an open
 string and `X` marks a muted string.
 
@@ -308,9 +285,8 @@ string and `X` marks a muted string.
 - `cmd/alt-tab` contains the application entry point.
 - `internal/tui` owns Bubble Tea state, navigation, layout, styling, and
   fretboard rendering.
-- `internal/chords` owns the Go chord model, cgo adapter, and immutable C chord
-  table behind one catalog interface.
-- `tests` contains the native chord regression suite.
+- `internal/chords` owns the chord model, compact shape definitions, generated
+  voicings, and immutable catalog interface.
 - `.github/workflows` runs builds and quality checks for pushes and pull
   requests.
 
@@ -322,7 +298,6 @@ string and `X` marks a muted string.
 ├── cmd/alt-tab/
 ├── internal/chords/
 ├── internal/tui/
-├── tests/
 ├── go.mod
 ├── go.sum
 ├── Makefile

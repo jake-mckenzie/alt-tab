@@ -1,38 +1,20 @@
 GO ?= go
-CC ?= cc
 
 APP = alt-tab
 CMD = ./cmd/alt-tab
 BIN_DIR = bin
-BUILD_DIR = build
-NATIVE_DIR = internal/chords
-TEST_DIR = tests
 
 TARGET = $(BIN_DIR)/$(APP)
-NATIVE_BUILD_DIR = $(BUILD_DIR)/native
-NATIVE_TEST_TARGET = $(NATIVE_BUILD_DIR)/test-chords
 
 BUILD ?= debug
 
-GO_SOURCES = $(shell find cmd internal -type f \
-             \( -name '*.go' -o -name '*.c' -o -name '*.h' \) 2>/dev/null)
+GO_SOURCES = $(shell find cmd internal -type f -name '*.go' 2>/dev/null)
 GO_FILES = $(shell find cmd internal -type f -name '*.go' 2>/dev/null)
-NATIVE_HEADERS = $(NATIVE_DIR)/chords.h
-NATIVE_OBJECT = $(NATIVE_BUILD_DIR)/chords.o
-NATIVE_TEST_OBJECT = $(NATIVE_BUILD_DIR)/test_chords.o
-
-CFLAGS_BASE = -std=c11 -Wall -Wextra -pedantic
-SANITIZERS = -fsanitize=address,undefined
 GO_BUILD_FLAGS =
 
-ifeq ($(BUILD),debug)
-    CFLAGS = $(CFLAGS_BASE) -g $(SANITIZERS)
-    LDFLAGS = $(SANITIZERS)
-else ifeq ($(BUILD),release)
-    CFLAGS = $(CFLAGS_BASE) -O2 -DNDEBUG
-    LDFLAGS =
+ifeq ($(BUILD),release)
     GO_BUILD_FLAGS = -trimpath -ldflags="-s -w"
-else
+else ifneq ($(BUILD),debug)
     $(error Unknown BUILD type: $(BUILD))
 endif
 
@@ -56,14 +38,6 @@ check-deps:
 		echo "error: Go is required but '$(GO)' was not found"; \
 		exit 1; \
 	}
-	@command -v $(firstword $(CC)) >/dev/null 2>&1 || { \
-		echo "error: a C compiler is required but '$(firstword $(CC))' was not found"; \
-		exit 1; \
-	}
-	@test "$$($(GO) env CGO_ENABLED)" = "1" || { \
-		echo "error: cgo is disabled; run with CGO_ENABLED=1"; \
-		exit 1; \
-	}
 	@$(GO) list -mod=readonly -deps ./... >/dev/null
 	@$(GO) mod verify >/dev/null
 
@@ -71,24 +45,10 @@ $(TARGET): check-deps go.mod go.sum $(GO_SOURCES)
 	mkdir -p $(dir $@)
 	$(GO) build $(GO_BUILD_FLAGS) -o $@ $(CMD)
 
-$(NATIVE_BUILD_DIR)/%.o: $(NATIVE_DIR)/%.c $(NATIVE_HEADERS)
-	mkdir -p $(dir $@)
-	$(CC) -I$(NATIVE_DIR) $(CFLAGS) -c $< -o $@
-
-$(NATIVE_TEST_OBJECT): $(TEST_DIR)/test_chords.c $(NATIVE_HEADERS)
-	mkdir -p $(dir $@)
-	$(CC) -I$(NATIVE_DIR) $(CFLAGS) -c $< -o $@
-
-$(NATIVE_TEST_TARGET): $(NATIVE_TEST_OBJECT) $(NATIVE_OBJECT)
-	$(CC) $^ $(LDFLAGS) -o $@
-
-test-native: $(NATIVE_TEST_TARGET)
-	./$(NATIVE_TEST_TARGET)
-
 test-go: check-deps
 	$(GO) test ./...
 
-test: test-native test-go
+test: test-go
 
 race: check-deps
 	$(GO) test -race ./internal/...
@@ -102,6 +62,6 @@ run: $(TARGET)
 	./$(TARGET)
 
 clean:
-	rm -rf $(BUILD_DIR) $(BIN_DIR)
+	rm -rf $(BIN_DIR) build
 
-.PHONY: all build check check-deps clean fmt fmt-check race run test test-go test-native vet
+.PHONY: all build check check-deps clean fmt fmt-check race run test test-go vet

@@ -19,17 +19,7 @@ const (
 	braillePixelHeight    = 4
 )
 
-// standardTuningHz lists open-string frequencies from high e to low E.
-var standardTuningHz = [chords.StringCount]float64{
-	329.63,
-	246.94,
-	196.00,
-	146.83,
-	110.00,
-	82.41,
-}
-
-// standardTuningMIDI lists matching note numbers for waveform labels.
+// standardTuningMIDI lists open strings from high e to low E.
 var standardTuningMIDI = [chords.StringCount]int{64, 59, 55, 50, 45, 40}
 
 // noteNames maps a MIDI pitch class to its sharp note spelling.
@@ -54,18 +44,22 @@ func voicingNotes(voicing chords.Voicing) []noteSample {
 		}
 
 		midi := standardTuningMIDI[index] + placement.Fret
-		semitones := float64(placement.Fret) / 12
 		notes = append(notes, noteSample{
 			name: fmt.Sprintf(
 				"%s%d",
 				noteNames[wrap(midi, len(noteNames))],
 				midi/12-1,
 			),
-			frequency: standardTuningHz[index] * math.Pow(2, semitones),
+			frequency: midiFrequency(midi),
 			midi:      midi,
 		})
 	}
 	return notes
+}
+
+// midiFrequency converts a MIDI note to 12-tone equal temperament at A4=440 Hz.
+func midiFrequency(midi int) float64 {
+	return 440 * math.Pow(2, float64(midi-69)/12)
 }
 
 // compositeWaveSample averages ideal equal-amplitude sine waves at one time.
