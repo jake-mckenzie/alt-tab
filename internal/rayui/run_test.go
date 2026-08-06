@@ -3,11 +3,31 @@
 package rayui
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/jake-mckenzie/alt-tab/internal/chords"
 	"github.com/jake-mckenzie/alt-tab/internal/signal"
 )
+
+// TestPalettesMatchApprovedSet keeps the runtime cycle aligned with documentation.
+func TestPalettesMatchApprovedSet(t *testing.T) {
+	want := []string{
+		"Super Famicom", "Atomic Grape", "Paper Terminal", "Glacier Circuit",
+		"Haunted Cartridge", "Oxide Industrial", "Cassette Future",
+		"Royal Terminal", "Sakura Console", "CRT Amber",
+	}
+	got := make([]string, len(palettes))
+	for index, theme := range palettes {
+		got[index] = theme.name
+		if theme.background.A != 255 || theme.panel.A != 255 || theme.signal.A != 255 {
+			t.Fatalf("%s contains a partially transparent core color", theme.name)
+		}
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("palette names = %v, want %v", got, want)
+	}
+}
 
 // TestComputeLayout verifies that compact and full-neck panels remain visible.
 func TestComputeLayout(t *testing.T) {
@@ -25,8 +45,9 @@ func TestComputeLayout(t *testing.T) {
 	}
 
 	full := computeLayout(minimumWindowWidth, minimumWindowHeight, true)
-	if full.diagram.Height-96 < 75 || full.waveform.Height-90 < 20 ||
-		full.spectrum.Height-96 < 20 {
+	if full.diagram.Height-96 < 75 ||
+		full.waveform.Height-graphTopPadding-waveBottomPadding < 20 ||
+		full.spectrum.Height-graphTopPadding-spectrumBottomPad < 20 {
 		t.Fatalf("minimum full-neck layout leaves unusable content: %+v", full)
 	}
 }

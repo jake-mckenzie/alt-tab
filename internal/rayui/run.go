@@ -21,9 +21,17 @@ const (
 	windowWidth         = 1280
 	windowHeight        = 900
 	minimumWindowWidth  = 960
-	minimumWindowHeight = 700
+	minimumWindowHeight = 800
 	panelGap            = 12
 	panelPadding        = 18
+	diagramLeftPadding  = 72
+	diagramRightPadding = 28
+	graphTopPadding     = 60
+	waveLeftPadding     = 50
+	waveRightPadding    = 32
+	waveBottomPadding   = 42
+	spectrumSidePadding = 46
+	spectrumBottomPad   = 62
 	audioSampleRate     = 48000
 	audioBufferFrames   = 2048
 	waveformSeconds     = 0.025
@@ -40,45 +48,80 @@ type palette struct {
 	muted      rl.Color
 	accent     rl.Color
 	secondary  rl.Color
-	error      rl.Color
+	signal     rl.Color
 }
 
-// palettes begin with an SNES-inspired gray shell and purple controls.
+// palettes contains the approved graphical themes in runtime cycling order.
 var palettes = [...]palette{
 	{
-		name: "Super 16", background: rl.NewColor(166, 161, 178, 255),
-		panel: rl.NewColor(43, 36, 56, 255), border: rl.NewColor(113, 86, 164, 255),
-		text: rl.NewColor(242, 239, 247, 255), muted: rl.NewColor(187, 176, 202, 255),
-		accent: rl.NewColor(203, 169, 247, 255), secondary: rl.NewColor(165, 105, 215, 255),
-		error: rl.NewColor(176, 48, 73, 255),
+		name: "Super Famicom", background: rl.NewColor(201, 197, 189, 255),
+		panel: rl.NewColor(41, 37, 48, 255), border: rl.NewColor(98, 90, 112, 255),
+		text: rl.NewColor(244, 240, 233, 255), muted: rl.NewColor(183, 173, 185, 255),
+		accent: rl.NewColor(122, 74, 160, 255), secondary: rl.NewColor(208, 90, 146, 255),
+		signal: rl.NewColor(232, 184, 63, 255),
 	},
 	{
-		name: "Synthwave", background: rl.NewColor(12, 10, 28, 255),
-		panel: rl.NewColor(25, 20, 48, 255), border: rl.NewColor(106, 77, 148, 255),
-		text: rl.NewColor(241, 238, 255, 255), muted: rl.NewColor(153, 145, 181, 255),
-		accent: rl.NewColor(255, 74, 181, 255), secondary: rl.NewColor(86, 224, 255, 255),
-		error: rl.NewColor(255, 99, 115, 255),
+		name: "Atomic Grape", background: rl.NewColor(22, 16, 31, 255),
+		panel: rl.NewColor(39, 19, 56, 255), border: rl.NewColor(113, 67, 154, 255),
+		text: rl.NewColor(251, 244, 255, 255), muted: rl.NewColor(184, 153, 204, 255),
+		accent: rl.NewColor(194, 108, 255, 255), secondary: rl.NewColor(255, 79, 184, 255),
+		signal: rl.NewColor(128, 243, 255, 255),
 	},
 	{
-		name: "Tidal", background: rl.NewColor(7, 22, 31, 255),
-		panel: rl.NewColor(11, 39, 51, 255), border: rl.NewColor(39, 99, 120, 255),
-		text: rl.NewColor(226, 247, 250, 255), muted: rl.NewColor(129, 170, 181, 255),
-		accent: rl.NewColor(65, 220, 214, 255), secondary: rl.NewColor(72, 153, 255, 255),
-		error: rl.NewColor(255, 112, 112, 255),
+		name: "Paper Terminal", background: rl.NewColor(222, 211, 184, 255),
+		panel: rl.NewColor(243, 236, 217, 255), border: rl.NewColor(39, 38, 41, 255),
+		text: rl.NewColor(31, 29, 27, 255), muted: rl.NewColor(109, 102, 90, 255),
+		accent: rl.NewColor(191, 63, 50, 255), secondary: rl.NewColor(37, 92, 122, 255),
+		signal: rl.NewColor(32, 32, 32, 255),
 	},
 	{
-		name: "Ember", background: rl.NewColor(28, 17, 11, 255),
-		panel: rl.NewColor(51, 29, 17, 255), border: rl.NewColor(125, 73, 37, 255),
-		text: rl.NewColor(255, 242, 222, 255), muted: rl.NewColor(190, 154, 116, 255),
-		accent: rl.NewColor(255, 145, 48, 255), secondary: rl.NewColor(255, 208, 88, 255),
-		error: rl.NewColor(255, 91, 74, 255),
+		name: "Glacier Circuit", background: rl.NewColor(203, 219, 227, 255),
+		panel: rl.NewColor(20, 40, 53, 255), border: rl.NewColor(68, 115, 138, 255),
+		text: rl.NewColor(238, 251, 255, 255), muted: rl.NewColor(155, 187, 200, 255),
+		accent: rl.NewColor(139, 131, 255, 255), secondary: rl.NewColor(85, 217, 236, 255),
+		signal: rl.NewColor(197, 244, 255, 255),
 	},
 	{
-		name: "Evergreen", background: rl.NewColor(8, 24, 19, 255),
-		panel: rl.NewColor(14, 43, 33, 255), border: rl.NewColor(47, 105, 81, 255),
-		text: rl.NewColor(230, 250, 239, 255), muted: rl.NewColor(135, 176, 155, 255),
-		accent: rl.NewColor(86, 224, 151, 255), secondary: rl.NewColor(157, 231, 111, 255),
-		error: rl.NewColor(255, 108, 108, 255),
+		name: "Haunted Cartridge", background: rl.NewColor(23, 27, 24, 255),
+		panel: rl.NewColor(35, 40, 37, 255), border: rl.NewColor(83, 107, 85, 255),
+		text: rl.NewColor(232, 242, 223, 255), muted: rl.NewColor(148, 165, 139, 255),
+		accent: rl.NewColor(181, 107, 228, 255), secondary: rl.NewColor(112, 219, 121, 255),
+		signal: rl.NewColor(211, 255, 118, 255),
+	},
+	{
+		name: "Oxide Industrial", background: rl.NewColor(74, 75, 64, 255),
+		panel: rl.NewColor(25, 29, 28, 255), border: rl.NewColor(122, 117, 91, 255),
+		text: rl.NewColor(235, 229, 207, 255), muted: rl.NewColor(170, 165, 143, 255),
+		accent: rl.NewColor(210, 105, 53, 255), secondary: rl.NewColor(224, 180, 63, 255),
+		signal: rl.NewColor(126, 177, 162, 255),
+	},
+	{
+		name: "Cassette Future", background: rl.NewColor(23, 38, 59, 255),
+		panel: rl.NewColor(11, 20, 34, 255), border: rl.NewColor(53, 90, 119, 255),
+		text: rl.NewColor(232, 242, 245, 255), muted: rl.NewColor(138, 166, 179, 255),
+		accent: rl.NewColor(89, 213, 216, 255), secondary: rl.NewColor(255, 113, 133, 255),
+		signal: rl.NewColor(181, 156, 255, 255),
+	},
+	{
+		name: "Royal Terminal", background: rl.NewColor(28, 25, 33, 255),
+		panel: rl.NewColor(14, 13, 17, 255), border: rl.NewColor(84, 70, 95, 255),
+		text: rl.NewColor(245, 237, 219, 255), muted: rl.NewColor(183, 169, 140, 255),
+		accent: rl.NewColor(145, 102, 197, 255), secondary: rl.NewColor(213, 170, 81, 255),
+		signal: rl.NewColor(244, 216, 134, 255),
+	},
+	{
+		name: "Sakura Console", background: rl.NewColor(234, 219, 213, 255),
+		panel: rl.NewColor(67, 44, 61, 255), border: rl.NewColor(137, 90, 119, 255),
+		text: rl.NewColor(255, 245, 241, 255), muted: rl.NewColor(216, 185, 197, 255),
+		accent: rl.NewColor(240, 144, 186, 255), secondary: rl.NewColor(159, 103, 192, 255),
+		signal: rl.NewColor(255, 199, 217, 255),
+	},
+	{
+		name: "CRT Amber", background: rl.NewColor(53, 44, 36, 255),
+		panel: rl.NewColor(16, 14, 11, 255), border: rl.NewColor(106, 81, 52, 255),
+		text: rl.NewColor(255, 217, 138, 255), muted: rl.NewColor(169, 131, 76, 255),
+		accent: rl.NewColor(255, 181, 47, 255), secondary: rl.NewColor(239, 111, 46, 255),
+		signal: rl.NewColor(255, 225, 161, 255),
 	},
 }
 
@@ -382,9 +425,9 @@ func (gui *viewer) drawDiagram(bounds rl.Rectangle, theme palette) {
 
 	first, last := fretRange(voicing, gui.fullNeck)
 	board := rl.Rectangle{
-		X:      bounds.X + 54,
+		X:      bounds.X + diagramLeftPadding,
 		Y:      bounds.Y + 74,
-		Width:  bounds.Width - 82,
+		Width:  bounds.Width - diagramLeftPadding - diagramRightPadding,
 		Height: bounds.Height - 96,
 	}
 	if board.Height < 75 {
@@ -450,14 +493,14 @@ func drawFretboard(
 
 	for index, placement := range voicing.Strings {
 		y := bounds.Y + stringGap*float32(index+1)
-		drawText(stringNames[index], bounds.X-32, y-8, 16, theme.muted)
+		drawText(stringNames[index], bounds.X-48, y-8, 16, theme.muted)
 		rl.DrawLineEx(rl.Vector2{X: bounds.X, Y: y}, rl.Vector2{X: right, Y: y}, 2, theme.text)
 		if placement.Fret <= 0 {
 			marker := "O"
 			if placement.Fret < 0 {
 				marker = "X"
 			}
-			drawText(marker, bounds.X-15, y-9, 17, theme.secondary)
+			drawText(marker, bounds.X-23, y-9, 17, theme.secondary)
 			continue
 		}
 		if placement.Fret < first || placement.Fret > last {
@@ -481,7 +524,8 @@ func drawFretboard(
 func (gui *viewer) drawWaveform(bounds rl.Rectangle, theme palette) {
 	drawPanel(bounds, theme)
 	drawSectionTitle(bounds, "WAVEFORM · AMPLITUDE / TIME", theme)
-	plot := inset(bounds, panelPadding, 60, panelPadding, 30)
+	plot := inset(bounds, waveLeftPadding, graphTopPadding,
+		waveRightPadding, waveBottomPadding)
 	if plot.Width < 20 || plot.Height < 20 {
 		return
 	}
@@ -503,23 +547,31 @@ func (gui *viewer) drawWaveform(bounds rl.Rectangle, theme palette) {
 			Y: center - float32(sample)*plot.Height*0.43,
 		}
 	}
-	rl.DrawLineStrip(points, rl.Fade(theme.accent, 0.22))
+	rl.DrawLineStrip(points, rl.Fade(theme.signal, 0.22))
 	for index := 1; index < len(points); index++ {
-		rl.DrawLineEx(points[index-1], points[index], 2, theme.accent)
+		rl.DrawLineEx(points[index-1], points[index], 2, theme.signal)
 	}
-	drawText("+1", plot.X-2, plot.Y-14, 12, theme.muted)
-	drawText("-1", plot.X-2, plot.Y+plot.Height-10, 12, theme.muted)
-	drawText("0 ms", plot.X, plot.Y+plot.Height+3, 12, theme.muted)
+	drawAxisLabel("+1", plot.X, plot.Y, theme)
+	drawAxisLabel("0", plot.X, center, theme)
+	drawAxisLabel("-1", plot.X, plot.Y+plot.Height, theme)
+	drawText("0 ms", plot.X, plot.Y+plot.Height+8, 12, theme.muted)
 	right := "25 ms"
 	drawText(right, plot.X+plot.Width-measureText(right, 12).X,
-		plot.Y+plot.Height+3, 12, theme.muted)
+		plot.Y+plot.Height+8, 12, theme.muted)
+}
+
+// drawAxisLabel right-aligns a value inside the waveform's left gutter.
+func drawAxisLabel(label string, axisX, centerY float32, theme palette) {
+	size := measureText(label, 12)
+	drawText(label, axisX-size.X-8, centerY-size.Y/2, 12, theme.muted)
 }
 
 // drawSpectrum places one exact peak per sounding pitch on a logarithmic scale.
 func (gui *viewer) drawSpectrum(bounds rl.Rectangle, theme palette) {
 	drawPanel(bounds, theme)
 	drawSectionTitle(bounds, "FREQUENCY SPECTRUM · LOG Hz", theme)
-	plot := inset(bounds, panelPadding, 60, panelPadding, 36)
+	plot := inset(bounds, spectrumSidePadding, graphTopPadding,
+		spectrumSidePadding, spectrumBottomPad)
 	if plot.Width < 20 || plot.Height < 20 {
 		return
 	}
@@ -545,7 +597,7 @@ func (gui *viewer) drawSpectrum(bounds rl.Rectangle, theme palette) {
 		height := plot.Height * float32(peak.count) / float32(maxCount)
 		top := axisY - height
 		rl.DrawLineEx(rl.Vector2{X: x, Y: top}, rl.Vector2{X: x, Y: axisY}, 4, theme.secondary)
-		rl.DrawCircleV(rl.Vector2{X: x, Y: top}, 7, theme.accent)
+		rl.DrawCircleV(rl.Vector2{X: x, Y: top}, 7, theme.signal)
 		drawCenteredText(peak.note.Name, rl.Rectangle{
 			X: x - 25, Y: axisY + 4, Width: 50, Height: 18,
 		}, 12, theme.text)

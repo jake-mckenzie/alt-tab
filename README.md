@@ -225,9 +225,21 @@ The graphical interface is resizable, keeps compact graphs beside the chord
 diagram, and stacks the panels in full-neck mode. Its waveform and frequency
 spectrum are derived from the exact pitches of every sounding string; duplicate
 pitches produce proportionally stronger spectrum peaks.
-It starts with the SNES-inspired `Super 16` palette, combining a lavender-gray
-shell with dark recessed panels and brighter purple controls; `t` cycles through
-that palette and the four terminal-inspired alternatives.
+It starts with `Super Famicom`; `t` cycles through ten deliberately distinct
+graphical themes:
+
+| Raylib theme | Character |
+| --- | --- |
+| `Super Famicom` | Warm console gray with purple, pink, and yellow controls |
+| `Atomic Grape` | Blacklight violet, neon pink, and cyan |
+| `Paper Terminal` | Warm paper, black ink, vermilion, and blue |
+| `Glacier Circuit` | Ice gray, deep blue, indigo, and cyan |
+| `Haunted Cartridge` | Charcoal, spectral green, and violet |
+| `Oxide Industrial` | Gunmetal, rust orange, warning yellow, and oxidized teal |
+| `Cassette Future` | Navy hi-fi equipment with cyan, coral, and lavender |
+| `Royal Terminal` | Ink black, royal violet, brass, and cream |
+| `Sakura Console` | Warm ivory, plum, blossom pink, and lilac |
+| `CRT Amber` | Black glass with amber and orange phosphor tones |
 
 The base-chord row lists A through G above a three-position horizontal dial.
 When the selected family has a flat, sharp, or minor chord, a nested vertical
@@ -259,7 +271,7 @@ sounding note, with pitch names, frequency endpoints, and a centered note
 legend. Press `w` to hide or restore the time-domain waveform; the spectrum
 remains visible.
 
-### Themes
+### TUI Themes
 
 Press `t` to cycle through four palettes. Each palette automatically selects
 colors suited to the terminal's light or dark background.
