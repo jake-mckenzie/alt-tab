@@ -337,16 +337,16 @@ func (gui *viewer) drawHeader(bounds rl.Rectangle, theme palette) {
 	rl.DrawCircleV(rl.Vector2{X: bounds.X + 17, Y: bounds.Y + 25}, 4, theme.secondary)
 	drawTextSpaced("ALT-TAB", bounds.X+38, bounds.Y+13, 28, 3, theme.accent)
 	drawText("RAYLIB CHORD VIEWER - "+strings.ToUpper(theme.name),
-		bounds.X+38, bounds.Y+46, 14, theme.muted)
+		bounds.X+38, bounds.Y+46, 15, theme.muted)
 	controls := "LEFT/RIGHT chord  UP/DOWN type  V voicing  F neck  N tab  T theme  SPACE play  F1 help  Q quit"
-	size := measureText(controls, 14)
+	size := measureText(controls, 15)
 	controlWell := rl.Rectangle{
 		X: bounds.X + bounds.Width - panelPadding - size.X - 10,
 		Y: bounds.Y + 13, Width: size.X + 20, Height: 30,
 	}
 	rl.DrawRectangleRounded(controlWell, 0.35, 8, rl.Fade(theme.accent, 0.18))
 	drawText(controls, bounds.X+bounds.Width-panelPadding-size.X,
-		bounds.Y+20, 14, theme.text)
+		bounds.Y+19, 15, theme.text)
 }
 
 // drawDial renders clickable base chords and the current family variants.
@@ -377,12 +377,12 @@ func (gui *viewer) drawDial(bounds rl.Rectangle, theme palette) {
 	if family.Accidental != "" {
 		drawCenteredText(family.Accidental, rl.Rectangle{
 			X: center.X, Y: center.Y - 22, Width: center.Width, Height: 18,
-		}, 15, theme.secondary)
+		}, 17, theme.secondary)
 	}
 	if family.Minor != "" {
 		drawCenteredText(family.Minor, rl.Rectangle{
 			X: center.X, Y: center.Y + center.Height, Width: center.Width, Height: 18,
-		}, 15, theme.secondary)
+		}, 17, theme.secondary)
 	}
 }
 
@@ -424,24 +424,50 @@ func (gui *viewer) drawDiagram(bounds rl.Rectangle, theme palette) {
 	}, 20, theme.text)
 
 	first, last := fretRange(voicing, gui.fullNeck)
+	boardBottomPadding := float32(96)
+	if !gui.fullNeck && !gui.tabNumbers {
+		boardBottomPadding = 116
+	}
 	board := rl.Rectangle{
 		X:      bounds.X + diagramLeftPadding,
 		Y:      bounds.Y + 74,
 		Width:  bounds.Width - diagramLeftPadding - diagramRightPadding,
-		Height: bounds.Height - 96,
+		Height: bounds.Height - boardBottomPadding,
 	}
 	if board.Height < 75 {
 		return
 	}
 	drawFretboard(board, voicing, first, last, gui.tabNumbers, theme)
-	legend := "O open   X muted"
-	if !gui.tabNumbers {
-		legend = "Fingers: 1 index   2 middle   3 ring   4 little     -     " + legend
+	gui.drawDiagramLegend(bounds, theme)
+}
+
+// drawDiagramLegend gives enlarged finger and symbol metadata enough room.
+func (gui *viewer) drawDiagramLegend(bounds rl.Rectangle, theme palette) {
+	const legendSize = 16
+	symbols := "O open   X muted"
+	if gui.tabNumbers {
+		drawCenteredText(symbols, rl.Rectangle{
+			X: bounds.X, Y: bounds.Y + bounds.Height - 30,
+			Width: bounds.Width, Height: 20,
+		}, legendSize, theme.muted)
+		return
 	}
-	drawCenteredText(legend, rl.Rectangle{
-		X: bounds.X, Y: bounds.Y + bounds.Height - 29,
+	fingers := "Fingers: 1 index   2 middle   3 ring   4 little"
+	if gui.fullNeck {
+		drawCenteredText(fingers+"     -     "+symbols, rl.Rectangle{
+			X: bounds.X, Y: bounds.Y + bounds.Height - 30,
+			Width: bounds.Width, Height: 20,
+		}, legendSize, theme.muted)
+		return
+	}
+	drawCenteredText(fingers, rl.Rectangle{
+		X: bounds.X, Y: bounds.Y + bounds.Height - 52,
 		Width: bounds.Width, Height: 20,
-	}, 14, theme.muted)
+	}, legendSize, theme.muted)
+	drawCenteredText(symbols, rl.Rectangle{
+		X: bounds.X, Y: bounds.Y + bounds.Height - 28,
+		Width: bounds.Width, Height: 20,
+	}, legendSize, theme.muted)
 }
 
 // fretRange keeps common positions readable while preserving exact labels.
@@ -485,7 +511,7 @@ func drawFretboard(
 		label := fmt.Sprintf("%d", fret)
 		drawCenteredText(label, rl.Rectangle{
 			X: x, Y: bounds.Y - 2, Width: cellWidth, Height: stringGap,
-		}, clamp(cellWidth*0.36, 10, 15), theme.muted)
+		}, clamp(cellWidth*0.42, 12, 17), theme.muted)
 	}
 	right := bounds.X + bounds.Width
 	rl.DrawLineEx(rl.Vector2{X: right, Y: bounds.Y + stringGap},
@@ -493,14 +519,14 @@ func drawFretboard(
 
 	for index, placement := range voicing.Strings {
 		y := bounds.Y + stringGap*float32(index+1)
-		drawText(stringNames[index], bounds.X-48, y-8, 16, theme.muted)
+		drawText(stringNames[index], bounds.X-48, y-9, 18, theme.muted)
 		rl.DrawLineEx(rl.Vector2{X: bounds.X, Y: y}, rl.Vector2{X: right, Y: y}, 2, theme.text)
 		if placement.Fret <= 0 {
 			marker := "O"
 			if placement.Fret < 0 {
 				marker = "X"
 			}
-			drawText(marker, bounds.X-23, y-9, 17, theme.secondary)
+			drawText(marker, bounds.X-24, y-10, 19, theme.secondary)
 			continue
 		}
 		if placement.Fret < first || placement.Fret > last {
@@ -516,7 +542,7 @@ func drawFretboard(
 		}
 		drawCenteredText(label, rl.Rectangle{
 			X: x - radius, Y: y - radius, Width: radius * 2, Height: radius * 2,
-		}, clamp(radius*1.15, 10, 16), theme.panel)
+		}, clamp(radius*1.3, 12, 18), theme.panel)
 	}
 }
 
@@ -554,16 +580,17 @@ func (gui *viewer) drawWaveform(bounds rl.Rectangle, theme palette) {
 	drawAxisLabel("+1", plot.X, plot.Y, theme)
 	drawAxisLabel("0", plot.X, center, theme)
 	drawAxisLabel("-1", plot.X, plot.Y+plot.Height, theme)
-	drawText("0 ms", plot.X, plot.Y+plot.Height+8, 12, theme.muted)
+	drawText("0 ms", plot.X, plot.Y+plot.Height+8, 14, theme.muted)
 	right := "25 ms"
-	drawText(right, plot.X+plot.Width-measureText(right, 12).X,
-		plot.Y+plot.Height+8, 12, theme.muted)
+	drawText(right, plot.X+plot.Width-measureText(right, 14).X,
+		plot.Y+plot.Height+8, 14, theme.muted)
 }
 
 // drawAxisLabel right-aligns a value inside the waveform's left gutter.
 func drawAxisLabel(label string, axisX, centerY float32, theme palette) {
-	size := measureText(label, 12)
-	drawText(label, axisX-size.X-8, centerY-size.Y/2, 12, theme.muted)
+	const labelSize = 14
+	size := measureText(label, labelSize)
+	drawText(label, axisX-size.X-8, centerY-size.Y/2, labelSize, theme.muted)
 }
 
 // drawSpectrum places one exact peak per sounding pitch on a logarithmic scale.
@@ -599,8 +626,8 @@ func (gui *viewer) drawSpectrum(bounds rl.Rectangle, theme palette) {
 		rl.DrawLineEx(rl.Vector2{X: x, Y: top}, rl.Vector2{X: x, Y: axisY}, 4, theme.secondary)
 		rl.DrawCircleV(rl.Vector2{X: x, Y: top}, 7, theme.signal)
 		drawCenteredText(peak.note.Name, rl.Rectangle{
-			X: x - 25, Y: axisY + 4, Width: 50, Height: 18,
-		}, 12, theme.text)
+			X: x - 28, Y: axisY + 4, Width: 56, Height: 20,
+		}, 14, theme.text)
 	}
 	legendNames := make([]string, len(notes))
 	for index, note := range notes {
@@ -608,9 +635,9 @@ func (gui *viewer) drawSpectrum(bounds rl.Rectangle, theme palette) {
 	}
 	legend := "Notes: " + strings.Join(legendNames, "  ")
 	drawCenteredText(legend, rl.Rectangle{
-		X: bounds.X, Y: bounds.Y + bounds.Height - 22,
-		Width: bounds.Width, Height: 16,
-	}, 12, theme.muted)
+		X: bounds.X, Y: bounds.Y + bounds.Height - 25,
+		Width: bounds.Width, Height: 18,
+	}, 14, theme.muted)
 }
 
 // spectrumPeak combines duplicate pitches so its height matches oscillator amplitude.
