@@ -114,7 +114,7 @@ Launch an existing build:
 | `↓` / `j` | Next variation |
 | `f` | Toggle compact or full-neck view |
 | `t` | Cycle color theme |
-| `w` | Toggle animated ASCII waveform |
+| `w` | Toggle high-resolution note waveform |
 | `?` | Open or close help |
 | `Esc` | Close help |
 | `q` / `Ctrl+C` | Quit |
@@ -123,9 +123,11 @@ The complete horizontal chord list appears above the fretboard in both compact
 and full-neck modes. Full-neck mode requires a terminal width of at least 98
 columns.
 
-The animated ASCII waveform below the title combines the frequencies of every
-sounding string in the selected voicing. It is enabled by default; press `w` to
-hide it and stop its animation timer, or press `w` again to restart it.
+The stationary Braille waveform below the title plots 25 milliseconds of an
+ideal equal-amplitude signal combining every sounding string in the selected
+voicing. Braille subcells increase detail without increasing its character
+width. Its amplitude scale, time axis, and note labels are shown explicitly;
+press `w` to hide or restore it.
 
 ### Themes
 
@@ -147,13 +149,21 @@ are omitted here; Alt-Tab adapts them to light and dark backgrounds.
 <!-- BEGIN VERIFIED TUI OUTPUT -->
 ```text
   ALT-TAB  Guitar Chord Viewer · Synthwave
-    ***********
-               *
-   *            *            *                                   ********
-  *--------------*-------****-****-----------*********-------****--------*****
-                  *******         ***    ****         *******
-                                     ****
-
+  +1.0 |   ⡀
+       |  ⡎⠸⡀                                               ⢰⠉⢆
+       | ⢸  ⢣                                               ⡇ ⠘⡄
+       | ⡇  ⠈⡆                                             ⢸   ⢣
+       |⢰⠁   ⢣                                             ⡎   ⠘⡄
+       |⡸    ⠘⡄                   ⢀⠤⠤⡀   ⡠⠒⠑⠢⡀   ⡠⠒⢢      ⢀⠇    ⢣    ⣀⣀
+   0.0 +⠧⠤⠤⠤⠤⠤⢵⠤⠤⢤⠼⠭⠵⡤⠤⠤⠤⠤⡤⠶⠶⢤⠤⠤⠤⡤⠧⠤⠤⠬⠵⠶⠮⠤⠤⠤⠤⠬⠦⠤⠮⠤⠤⠤⢧⠤⠤⠤⠤⠤⢼⠤⠤⠤⠤⠤⠼⡤⠤⠤⡼⠤⠤⢧⠤⠤⠤⠤⢤⠮
+       |       ⠣⠤⠃   ⠈⢆ ⢀⠜    ⠑⠒⠊                   ⠘⡄    ⡎      ⠘⠤⠊    ⢣  ⢀⠎
+       |               ⠉⠁                            ⢣   ⢀⠇              ⠑⠒⠁
+       |                                             ⠘⡄  ⢸
+       |                                              ⢣  ⡇
+       |                                              ⠈⢆⡸
+  -1.0 |                                               ⠈
+        0 ms                                                             25 ms
+  Notes: E4  C#4  A3  E3  A2
 
   ╭────────────────────────────────────────────────────────────────────────╮
   │ CHORDS                                                                 │

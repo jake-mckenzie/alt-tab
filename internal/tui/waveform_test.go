@@ -4,33 +4,47 @@ import (
 	"math"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	tea "charm.land/bubbletea/v2"
 
 	"github.com/jake-mckenzie/alt-tab/internal/chords"
 )
 
-// TestRenderWaveformUsesRequestedDimensions checks stable ASCII geometry.
+// isBrailleRune identifies one Unicode Braille pattern character.
+func isBrailleRune(character rune) bool {
+	return character >= '\u2800' && character <= '\u28ff'
+}
+
+// TestRenderWaveformUsesRequestedDimensions checks detailed ASCII geometry.
 func TestRenderWaveformUsesRequestedDimensions(t *testing.T) {
 	voicing, _ := fakeCatalog{}.Load("C", 1)
-	output := renderWaveform(16, 0, voicing)
+	output := renderWaveform(40, voicing)
 	lines := strings.Split(output, "\n")
 
-	if len(lines) != waveformHeight {
-		t.Fatalf("waveform height = %d, want %d", len(lines), waveformHeight)
+	if len(lines) != waveformHeight+2 {
+		t.Fatalf("waveform height = %d, want %d", len(lines), waveformHeight+2)
 	}
-	for _, line := range lines {
-		if len(line) != 16 {
-			t.Fatalf("waveform width = %d, want 16", len(line))
+	for _, line := range lines[:waveformHeight+1] {
+		if utf8.RuneCountInString(line) != 40 {
+			t.Fatalf(
+				"waveform width = %d, want 40",
+				utf8.RuneCountInString(line),
+			)
 		}
 	}
-	if strings.ContainsAny(output, "0123456789") || !strings.Contains(output, "*") {
-		t.Fatalf("waveform is not portable ASCII:\n%s", output)
+	for _, expected := range []string{"+1.0 |", " 0.0 +", "-1.0 |", "25 ms"} {
+		if !strings.Contains(output, expected) {
+			t.Fatalf("waveform is missing %q:\n%s", expected, output)
+		}
+	}
+	if !strings.ContainsFunc(output, isBrailleRune) {
+		t.Fatal("waveform does not contain Braille subcells")
 	}
 }
 
-// TestWaveformUsesVoicingFrequencies checks note conversion and chord identity.
-func TestWaveformUsesVoicingFrequencies(t *testing.T) {
+// TestWaveformUsesVoicingNotes checks exact note conversion and chord identity.
+func TestWaveformUsesVoicingNotes(t *testing.T) {
 	voicing := chords.Voicing{
 		Strings: [chords.StringCount]chords.StringPlacement{
 			{Fret: 0},
@@ -41,44 +55,37 @@ func TestWaveformUsesVoicingFrequencies(t *testing.T) {
 			{Fret: -1},
 		},
 	}
-	frequencies := voicingFrequencies(voicing)
-	if len(frequencies) != 1 || math.Abs(frequencies[0]-329.63) > 0.001 {
-		t.Fatalf("high-e frequencies = %v, want [329.63]", frequencies)
+	notes := voicingNotes(voicing)
+	if len(notes) != 1 || notes[0].name != "E4" ||
+		math.Abs(notes[0].frequency-329.63) > 0.001 {
+		t.Fatalf("high-e notes = %v, want E4 at 329.63 Hz", notes)
 	}
 
 	cMajor, _ := fakeCatalog{}.Load("C", 1)
 	gMajor := cMajor
 	gMajor.Strings[0].Fret = 3
-	if renderWaveform(40, 0, cMajor) == renderWaveform(40, 0, gMajor) {
+	if renderWaveform(60, cMajor) == renderWaveform(60, gMajor) {
 		t.Fatal("different chord notes produced identical waveforms")
 	}
 }
 
-// TestWaveformToggleControlsAnimation checks timer invalidation and restart.
-func TestWaveformToggleControlsAnimation(t *testing.T) {
+// TestWaveformIsStationary checks deterministic output and its runtime toggle.
+func TestWaveformIsStationary(t *testing.T) {
 	model := New(fakeCatalog{})
-	updated, command := model.Update(tea.KeyPressMsg{Code: 'w', Text: "w"})
-	model = updated.(Model)
-	if model.waveform || command != nil || strings.Contains(model.View().Content, "*") {
-		t.Fatal("w did not disable the waveform and its timer")
+	before := model.View().Content
+	if before != model.View().Content {
+		t.Fatal("stationary waveform changed without a chord change")
 	}
 
-	staleGeneration := model.waveTimer - 1
-	updated, command = model.Update(waveformTickMsg{generation: staleGeneration})
+	updated, command := model.Update(tea.KeyPressMsg{Code: 'w', Text: "w"})
 	model = updated.(Model)
-	if command != nil || model.waveFrame != 0 {
-		t.Fatal("stale waveform timer advanced the animation")
+	if model.waveform || command != nil || strings.Contains(model.View().Content, "+1.0 |") {
+		t.Fatal("w did not hide the stationary waveform")
 	}
 
 	updated, command = model.Update(tea.KeyPressMsg{Code: 'w', Text: "w"})
 	model = updated.(Model)
-	if !model.waveform || command == nil {
-		t.Fatal("w did not restart the waveform timer")
-	}
-
-	updated, command = model.Update(waveformTickMsg{generation: model.waveTimer})
-	model = updated.(Model)
-	if model.waveFrame != 1 || command == nil {
-		t.Fatal("active waveform timer did not advance and reschedule")
+	if !model.waveform || command != nil || !strings.Contains(model.View().Content, "+1.0 |") {
+		t.Fatal("w did not restore the stationary waveform")
 	}
 }

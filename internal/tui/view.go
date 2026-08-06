@@ -28,7 +28,7 @@ func (model Model) render() string {
 	)
 	if model.waveform {
 		header += "\n" + model.styles.accent.Render(
-			renderWaveform(contentWidth, model.waveFrame, model.voicing),
+			renderWaveform(contentWidth, model.voicing),
 		)
 	}
 
@@ -122,7 +122,7 @@ func (model Model) renderHelp() string {
 		"↓ / j     Next variation\n" +
 		"f         Toggle compact/full neck\n" +
 		"t         Cycle color theme\n" +
-		"w         Toggle animated waveform\n" +
+		"w         Toggle detailed waveform\n" +
 		"?         Open or close help\n" +
 		"esc       Close help\n" +
 		"q         Quit\n\n" +
