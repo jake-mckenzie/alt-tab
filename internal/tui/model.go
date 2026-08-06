@@ -8,6 +8,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
+	"github.com/jake-mckenzie/alt-tab/internal/app"
 	"github.com/jake-mckenzie/alt-tab/internal/chords"
 )
 
@@ -33,17 +34,13 @@ type Model struct {
 }
 
 const (
-	accidentalChord = -1
-	baseChord       = 0
-	minorChord      = 1
+	accidentalChord = int(app.Accidental)
+	baseChord       = int(app.Base)
+	minorChord      = int(app.Minor)
 )
 
-// chordFamily groups one natural chord with its available accidental and minor.
-type chordFamily struct {
-	base       string
-	accidental string
-	minor      string
-}
+// chordFamily reuses the interface-independent chord-family definition.
+type chordFamily = app.Family
 
 // New returns the initial terminal UI model.
 func New(catalog chords.Catalog) Model {
@@ -141,32 +138,7 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 
 // buildChordFamilies preserves natural-chord order and attaches known variants.
 func buildChordFamilies(names []string) []chordFamily {
-	families := make([]chordFamily, 0, len(names))
-	indexes := make(map[string]int)
-	for _, name := range names {
-		if len(name) != 1 || name[0] < 'A' || name[0] > 'G' {
-			continue
-		}
-		indexes[name] = len(families)
-		families = append(families, chordFamily{base: name})
-	}
-
-	for _, name := range names {
-		if len(name) != 2 {
-			continue
-		}
-		index, exists := indexes[name[:1]]
-		if !exists {
-			continue
-		}
-		switch name[1] {
-		case 'b', '#':
-			families[index].accidental = name
-		case 'm':
-			families[index].minor = name
-		}
-	}
-	return families
+	return app.BuildFamilies(names)
 }
 
 // currentChordName resolves the highlighted dial position to a catalog name.
@@ -177,11 +149,11 @@ func (model Model) currentChordName() string {
 	family := model.families[model.selected]
 	switch model.chordKind {
 	case accidentalChord:
-		return family.accidental
+		return family.Accidental
 	case minorChord:
-		return family.minor
+		return family.Minor
 	default:
-		return family.base
+		return family.Base
 	}
 }
 
@@ -247,13 +219,13 @@ func (model *Model) moveChordKind(delta int) {
 	if delta < 0 {
 		if model.chordKind == minorChord {
 			next = baseChord
-		} else if model.chordKind == baseChord && family.accidental != "" {
+		} else if model.chordKind == baseChord && family.Accidental != "" {
 			next = accidentalChord
 		}
 	} else if delta > 0 {
 		if model.chordKind == accidentalChord {
 			next = baseChord
-		} else if model.chordKind == baseChord && family.minor != "" {
+		} else if model.chordKind == baseChord && family.Minor != "" {
 			next = minorChord
 		}
 	}

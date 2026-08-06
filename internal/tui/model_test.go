@@ -298,7 +298,7 @@ func TestNestedDialOnlyAppearsForRealVariants(t *testing.T) {
 		t.Fatal("family with a minor chord does not use the nested dial")
 	}
 
-	model.families[0] = chordFamily{base: "C"}
+	model.families[0] = chordFamily{Base: "C"}
 	withoutVariant := ansiSequence.ReplaceAllString(model.renderChordSelector(), "")
 	if strings.Contains(withoutVariant, "╭──────────╮") || strings.Contains(withoutVariant, "Cm") {
 		t.Fatal("base-only family implies an unavailable variant")
@@ -318,17 +318,17 @@ func TestChordDialKeepsFixedHeightAndBaseRow(t *testing.T) {
 		if selected == 0 {
 			wantHeight = len(lines)
 			for row, line := range lines {
-				if strings.Contains(line, "‹ "+family.base+" ›") {
+				if strings.Contains(line, "‹ "+family.Base+" ›") {
 					wantBaseRow = row
 					break
 				}
 			}
 		}
 		if len(lines) != wantHeight {
-			t.Fatalf("%s dial height = %d, want %d", family.base, len(lines), wantHeight)
+			t.Fatalf("%s dial height = %d, want %d", family.Base, len(lines), wantHeight)
 		}
-		if !strings.Contains(lines[wantBaseRow], "‹ "+family.base+" ›") {
-			t.Fatalf("%s base moved away from row %d", family.base, wantBaseRow+1)
+		if !strings.Contains(lines[wantBaseRow], "‹ "+family.Base+" ›") {
+			t.Fatalf("%s base moved away from row %d", family.Base, wantBaseRow+1)
 		}
 	}
 }
@@ -351,13 +351,13 @@ func TestDiagramHeadingsAreStackedAndCentered(t *testing.T) {
 // TestChordFamiliesMatchCatalog checks every accidental and minor dial position.
 func TestChordFamiliesMatchCatalog(t *testing.T) {
 	want := []chordFamily{
-		{base: "A", minor: "Am"},
-		{base: "B", accidental: "Bb"},
-		{base: "C", minor: "Cm"},
-		{base: "D", minor: "Dm"},
-		{base: "E", minor: "Em"},
-		{base: "F", accidental: "F#"},
-		{base: "G", minor: "Gm"},
+		{Base: "A", Minor: "Am"},
+		{Base: "B", Accidental: "Bb"},
+		{Base: "C", Minor: "Cm"},
+		{Base: "D", Minor: "Dm"},
+		{Base: "E", Minor: "Em"},
+		{Base: "F", Accidental: "F#"},
+		{Base: "G", Minor: "Gm"},
 	}
 	got := buildChordFamilies(chords.NewCatalog().Names())
 	if len(got) != len(want) {

@@ -22,8 +22,17 @@ jobs:
           go-version-file: go.mod
           cache-dependency-path: go.sum
 
+      - name: Install Raylib build dependencies
+        run: >-
+          sudo apt-get update && sudo apt-get install --yes
+          libgl1-mesa-dev libx11-dev libxkbcommon-dev libxcursor-dev
+          libxi-dev libxinerama-dev libxrandr-dev
+
       - name: Build release binary
         run: make BUILD=release build
+
+      - name: Build Raylib release binary
+        run: make BUILD=release build-raylib
 
       - name: Run quality checks
         run: make check

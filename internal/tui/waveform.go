@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/jake-mckenzie/alt-tab/internal/chords"
+	"github.com/jake-mckenzie/alt-tab/internal/signal"
 )
 
 const (
@@ -19,8 +20,8 @@ const (
 	braillePixelHeight    = 4
 )
 
-// standardTuningMIDI lists open strings from high e to low E.
-var standardTuningMIDI = [chords.StringCount]int{64, 59, 55, 50, 45, 40}
+// standardTuningMIDI retains the plot test's interface to shared signal data.
+var standardTuningMIDI = signal.StandardTuningMIDI
 
 // noteNames maps a MIDI pitch class to its sharp note spelling.
 var noteNames = [...]string{
@@ -37,29 +38,21 @@ type noteSample struct {
 
 // voicingNotes converts each sounding string and fret to a named frequency.
 func voicingNotes(voicing chords.Voicing) []noteSample {
-	notes := make([]noteSample, 0, chords.StringCount)
-	for index, placement := range voicing.Strings {
-		if placement.Fret < 0 {
-			continue
+	shared := signal.Notes(voicing)
+	notes := make([]noteSample, len(shared))
+	for index, note := range shared {
+		notes[index] = noteSample{
+			name:      note.Name,
+			frequency: note.Frequency,
+			midi:      note.MIDI,
 		}
-
-		midi := standardTuningMIDI[index] + placement.Fret
-		notes = append(notes, noteSample{
-			name: fmt.Sprintf(
-				"%s%d",
-				noteNames[wrap(midi, len(noteNames))],
-				midi/12-1,
-			),
-			frequency: midiFrequency(midi),
-			midi:      midi,
-		})
 	}
 	return notes
 }
 
 // midiFrequency converts a MIDI note to 12-tone equal temperament at A4=440 Hz.
 func midiFrequency(midi int) float64 {
-	return 440 * math.Pow(2, float64(midi-69)/12)
+	return signal.MIDIFrequency(midi)
 }
 
 // compositeWaveSample averages ideal equal-amplitude sine waves at one time.

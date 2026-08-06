@@ -160,9 +160,9 @@ func (model Model) renderChordSelector() string {
 			output.WriteString("  ")
 		}
 		if index == model.selected {
-			output.WriteString(model.styles.accent.Bold(true).Render(family.base))
+			output.WriteString(model.styles.accent.Bold(true).Render(family.Base))
 		} else {
-			output.WriteString(model.styles.normal.Render(family.base))
+			output.WriteString(model.styles.normal.Render(family.Base))
 		}
 	}
 	output.WriteString("\n\n")
@@ -173,15 +173,15 @@ func (model Model) renderChordSelector() string {
 	family := model.families[model.selected]
 	previous := model.families[wrap(model.selected-1, len(model.families))]
 	next := model.families[wrap(model.selected+1, len(model.families))]
-	output.WriteString(model.renderNestedDial(previous.base, family, next.base))
+	output.WriteString(model.renderNestedDial(previous.Base, family, next.Base))
 
 	return output.String()
 }
 
 // renderNestedDial embeds real accidental and minor choices in the center cell.
 func (model Model) renderNestedDial(left string, family chordFamily, right string) string {
-	if family.accidental == "" && family.minor == "" {
-		center := model.styles.selected.Render("‹ " + family.base + " ›")
+	if family.Accidental == "" && family.Minor == "" {
+		center := model.styles.selected.Render("‹ " + family.Base + " ›")
 		lines := make([]string, verticalDialHeight)
 		for row := range lines {
 			if row == verticalDialBaseRow {
@@ -205,16 +205,16 @@ func (model Model) renderNestedDial(left string, family chordFamily, right strin
 	centers := make([]string, verticalDialHeight)
 	top := verticalDialBaseRow - 1
 	bottom := verticalDialBaseRow + 1
-	if family.accidental != "" {
+	if family.Accidental != "" {
 		top = 0
-		centers[1] = entry(family.accidental, accidentalChord)
+		centers[1] = entry(family.Accidental, accidentalChord)
 	}
-	if family.minor != "" {
+	if family.Minor != "" {
 		bottom = verticalDialHeight - 1
-		centers[verticalDialHeight-2] = entry(family.minor, minorChord)
+		centers[verticalDialHeight-2] = entry(family.Minor, minorChord)
 	}
 	centers[top] = border("╭" + strings.Repeat("─", verticalDialWidth) + "╮")
-	centers[verticalDialBaseRow] = entry(family.base, baseChord)
+	centers[verticalDialBaseRow] = entry(family.Base, baseChord)
 	centers[bottom] = border("╰" + strings.Repeat("─", verticalDialWidth) + "╯")
 	for row := top + 1; row < bottom; row++ {
 		if centers[row] == "" {

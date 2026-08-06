@@ -29,7 +29,7 @@ func TestReadmeContainsCurrentTUIOutput(t *testing.T) {
 	}
 
 	model := New(chords.NewCatalog())
-	model.width = 80
+	model.width = 100
 	actual := ansiSequence.ReplaceAllString(model.View().Content, "")
 
 	if normalizeSnapshot(snapshot) != normalizeSnapshot(actual) {
