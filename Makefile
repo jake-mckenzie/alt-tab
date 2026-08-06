@@ -8,7 +8,6 @@ TARGET = $(BIN_DIR)/$(APP)
 
 BUILD ?= debug
 
-GO_SOURCES = $(shell find cmd internal -type f -name '*.go' 2>/dev/null)
 GO_FILES = $(shell find cmd internal -type f -name '*.go' 2>/dev/null)
 GO_BUILD_FLAGS =
 
@@ -20,7 +19,9 @@ endif
 
 all: build
 
-build: $(TARGET)
+build: check-deps go.mod go.sum $(GO_FILES)
+	mkdir -p $(dir $(TARGET))
+	$(GO) build $(GO_BUILD_FLAGS) -o $(TARGET) $(CMD)
 
 fmt:
 	$(GO) fmt ./...
@@ -41,10 +42,6 @@ check-deps:
 	@$(GO) list -mod=readonly -deps ./... >/dev/null
 	@$(GO) mod verify >/dev/null
 
-$(TARGET): check-deps go.mod go.sum $(GO_SOURCES)
-	mkdir -p $(dir $@)
-	$(GO) build $(GO_BUILD_FLAGS) -o $@ $(CMD)
-
 test-go: check-deps
 	$(GO) test ./...
 
@@ -58,10 +55,10 @@ vet: check-deps
 
 check: fmt-check test race vet
 
-run: $(TARGET)
+run: build
 	./$(TARGET)
 
 clean:
-	rm -rf $(BIN_DIR) build
+	rm -rf $(BIN_DIR)
 
 .PHONY: all build check check-deps clean fmt fmt-check race run test test-go vet

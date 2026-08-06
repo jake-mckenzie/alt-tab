@@ -4,7 +4,7 @@
 
 Alt-Tab is an interactive guitar-chord viewer for the terminal. Its responsive
 Bubble Tea interface displays explicit open chords and generated movable
-voicings from a compact Go catalog.
+voicings from a compact, pure-Go catalog.
 
 Diagrams follow standard tablature orientation: high e is at the top, low E is
 at the bottom, and fret numbers increase from left to right. Compact mode shows
@@ -203,9 +203,10 @@ The stationary Braille waveform plots 25 milliseconds of an ideal
 equal-amplitude signal combining every sounding string in the selected voicing.
 Braille subcells increase detail without increasing its character width. Its
 section heading also identifies the amplitude-over-time axes without a redundant
-graph title. The separate frequency spectrum shows a normalized peak for each sounding note,
-with pitch names, frequency endpoints, and a centered note legend. Press `w` to
-hide or restore the time-domain waveform; the spectrum remains visible.
+graph title. The separate frequency spectrum shows a normalized peak for each
+sounding note, with pitch names, frequency endpoints, and a centered note
+legend. Press `w` to hide or restore the time-domain waveform; the spectrum
+remains visible.
 
 ### Themes
 
@@ -274,19 +275,19 @@ make
 | --- | --- | --- |
 | `A`, `B`, `C`, `D`, `E`, `F`, `G` | `Am`, `Cm`, `Dm`, `Em`, `Gm` | `Bb`, `F#` |
 
-Each chord has three conventional voicings. Open positions are stored explicitly,
-while movable E-, A-, and D-shape chords are generated at the required fret.
-Finger numbers use `1` for index,
-`2` for middle, `3` for ring, and `4` for little finger. `O` marks an open
-string and `X` marks a muted string.
+The catalog contains 14 chord names and three conventional voicings per chord,
+for 42 voicings total. Open positions are stored explicitly, while movable E-,
+A-, and D-shape chords are generated at the required fret. Finger numbers use
+`1` for index, `2` for middle, `3` for ring, and `4` for little finger. `O`
+marks an open string and `X` marks a muted string.
 
 ## Architecture
 
 - `cmd/alt-tab` contains the application entry point.
 - `internal/tui` owns Bubble Tea state, navigation, layout, styling, and
   fretboard rendering.
-- `internal/chords` owns the chord model, compact shape definitions, generated
-  voicings, and immutable catalog interface.
+- `internal/chords` owns the pure-Go chord model, compact shape definitions,
+  generated voicings, and immutable catalog interface.
 - `.github/workflows` runs builds and quality checks for pushes and pull
   requests.
 
