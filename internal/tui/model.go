@@ -18,6 +18,8 @@ type Model struct {
 	voicing   chords.Voicing
 	fullNeck  bool
 	showHelp  bool
+	dark      bool
+	theme     int
 	width     int
 	err       error
 	styles    styles
@@ -28,8 +30,9 @@ func New(catalog chords.Catalog) Model {
 	model := Model{
 		catalog:   catalog,
 		variation: 1,
+		dark:      true,
 		width:     100,
-		styles:    newStyles(true),
+		styles:    newStyles(true, 0),
 	}
 
 	if catalog == nil {
@@ -51,13 +54,19 @@ func (Model) Init() tea.Cmd {
 func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	switch message := message.(type) {
 	case tea.BackgroundColorMsg:
-		model.styles = newStyles(message.IsDark())
+		model.dark = message.IsDark()
+		model.styles = newStyles(model.dark, model.theme)
 	case tea.WindowSizeMsg:
 		model.width = message.Width
 	case tea.KeyPressMsg:
 		key := message.String()
 		if key == "ctrl+c" || key == "q" {
 			return model, tea.Quit
+		}
+		if key == "t" {
+			model.theme = wrap(model.theme+1, len(palettes))
+			model.styles = newStyles(model.dark, model.theme)
+			return model, nil
 		}
 		if model.showHelp {
 			if key == "esc" || key == "?" {

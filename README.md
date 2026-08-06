@@ -113,6 +113,7 @@ Launch an existing build:
 | `↑` / `k` | Previous variation |
 | `↓` / `j` | Next variation |
 | `f` | Toggle compact or full-neck view |
+| `t` | Cycle color theme |
 | `?` | Open or close help |
 | `Esc` | Close help |
 | `q` / `Ctrl+C` | Quit |
@@ -121,6 +122,18 @@ The complete horizontal chord list appears above the fretboard in both compact
 and full-neck modes. Full-neck mode requires a terminal width of at least 98
 columns.
 
+### Themes
+
+Press `t` to cycle through four palettes. Each palette automatically selects
+colors suited to the terminal's light or dark background.
+
+| Theme | Character |
+| --- | --- |
+| `Synthwave` | Vivid magenta and violet; the default |
+| `Tidal` | Cool cyan and ocean blue |
+| `Ember` | Warm orange and amber |
+| `Evergreen` | Calm green and mint |
+
 ## TUI Output
 
 The default layout appears as follows in an 80-column terminal. Terminal colors
@@ -128,7 +141,7 @@ are omitted here; Alt-Tab adapts them to light and dark backgrounds.
 
 <!-- BEGIN VERIFIED TUI OUTPUT -->
 ```text
-  ALT-TAB  Guitar Chord Viewer
+  ALT-TAB  Guitar Chord Viewer · Synthwave
 
   ╭────────────────────────────────────────────────────────────────────────╮
   │ CHORDS                                                                 │
@@ -154,7 +167,7 @@ are omitted here; Alt-Tab adapts them to light and dark backgrounds.
   │ Symbols: O open  X muted                                               │
   ╰────────────────────────────────────────────────────────────────────────╯
 
-  ←/→ chord  ↑/↓ variation  f full neck  ? help  q quit
+  ←/→ chord  ↑/↓ variation  f full neck  t theme  ? help  q quit
 ```
 <!-- END VERIFIED TUI OUTPUT -->
 

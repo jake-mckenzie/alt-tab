@@ -22,7 +22,9 @@ func (model Model) render() string {
 		lipgloss.Bottom,
 		model.styles.title.Render("ALT-TAB"),
 		"  ",
-		model.styles.subtitle.Render("Guitar Chord Viewer"),
+		model.styles.subtitle.Render(
+			fmt.Sprintf("Guitar Chord Viewer · %s", paletteAt(model.theme).name),
+		),
 	)
 
 	var body string
@@ -35,7 +37,7 @@ func (model Model) render() string {
 	}
 
 	footer := model.styles.muted.Render(
-		"←/→ chord  ↑/↓ variation  f full neck  ? help  q quit",
+		"←/→ chord  ↑/↓ variation  f full neck  t theme  ? help  q quit",
 	)
 	return lipgloss.NewStyle().
 		Padding(1, 2).
@@ -114,6 +116,7 @@ func (model Model) renderHelp() string {
 		"↑ / k     Previous variation\n" +
 		"↓ / j     Next variation\n" +
 		"f         Toggle compact/full neck\n" +
+		"t         Cycle color theme\n" +
 		"?         Open or close help\n" +
 		"esc       Close help\n" +
 		"q         Quit\n\n" +

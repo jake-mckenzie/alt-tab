@@ -108,6 +108,24 @@ func TestFullNeckAndHelpToggles(t *testing.T) {
 	}
 }
 
+// TestThemeToggleCyclesPalettes checks runtime switching and wraparound.
+func TestThemeToggleCyclesPalettes(t *testing.T) {
+	model := New(fakeCatalog{})
+	if model.theme != 0 || !strings.Contains(model.View().Content, "Synthwave") {
+		t.Fatal("new model does not use the Synthwave theme")
+	}
+
+	for index := 1; index <= len(palettes); index++ {
+		updated, _ := model.Update(tea.KeyPressMsg{Code: 't', Text: "t"})
+		model = updated.(Model)
+		want := index % len(palettes)
+		if model.theme != want ||
+			!strings.Contains(model.View().Content, paletteAt(want).name) {
+			t.Fatalf("theme index = %d, want %d", model.theme, want)
+		}
+	}
+}
+
 // TestFullNeckRequiresNinetyEightColumns checks both sides of the boundary.
 func TestFullNeckRequiresNinetyEightColumns(t *testing.T) {
 	model := New(fakeCatalog{})
