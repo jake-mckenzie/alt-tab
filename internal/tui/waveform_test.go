@@ -22,8 +22,8 @@ func TestRenderWaveformUsesRequestedDimensions(t *testing.T) {
 	output := renderWaveform(40, voicing)
 	lines := strings.Split(output, "\n")
 
-	if len(lines) != waveformHeight+2 {
-		t.Fatalf("waveform height = %d, want %d", len(lines), waveformHeight+2)
+	if len(lines) != waveformHeight+10 {
+		t.Fatalf("waveform height = %d, want %d", len(lines), waveformHeight+10)
 	}
 	for _, line := range lines[:waveformHeight+1] {
 		if utf8.RuneCountInString(line) != 40 {
@@ -33,13 +33,35 @@ func TestRenderWaveformUsesRequestedDimensions(t *testing.T) {
 			)
 		}
 	}
-	for _, expected := range []string{"+1.0 |", " 0.0 +", "-1.0 |", "25 ms"} {
+	for _, expected := range []string{
+		waveformCaption, pitchCaption, "+1.0 |", " 0.0 +", "-1.0 |", "25 ms", "Notes:",
+	} {
 		if !strings.Contains(output, expected) {
 			t.Fatalf("waveform is missing %q:\n%s", expected, output)
 		}
 	}
 	if !strings.ContainsFunc(output, isBrailleRune) {
 		t.Fatal("waveform does not contain Braille subcells")
+	}
+	for row, line := range lines[:waveformHeight] {
+		wantBoundary := "|"
+		if row == waveformHeight/2 {
+			wantBoundary = "+"
+		}
+		if !strings.HasSuffix(line, wantBoundary) {
+			t.Fatalf("waveform row %d has no matching right boundary: %q", row, line)
+		}
+	}
+}
+
+// TestPitchScaleMarksEverySoundingNote checks semitone-positioned annotations.
+func TestPitchScaleMarksEverySoundingNote(t *testing.T) {
+	voicing, _ := fakeCatalog{}.Load("C", 1)
+	scale := renderPitchScale(40, voicingNotes(voicing))
+	for _, expected := range []string{"C3", "E3", "G3", "C4", "E4", "│", pitchCaption} {
+		if !strings.Contains(scale, expected) {
+			t.Fatalf("pitch scale is missing %q:\n%s", expected, scale)
+		}
 	}
 }
 

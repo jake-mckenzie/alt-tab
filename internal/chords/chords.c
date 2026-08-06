@@ -4,7 +4,7 @@
 
 #define ARRAY_COUNT( array ) ( sizeof( array ) / sizeof( ( array )[ 0 ] ) )
 
-/* Keep variations grouped by name so their display order remains predictable. */
+/* Keep voicings grouped by name so their display order remains predictable. */
 static const Chord DEFAULT_CHORDS[ ] = {
     { "A", 1, {
         { 0, 0 }, { 2, 3 }, { 2, 2 },
@@ -198,7 +198,7 @@ const char *altTabChordNameAt( size_t requested_index )
 }
 
 /* Counts every voicing that shares a case-insensitive chord name. */
-size_t altTabChordVariationCount( const char *name )
+size_t altTabChordNamedVoicingCount( const char *name )
 {
     size_t count = 0;
 
@@ -216,7 +216,7 @@ size_t altTabChordVariationCount( const char *name )
 }
 
 /* Finds one numbered voicing using a case-insensitive chord name. */
-const Chord *altTabChordFind( const char *name, int variation )
+const Chord *altTabChordFind( const char *name, int number )
 {
     if ( name == NULL ) {
         return NULL;
@@ -224,7 +224,7 @@ const Chord *altTabChordFind( const char *name, int variation )
 
     for ( size_t index = 0; index < ARRAY_COUNT( DEFAULT_CHORDS ); index++ ) {
         if ( namesEqual( DEFAULT_CHORDS[ index ].name, name ) &&
-             DEFAULT_CHORDS[ index ].variation == variation ) {
+             DEFAULT_CHORDS[ index ].number == number ) {
             return &DEFAULT_CHORDS[ index ];
         }
     }

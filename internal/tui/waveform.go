@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"math"
+	"sort"
 	"strings"
 
 	"github.com/jake-mckenzie/alt-tab/internal/chords"
@@ -12,6 +13,8 @@ const (
 	waveformHeight        = 13
 	waveformLabelWidth    = 6
 	waveformWindowSeconds = 0.025
+	waveformCaption       = "Normalized amplitude over time"
+	pitchCaption          = "Pitch range by semitone"
 	braillePixelWidth     = 2
 	braillePixelHeight    = 4
 )
@@ -39,6 +42,7 @@ var noteNames = [...]string{
 type noteSample struct {
 	name      string
 	frequency float64
+	midi      int
 }
 
 // voicingNotes converts each sounding string and fret to a named frequency.
@@ -58,6 +62,7 @@ func voicingNotes(voicing chords.Voicing) []noteSample {
 				midi/12-1,
 			),
 			frequency: standardTuningHz[index] * math.Pow(2, semitones),
+			midi:      midi,
 		})
 	}
 	return notes
@@ -159,7 +164,8 @@ func renderBrailleCanvas(canvas [][]bool, width int) []string {
 
 // renderWaveform draws an ideal 25 ms composite signal for the active voicing.
 func renderWaveform(width int, voicing chords.Voicing) string {
-	plotWidth := width - waveformLabelWidth
+	// Reserve the last cell for a right boundary matching the y-axis.
+	plotWidth := width - waveformLabelWidth - 1
 	if plotWidth <= 0 {
 		return ""
 	}
@@ -190,20 +196,26 @@ func renderWaveform(width int, voicing chords.Voicing) string {
 	}
 
 	plotLines := renderBrailleCanvas(canvas, plotWidth)
-	lines := make([]string, 0, waveformHeight+2)
+	lines := make([]string, 0, waveformHeight+9)
 	for row, plotLine := range plotLines {
 		label := "     |"
+		boundary := "|"
 		switch row {
 		case 0:
 			label = "+1.0 |"
 		case waveformHeight / 2:
 			label = " 0.0 +"
+			boundary = "+"
 		case waveformHeight - 1:
 			label = "-1.0 |"
 		}
-		lines = append(lines, label+plotLine)
+		lines = append(lines, label+plotLine+boundary)
 	}
-	lines = append(lines, renderTimeAxis(width), renderNoteLegend(notes))
+	lines = append(lines, renderTimeAxis(width), centerText(waveformCaption, width, ' '))
+	if pitchScale := renderPitchScale(width, notes); pitchScale != "" {
+		lines = append(lines, "", pitchScale)
+	}
+	lines = append(lines, "", renderNoteLegend(notes))
 	return strings.Join(lines, "\n")
 }
 
@@ -213,6 +225,59 @@ func renderTimeAxis(width int) string {
 	right := fmt.Sprintf("%.0f ms", waveformWindowSeconds*1000)
 	gap := max(1, width-len(left)-len(right))
 	return left + strings.Repeat(" ", gap) + right
+}
+
+// renderPitchScale places each sounding note on a semitone-spaced frequency range.
+func renderPitchScale(width int, notes []noteSample) string {
+	scaleWidth := width - waveformLabelWidth
+	if len(notes) == 0 || scaleWidth < 10 {
+		return ""
+	}
+
+	ordered := append([]noteSample(nil), notes...)
+	sort.Slice(ordered, func(left, right int) bool {
+		return ordered[left].midi < ordered[right].midi
+	})
+	lowest := ordered[0]
+	highest := ordered[len(ordered)-1]
+	span := max(1, highest.midi-lowest.midi)
+	markers := []rune(strings.Repeat(" ", scaleWidth))
+	scale := []rune(strings.Repeat("─", scaleWidth))
+	labels := []rune(strings.Repeat(" ", scaleWidth))
+
+	for index, note := range ordered {
+		position := int(math.Round(
+			float64(note.midi-lowest.midi) / float64(span) * float64(scaleWidth-1),
+		))
+		markers[position] = '│'
+		scale[position] = '┼'
+		placeScaleLabel(labels, note.name, position)
+		if index == 0 {
+			scale[position] = '├'
+		}
+		if index == len(ordered)-1 {
+			scale[position] = '┤'
+		}
+	}
+
+	leftFrequency := fmt.Sprintf("%.0f Hz", lowest.frequency)
+	rightFrequency := fmt.Sprintf("%.0f Hz", highest.frequency)
+	frequencyGap := max(1, scaleWidth-len(leftFrequency)-len(rightFrequency))
+	prefix := strings.Repeat(" ", waveformLabelWidth)
+	return prefix + string(markers) + "\n" +
+		prefix + string(scale) + "\n" +
+		prefix + string(labels) + "\n" +
+		prefix + leftFrequency + strings.Repeat(" ", frequencyGap) + rightFrequency + "\n" +
+		centerText(pitchCaption, width, ' ')
+}
+
+// placeScaleLabel centers an ASCII note name while avoiding scale boundaries.
+func placeScaleLabel(line []rune, label string, position int) {
+	characters := []rune(label)
+	start := min(max(0, position-len(characters)/2), len(line)-len(characters))
+	for index, character := range characters {
+		line[start+index] = character
+	}
 }
 
 // renderNoteLegend lists the pitches combined into the displayed signal.

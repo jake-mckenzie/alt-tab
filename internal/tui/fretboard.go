@@ -12,6 +12,7 @@ const (
 	fullNeckCellWidth            = 3
 	fullNeckMinimumTerminalWidth = 98
 	compactCellWidth             = 5
+	tabLineWidth                 = 21
 )
 
 // stringNames follows standard tablature order from high e to low E.
@@ -39,10 +40,61 @@ func renderFretboard(
 		output.WriteString("|\n")
 	}
 
-	output.WriteString("\nFingers: 1 index  2 middle")
-	output.WriteString("\n         3 ring   4 little")
-	output.WriteString("\n\nSymbols: O open  X muted")
+	writeFretboardLegend(
+		&output,
+		4+(lastFret-firstFret+1)*cellWidth+1,
+		fullNeck,
+	)
 	return output.String()
+}
+
+// renderTabDiagram places each string's fret number in one aligned tab column.
+func renderTabDiagram(voicing chords.Voicing) string {
+	var output strings.Builder
+	for index, placement := range voicing.Strings {
+		marker := "X"
+		if placement.Fret >= 0 {
+			marker = fmt.Sprintf("%d", placement.Fret)
+		}
+		fmt.Fprintf(
+			&output,
+			"%s  %s",
+			stringNames[index],
+			centerText(marker, tabLineWidth, '-'),
+		)
+		if index < len(voicing.Strings)-1 {
+			output.WriteByte('\n')
+		}
+	}
+	return output.String()
+}
+
+// writeFretboardLegend explains markers and centers the full-neck legend.
+func writeFretboardLegend(output *strings.Builder, width int, centered bool) {
+	fingerLines := []string{
+		"Fingers: 1 index  2 middle",
+		"         3 ring   4 little",
+	}
+	symbolLine := "Symbols: O open  X muted"
+	if !centered {
+		fmt.Fprintf(output, "\n%s\n%s\n\n%s", fingerLines[0], fingerLines[1], symbolLine)
+		return
+	}
+
+	// Keep the two finger lines aligned while centering them as one block.
+	fingerWidth := max(len(fingerLines[0]), len(fingerLines[1]))
+	fingerPadding := strings.Repeat(" ", max(0, width-fingerWidth)/2)
+	symbolPadding := strings.Repeat(" ", max(0, width-len(symbolLine))/2)
+	fmt.Fprintf(
+		output,
+		"\n%s%s\n%s%s\n\n%s%s",
+		fingerPadding,
+		fingerLines[0],
+		fingerPadding,
+		fingerLines[1],
+		symbolPadding,
+		symbolLine,
+	)
 }
 
 // fretRange keeps common voicings compact while preserving exact fret labels.
@@ -81,6 +133,9 @@ func writeFretLabels(output *strings.Builder, first, last, cellWidth int) {
 	for fret := first; fret <= last; fret++ {
 		output.WriteString(centerText(fmt.Sprintf("%d", fret), cellWidth, ' '))
 	}
+	output.WriteByte('\n')
+	output.WriteString("    ")
+	output.WriteString(strings.Repeat("─", (last-first+1)*cellWidth))
 	output.WriteByte('\n')
 }
 

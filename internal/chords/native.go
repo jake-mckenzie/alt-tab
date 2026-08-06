@@ -30,33 +30,33 @@ func (nativeCatalog) Names() []string {
 	return names
 }
 
-// VariationCount returns the number of stored voicings for a chord.
-func (nativeCatalog) VariationCount(name string) int {
+// VoicingCount returns the number of stored voicings for a chord.
+func (nativeCatalog) VoicingCount(name string) int {
 	cName := C.CString(name)
 	// C.CString allocates outside Go's heap and must be released explicitly.
 	defer C.free(unsafe.Pointer(cName))
 
-	return int(C.altTabChordVariationCount(cName))
+	return int(C.altTabChordNamedVoicingCount(cName))
 }
 
 // Load copies one native voicing into Go-owned memory.
 func (nativeCatalog) Load(
 	name string,
-	variation int,
+	number int,
 ) (Voicing, error) {
 	cName := C.CString(name)
 	// Keep the temporary lookup string alive until the C call has returned.
 	defer C.free(unsafe.Pointer(cName))
 
-	native := C.altTabChordFind(cName, C.int(variation))
+	native := C.altTabChordFind(cName, C.int(number))
 	if native == nil {
 		return Voicing{}, ErrChordNotFound
 	}
 
 	// Copy the immutable C record so no C pointer escapes this method.
 	voicing := Voicing{
-		Name:      C.GoString(native.name),
-		Variation: int(native.variation),
+		Name:   C.GoString(native.name),
+		Number: int(native.number),
 	}
 	for index := range voicing.Strings {
 		voicing.Strings[index] = StringPlacement{

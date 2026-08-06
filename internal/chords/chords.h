@@ -18,7 +18,7 @@ typedef struct {
 /* Stores one voicing in standard high-e-to-low-E tablature order. */
 typedef struct {
     const char *name;
-    int variation;
+    int number;
     StringPlacement strings[ GUITAR_STRING_COUNT ];
 } Chord;
 
@@ -35,9 +35,9 @@ size_t altTabChordNameCount( void );
 const char *altTabChordNameAt( size_t index );
 
 /* Returns the number of voicings stored for a case-insensitive chord name. */
-size_t altTabChordVariationCount( const char *name );
+size_t altTabChordNamedVoicingCount( const char *name );
 
 /* Returns a numbered voicing by case-insensitive name, or NULL if absent. */
-const Chord *altTabChordFind( const char *name, int variation );
+const Chord *altTabChordFind( const char *name, int number );
 
 #endif

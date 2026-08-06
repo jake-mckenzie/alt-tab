@@ -8,15 +8,21 @@ import (
 )
 
 const (
-	minimumTerminalWidth   = 40
-	twoColumnMinimumWidth  = 64
-	sectionGapWidth        = 2
-	outerHorizontalPadding = 2
+	minimumTerminalWidth     = 80
+	maximumLayoutWidth       = 100
+	bottomColumnMinimumWidth = 64
+	sectionGapWidth          = 2
+	outerHorizontalPadding   = 2
+	dialCellWidth            = 10
+	verticalDialWidth        = 10
+	verticalDialHeight       = 7
+	verticalDialBaseRow      = verticalDialHeight / 2
 )
 
 // render composes the titled selector, controls, diagram, and waveform sections.
 func (model Model) render() string {
-	width := max(1, model.width)
+	// Keep panels readable instead of expanding them across oversized windows.
+	width := min(max(1, model.width), maximumLayoutWidth)
 	// Preserve usable content in unusually narrow terminals.
 	padding := min(outerHorizontalPadding, max(0, (width-1)/2))
 	contentWidth := max(1, width-padding*2)
@@ -24,13 +30,19 @@ func (model Model) render() string {
 	// Avoid unbreakable fretboard cells when no readable diagram can fit.
 	if width < minimumTerminalWidth {
 		return lipgloss.NewStyle().Padding(1, padding).Render(
-			header + "\n\n" + model.styles.muted.Render("Need 40+ columns"),
+			header + "\n\n" + model.styles.muted.Render(
+				fmt.Sprintf("Need %d+ columns", minimumTerminalWidth),
+			),
 		)
 	}
+	banner := model.renderCenteredPanel(
+		header+"\n\n"+model.renderControls(),
+		contentWidth,
+	)
 
 	return lipgloss.NewStyle().
 		Padding(1, padding).
-		Render(header + "\n\n" + model.renderSections(contentWidth))
+		Render(banner + "\n\n" + model.renderSections(contentWidth))
 }
 
 // renderHeader omits the subtitle when it cannot fit without terminal wrapping.
@@ -48,42 +60,24 @@ func (model Model) renderHeader(width int) string {
 
 // renderSections keeps navigation above the diagram and waveform output.
 func (model Model) renderSections(width int) string {
-	var top string
-	if width >= twoColumnMinimumWidth {
-		leftWidth := (width - sectionGapWidth) / 2
-		rightWidth := width - sectionGapWidth - leftWidth
-		selector, controls := model.renderMatchedPanels(
-			model.renderChordSelector(),
-			leftWidth,
-			model.renderControls(),
-			rightWidth,
-		)
-		top = lipgloss.JoinHorizontal(
-			lipgloss.Top,
-			selector,
-			strings.Repeat(" ", sectionGapWidth),
-			controls,
-		)
-	} else {
-		selector := model.renderPanel(model.renderChordSelector(), width, true)
-		controls := model.renderPanel(model.renderControls(), width, true)
-		top = lipgloss.JoinVertical(lipgloss.Left, selector, "", controls)
-	}
+	selector := model.renderCenteredPanel(model.renderChordSelector(), width)
 
 	if model.showHelp {
 		help := model.renderPanel(model.renderHelp(), width, true)
-		return lipgloss.JoinVertical(lipgloss.Left, top, "", help)
+		return lipgloss.JoinVertical(lipgloss.Left, selector, "", help)
 	}
 
 	diagramContent := model.renderChordDiagram()
-	if !model.fullNeck && width >= twoColumnMinimumWidth {
-		diagram := model.renderPanel(diagramContent, width, true)
-		waveformWidth := width - sectionGapWidth - lipgloss.Width(diagram)
+	if !model.fullNeck && width >= bottomColumnMinimumWidth {
+		diagramWidth := min(width, lipgloss.Width(diagramContent)+4)
+		waveformWidth := width - sectionGapWidth - diagramWidth
 		// Leave two spare cells because some terminals treat Braille width loosely.
-		waveform := model.renderPanel(
-			model.renderWaveformSection(waveformWidth-6),
+		waveformContent := model.renderWaveformSection(waveformWidth - 6)
+		diagram, waveform := model.renderMatchedCenteredPanels(
+			diagramContent,
+			diagramWidth,
+			waveformContent,
 			waveformWidth,
-			false,
 		)
 		bottom := lipgloss.JoinHorizontal(
 			lipgloss.Top,
@@ -91,14 +85,15 @@ func (model Model) renderSections(width int) string {
 			strings.Repeat(" ", sectionGapWidth),
 			waveform,
 		)
-		return lipgloss.JoinVertical(lipgloss.Left, top, "", bottom)
+		return lipgloss.JoinVertical(lipgloss.Left, selector, "", bottom)
 	}
 
-	diagram := model.renderPanel(diagramContent, width, !model.fullNeck)
-	waveform := model.renderPanel(model.renderWaveformSection(width-6), width, false)
+	waveformContent := model.renderWaveformSection(width - 6)
+	diagram := model.renderCenteredPanel(diagramContent, width)
+	waveform := model.renderCenteredPanel(waveformContent, width)
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
-		top,
+		selector,
 		"",
 		diagram,
 		"",
@@ -106,68 +101,171 @@ func (model Model) renderSections(width int) string {
 	)
 }
 
-// renderPanel optionally shrinks a bordered section to its widest content line.
-func (model Model) renderPanel(content string, maximumWidth int, shrink bool) string {
-	return model.renderPanelAtHeight(content, maximumWidth, shrink, 0)
-}
-
-// renderPanelAtHeight optionally gives a panel an exact rendered height.
-func (model Model) renderPanelAtHeight(
-	content string,
-	maximumWidth int,
-	shrink bool,
-	height int,
-) string {
-	// Add both border and padding cells when fitting raw content.
-	styleWidth := max(1, maximumWidth)
-	if shrink {
-		styleWidth = min(styleWidth, lipgloss.Width(content)+4)
-	}
-	style := model.styles.panel.Width(styleWidth)
-	if height > 0 {
-		style = style.Height(height)
-	}
-	return style.Render(content)
-}
-
-// renderMatchedPanels pads two adjacent panels to the same visible height.
-func (model Model) renderMatchedPanels(
+// renderMatchedCenteredPanels gives paired sections equal top-aligned rectangles.
+func (model Model) renderMatchedCenteredPanels(
 	leftContent string,
 	leftWidth int,
 	rightContent string,
 	rightWidth int,
 ) (string, string) {
-	left := model.renderPanel(leftContent, leftWidth, false)
-	right := model.renderPanel(rightContent, rightWidth, false)
+	left := model.renderCenteredPanel(leftContent, leftWidth)
+	right := model.renderCenteredPanel(rightContent, rightWidth)
 	height := max(lipgloss.Height(left), lipgloss.Height(right))
-	return model.renderPanelAtHeight(leftContent, leftWidth, false, height),
-		model.renderPanelAtHeight(rightContent, rightWidth, false, height)
+	return model.renderCenteredPanelAtHeight(leftContent, leftWidth, height),
+		model.renderCenteredPanelAtHeight(rightContent, rightWidth, height)
 }
 
-// renderChordSelector draws every chord in one horizontal navigation row.
+// renderCenteredPanel fills the shared section width and centers each content line.
+func (model Model) renderCenteredPanel(content string, width int) string {
+	return model.renderCenteredPanelAtHeight(content, width, 0)
+}
+
+// renderCenteredPanelAtHeight centers lines within an exact panel rectangle.
+func (model Model) renderCenteredPanelAtHeight(content string, width, height int) string {
+	panelWidth := max(1, width)
+	innerWidth := max(1, panelWidth-4)
+	centered := lipgloss.NewStyle().
+		Width(innerWidth).
+		Align(lipgloss.Center).
+		Render(content)
+	style := model.styles.panel.Width(panelWidth)
+	if height > 0 {
+		style = style.Height(height)
+	}
+	return style.Render(centered)
+}
+
+// renderPanel optionally shrinks a bordered section to its widest content line.
+func (model Model) renderPanel(content string, maximumWidth int, shrink bool) string {
+	// Add both border and padding cells when fitting raw content.
+	styleWidth := max(1, maximumWidth)
+	if shrink {
+		styleWidth = min(styleWidth, lipgloss.Width(content)+4)
+	}
+	return model.styles.panel.Width(styleWidth).Render(content)
+}
+
+// renderChordSelector draws the base row and three-position chord-family dial.
 func (model Model) renderChordSelector() string {
 	var output strings.Builder
-	output.WriteString(model.styles.heading.Render("CHORD SELECTOR"))
+	output.WriteString(model.styles.heading.Render("CHORD DIAL"))
 	output.WriteString("\n\n")
-
-	for index, name := range model.names {
+	output.WriteString(model.styles.muted.Render("BASE CHORDS  "))
+	for index, family := range model.families {
 		if index > 0 {
-			output.WriteString("   ")
+			output.WriteString("  ")
 		}
 		if index == model.selected {
-			output.WriteString(model.styles.selected.Render("‹ " + name + " ›"))
+			output.WriteString(model.styles.accent.Bold(true).Render(family.base))
 		} else {
-			output.WriteString(model.styles.normal.Render(name))
+			output.WriteString(model.styles.normal.Render(family.base))
 		}
 	}
+	output.WriteString("\n\n")
+
+	if len(model.families) == 0 {
+		return output.String()
+	}
+	family := model.families[model.selected]
+	previous := model.families[wrap(model.selected-1, len(model.families))]
+	next := model.families[wrap(model.selected+1, len(model.families))]
+	output.WriteString(model.renderNestedDial(previous.base, family, next.base))
 
 	return output.String()
 }
 
+// renderNestedDial embeds real accidental and minor choices in the center cell.
+func (model Model) renderNestedDial(left string, family chordFamily, right string) string {
+	if family.accidental == "" && family.minor == "" {
+		center := model.styles.selected.Render("‹ " + family.base + " ›")
+		lines := make([]string, verticalDialHeight)
+		for row := range lines {
+			if row == verticalDialBaseRow {
+				lines[row] = model.renderHorizontalDialLine(left, center, right)
+			} else {
+				lines[row] = model.renderHorizontalDialLine("", "", "")
+			}
+		}
+		return strings.Join(lines, "\n")
+	}
+
+	border := model.styles.accent.Render
+	entry := func(name string, kind int) string {
+		entry := model.styles.normal.Render(name)
+		if model.chordKind == kind {
+			entry = model.styles.selected.Render("‹ " + name + " ›")
+		}
+		return border("│") + centerDisplayText(entry, verticalDialWidth) + border("│")
+	}
+
+	centers := make([]string, verticalDialHeight)
+	top := verticalDialBaseRow - 1
+	bottom := verticalDialBaseRow + 1
+	if family.accidental != "" {
+		top = 0
+		centers[1] = entry(family.accidental, accidentalChord)
+	}
+	if family.minor != "" {
+		bottom = verticalDialHeight - 1
+		centers[verticalDialHeight-2] = entry(family.minor, minorChord)
+	}
+	centers[top] = border("╭" + strings.Repeat("─", verticalDialWidth) + "╮")
+	centers[verticalDialBaseRow] = entry(family.base, baseChord)
+	centers[bottom] = border("╰" + strings.Repeat("─", verticalDialWidth) + "╯")
+	for row := top + 1; row < bottom; row++ {
+		if centers[row] == "" {
+			centers[row] = border("│") +
+				strings.Repeat(" ", verticalDialWidth) + border("│")
+		}
+	}
+
+	lines := make([]string, verticalDialHeight)
+	for row, center := range centers {
+		if row == verticalDialBaseRow {
+			lines[row] = model.renderHorizontalDialLine(left, center, right)
+		} else {
+			lines[row] = model.renderHorizontalDialLine("", center, "")
+		}
+	}
+	return strings.Join(lines, "\n")
+}
+
+// renderHorizontalDialLine aligns neighboring bases with the nested center cell.
+func (model Model) renderHorizontalDialLine(left, center, right string) string {
+	return centerDisplayText(model.styles.normal.Render(left), dialCellWidth) +
+		strings.Repeat(" ", sectionGapWidth) +
+		centerDisplayText(center, verticalDialWidth+2) +
+		strings.Repeat(" ", sectionGapWidth) +
+		centerDisplayText(model.styles.normal.Render(right), dialCellWidth)
+}
+
+// centerDisplayText pads styled terminal text without counting ANSI bytes.
+func centerDisplayText(value string, width int) string {
+	padding := max(0, width-lipgloss.Width(value))
+	left := padding / 2
+	return strings.Repeat(" ", left) + value + strings.Repeat(" ", padding-left)
+}
+
 // renderControls summarizes every available runtime command.
 func (model Model) renderControls() string {
-	return model.styles.heading.Render("CONTROLS") + "\n\n" +
-		model.styles.muted.Render("←→  ↑↓  f  t  w  ?  q")
+	hints := [][2]string{
+		{"←→", "Base"},
+		{"↑↓", "Type"},
+		{"v", "Voicing"},
+		{"f", "Neck"},
+		{"n", "Tab"},
+		{"t", "Theme"},
+		{"w", "Wave"},
+		{"?", "Help"},
+		{"q", "Quit"},
+	}
+	parts := make([]string, len(hints))
+	for index, hint := range hints {
+		key := model.styles.accent.Bold(true).Render(hint[0])
+		parts[index] = key + " " + model.styles.muted.Render(hint[1])
+	}
+	return model.styles.heading.Render("KEYS") + " " +
+		strings.Join(parts, " ")
 }
 
 // renderChordDiagram draws the current chord heading, mode, and fretboard.
@@ -176,21 +274,22 @@ func (model Model) renderChordDiagram() string {
 		return model.styles.err.Render(model.err.Error())
 	}
 
-	variationCount := model.catalog.VariationCount(model.voicing.Name)
-	mode := "compact"
+	voicingCount := model.catalog.VoicingCount(model.voicing.Name)
+	mode := "COMPACT"
 	if model.fullNeck {
-		mode = fmt.Sprintf("full neck · frets 1–%d", fullNeckLastFret)
+		mode = fmt.Sprintf("FULL NECK · FRETS 1–%d", fullNeckLastFret)
+	} else if model.tabNotation {
+		mode = "TAB NUMBERS"
 	}
 
-	heading := fmt.Sprintf(
-		"%s  ·  variation %d of %d",
-		model.voicing.Name,
-		model.voicing.Variation,
-		variationCount,
-	)
-	header := model.styles.heading.Render("CHORD DIAGRAM") + "\n\n" +
-		model.styles.heading.Render(heading) + "\n" +
-		model.styles.accent.Render(mode)
+	header := model.styles.heading.Render("CHORD DIAGRAM") + "\n" +
+		model.styles.accent.Render(mode) + "\n\n" +
+		model.styles.selected.Render("  "+model.voicing.Name+"  ") + "\n" +
+		model.styles.muted.Render(fmt.Sprintf(
+			"VOICING %d OF %d",
+			model.voicing.Number,
+			voicingCount,
+		))
 	if model.fullNeck && model.width < fullNeckMinimumTerminalWidth {
 		return header + "\n\n" + model.styles.err.Render(
 			fmt.Sprintf(
@@ -201,8 +300,11 @@ func (model Model) renderChordDiagram() string {
 		)
 	}
 
-	return header + "\n\n" +
-		model.styles.normal.Render(renderFretboard(model.voicing, model.fullNeck))
+	diagram := renderFretboard(model.voicing, model.fullNeck)
+	if model.tabNotation {
+		diagram = renderTabDiagram(model.voicing)
+	}
+	return header + "\n\n" + model.styles.normal.Render(diagram)
 }
 
 // renderWaveformSection labels the note plot or explains how to restore it.
@@ -226,11 +328,14 @@ func (model Model) renderHelp() string {
 	return model.styles.heading.Render("KEYBOARD HELP") + "\n\n" +
 		"← / h     Previous chord\n" +
 		"→ / l     Next chord\n" +
-		"↑ / k     Previous variation\n" +
-		"↓ / j     Next variation\n" +
+		"↑ / k     Accidental chord or return to base\n" +
+		"↓ / j     Minor chord or return to base\n" +
+		"v         Next voicing\n" +
 		"f         Toggle compact/full neck\n" +
+		"n         Toggle fingered fretboard/tab numbers\n" +
 		"t         Cycle color theme\n" +
 		"w         Toggle detailed waveform\n" +
+		"wheel     Scroll viewport\n" +
 		"?         Open or close help\n" +
 		"esc       Close help\n" +
 		"q         Quit\n\n" +

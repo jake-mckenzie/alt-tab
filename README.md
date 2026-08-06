@@ -10,6 +10,63 @@ Diagrams follow standard tablature orientation: high e is at the top, low E is
 at the bottom, and fret numbers increase from left to right. Compact mode shows
 the relevant neck position; full-neck mode shows frets 1–27.
 
+## TUI Preview
+
+The default layout appears as follows in an 80-column terminal. Terminal colors
+are omitted here; Alt-Tab adapts them to light and dark backgrounds.
+
+<!-- BEGIN VERIFIED TUI OUTPUT -->
+```text
+  ╭──────────────────────────────────────────────────────────────────────────╮
+  │                 ALT-TAB  Guitar Chord Viewer · Synthwave                 │
+  │                                                                          │
+  │ KEYS ←→ Base ↑↓ Type v Voicing f Neck n Tab t Theme w Wave ? Help q Quit │
+  ╰──────────────────────────────────────────────────────────────────────────╯
+
+  ╭──────────────────────────────────────────────────────────────────────────╮
+  │                                CHORD DIAL                                │
+  │                                                                          │
+  │                     BASE CHORDS  A  B  C  D  E  F  G                     │
+  │                                                                          │
+  │                                                                          │
+  │                                                                          │
+  │                               ╭──────────╮                               │
+  │                       G       │  ‹ A ›   │      B                        │
+  │                               │          │                               │
+  │                               │    Am    │                               │
+  │                               ╰──────────╯                               │
+  ╰──────────────────────────────────────────────────────────────────────────╯
+
+  ╭────────────────────────────╮  ╭──────────────────────────────────────────╮
+  │       CHORD DIAGRAM        │  │              NOTE WAVEFORM               │
+  │          COMPACT           │  │                                          │
+  │                            │  │  +1.0 |                               |  │
+  │             A              │  │       | ⣷                     ⡼⡀      |  │
+  │       VOICING 1 OF 2       │  │       |⢰⠉⡆                    ⡇⡇      |  │
+  │                            │  │       |⢸ ⡇                   ⢸ ⢇      |  │
+  │       1    2    3    4     │  │       |⢸ ⢱                   ⢸ ⢸      |  │
+  │     ────────────────────   │  │       |⡇ ⢸  ⡀      ⡤⡀⢀⠎⡆ ⡰⡄  ⢸ ⠸⡀ ⡀   |  │
+  │ e  O--------------------|  │  │   0.0 +⠧⠤⠬⡦⡴⠽⡤⠤⡴⢦⠤⡼⠤⠵⠮⠤⠼⠴⠥⢵⠤⠤⡧⠤⠤⡧⡴⠽⡤⠤⡼+  │
+  │ B  |-------3------------|  │  │       |   ⠱⠃ ⢇⢰⠁ ⠓⠁       ⢸  ⡇  ⠱⠃ ⢣⢠⠃|  │
+  │ G  |-------2------------|  │  │       |      ⠈⠁           ⠈⡆ ⡇     ⠈⠊ |  │
+  │ D  |-------1------------|  │  │       |                    ⡇⢰⠁        |  │
+  │ A  O--------------------|  │  │       |                    ⢱⢸         |  │
+  │ E  X--------------------|  │  │       |                    ⠸⡜         |  │
+  │                            │  │  -1.0 |                     ⠁         |  │
+  │ Fingers: 1 index  2 middle │  │        0 ms                       25 ms  │
+  │          3 ring   4 little │  │      Normalized amplitude over time      │
+  │                            │  │                                          │
+  │ Symbols: O open  X muted   │  │        │          │        │     │    │  │
+  │                            │  │        ├──────────┼────────┼─────┼────┤  │
+  │                            │  │        A2        E3       A3    C#4  E4  │
+  │                            │  │        110 Hz                    330 Hz  │
+  │                            │  │          Pitch range by semitone         │
+  │                            │  │                                          │
+  │                            │  │  Notes: E4  C#4  A3  E3  A2              │
+  ╰────────────────────────────╯  ╰──────────────────────────────────────────╯
+```
+<!-- END VERIFIED TUI OUTPUT -->
+
 ## Quick Start
 
 ```bash
@@ -110,34 +167,45 @@ Launch an existing build:
 | --- | --- |
 | `←` / `h` | Previous chord |
 | `→` / `l` | Next chord |
-| `↑` / `k` | Previous variation |
-| `↓` / `j` | Next variation |
+| `↑` / `k` | Select an available accidental, or return from minor to base |
+| `↓` / `j` | Select an available minor, or return from accidental to base |
+| `v` | Cycle through voicings of the selected chord |
 | `f` | Toggle compact or full-neck view |
+| `n` | Toggle the fingered fretboard or fret-number tab view |
 | `t` | Cycle color theme |
 | `w` | Toggle high-resolution note waveform |
 | `?` | Open or close help |
 | `Esc` | Close help |
+| Mouse wheel | Scroll the TUI vertically |
 | `q` / `Ctrl+C` | Quit |
 
-The complete horizontal chord list appears above the fretboard in both compact
-and full-neck modes. Full-neck mode requires a terminal width of at least 98
-columns.
+The base-chord row lists A through G above a three-position horizontal dial.
+When the selected family has a flat, sharp, or minor chord, a nested vertical
+dial shows only those real choices around the base chord. Families without
+variants remain a single center cell, and unavailable directions do nothing.
+Full-neck mode requires a terminal width of at least 98 columns. The fret-number
+tab view uses one vertically aligned number per string, including `0` for open
+strings and `X` for muted strings; selecting it exits full-neck mode.
 
-The title appears first, followed by the chord selector beside the controls.
-Compact mode places the chord diagram beside the note waveform to reduce
-height. Full-neck mode stacks those lower sections so the complete neck retains
-its required width; narrow terminals also stack sections to avoid damage. The
-layout redraws when the terminal is resized and shows a width notice below 40
-columns instead of wrapping the fretboard.
+The title and clearly labeled key controls share the first centered banner,
+with the chord dial directly beneath it. Compact mode places the chord diagram
+beside the note waveform at the same height and centers both output blocks.
+Full-neck mode stacks those lower sections so the complete neck retains its
+required width. The layout redraws when the terminal is resized and shows a
+width notice below 80 columns instead of wrapping controls or fretboard cells.
+Above 100 columns, the interface keeps its readable width instead of stretching.
 
-Alt-Tab renders in the terminal's normal screen buffer, so the scroll wheel
-controls scrollback instead of changing the selected chord variation.
+Alt-Tab renders in a full-window terminal buffer and clips output to the current
+terminal height. The scroll wheel moves the viewport without changing the
+selected chord or voicing.
 
 The stationary Braille waveform at the bottom plots 25 milliseconds of an
 ideal equal-amplitude signal combining every sounding string in the selected
 voicing. Braille subcells increase detail without increasing its character
-width. Its amplitude scale, time axis, and note labels are shown explicitly;
-press `w` to hide or restore it.
+width. A caption below the plot identifies its normalized amplitude over time.
+The semitone-spaced pitch scale has a vertical marker for every sounding note,
+frequency endpoints, its own caption, and a separated note legend; press `w` to
+hide or restore the waveform section.
 
 ### Themes
 
@@ -150,44 +218,6 @@ colors suited to the terminal's light or dark background.
 | `Tidal` | Cool cyan and ocean blue |
 | `Ember` | Warm orange and amber |
 | `Evergreen` | Calm green and mint |
-
-## TUI Output
-
-The default layout appears as follows in an 80-column terminal. Terminal colors
-are omitted here; Alt-Tab adapts them to light and dark backgrounds.
-
-<!-- BEGIN VERIFIED TUI OUTPUT -->
-```text
-  ALT-TAB  Guitar Chord Viewer · Synthwave
-
-  ╭───────────────────────────────────╮  ╭───────────────────────────────────╮
-  │ CHORD SELECTOR                    │  │ CONTROLS                          │
-  │                                   │  │                                   │
-  │ ‹ A ›   Am   B   Bb   C   Cm   D  │  │ ←→  ↑↓  f  t  w  ?  q             │
-  │ Dm   E   Em   F   F#   G   Gm     │  │                                   │
-  ╰───────────────────────────────────╯  ╰───────────────────────────────────╯
-
-  ╭────────────────────────────╮  ╭──────────────────────────────────────────╮
-  │ CHORD DIAGRAM              │  │ NOTE WAVEFORM                            │
-  │                            │  │                                          │
-  │ A  ·  variation 1 of 2     │  │ +1.0 |                                   │
-  │ compact                    │  │      | ⣿                      ⣷          │
-  │                            │  │      |⢰⠁⡇                    ⢸⠘⡄         │
-  │       1    2    3    4     │  │      |⢸ ⡇                    ⢸ ⡇         │
-  │ e  O--------------------|  │  │      |⢸ ⢸                    ⡎ ⢣         │
-  │ B  |-------3------------|  │  │      |⡇ ⢸         ⡠⢄ ⡰⠱⡀⢀⢶   ⡇ ⢸  ⡀      │
-  │ G  |-------2------------|  │  │  0.0 +⠧⠤⠤⡧⢤⠿⡤⠤⡴⠦⡤⢴⠥⠬⠶⠥⠤⠵⠮⠤⡧⠤⠤⡧⠤⠼⡤⡼⠼⡤⠤⡼   │
-  │ D  |-------1------------|  │  │      |   ⠱⠃ ⢱⢠⠃ ⠑⠁        ⢣ ⢠⠃  ⠳⠁ ⢇⢠⠃   │
-  │ A  O--------------------|  │  │      |       ⠁            ⢸ ⢸      ⠈⠊    │
-  │ E  X--------------------|  │  │      |                    ⠸⡀⢸            │
-  │                            │  │      |                     ⡇⡎            │
-  │ Fingers: 1 index  2 middle │  │      |                     ⢣⠇            │
-  │          3 ring   4 little │  │ -1.0 |                     ⠈             │
-  │                            │  │       0 ms                       25 ms   │
-  │ Symbols: O open  X muted   │  │ Notes: E4  C#4  A3  E3  A2               │
-  ╰────────────────────────────╯  ╰──────────────────────────────────────────╯
-```
-<!-- END VERIFIED TUI OUTPUT -->
 
 ## Testing
 
@@ -261,7 +291,7 @@ make
 | --- | --- | --- |
 | `A`, `B`, `C`, `D`, `E`, `F`, `G` | `Am`, `Cm`, `Dm`, `Em`, `Gm` | `Bb`, `F#` |
 
-Each chord has two conventional variations. Finger numbers use `1` for index,
+Each chord has two conventional voicings. Finger numbers use `1` for index,
 `2` for middle, `3` for ring, and `4` for little finger. `O` marks an open
 string and `X` marks a muted string.
 

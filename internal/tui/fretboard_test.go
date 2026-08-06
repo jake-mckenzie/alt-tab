@@ -10,8 +10,8 @@ import (
 // TestCompactFretboardUsesExactFretsAndFingers checks its complete tab output.
 func TestCompactFretboardUsesExactFretsAndFingers(t *testing.T) {
 	voicing := chords.Voicing{
-		Name:      "C",
-		Variation: 1,
+		Name:   "C",
+		Number: 1,
 		Strings: [chords.StringCount]chords.StringPlacement{
 			{Fret: 0},
 			{Fret: 1, Finger: 1},
@@ -25,6 +25,7 @@ func TestCompactFretboardUsesExactFretsAndFingers(t *testing.T) {
 
 	for _, expected := range []string{
 		"  1  ", "  4  ",
+		"    " + strings.Repeat("─", 4*compactCellWidth) + "\n",
 		"e  O--------------------|",
 		"B  |--1-----------------|",
 		"D  |-------2------------|",
@@ -60,6 +61,36 @@ func TestCompactFretboardStartsAtHigherPosition(t *testing.T) {
 	}
 }
 
+// TestTabDiagramUsesFretNumbers checks direct, vertically aligned tab notation.
+func TestTabDiagramUsesFretNumbers(t *testing.T) {
+	voicing := chords.Voicing{
+		Strings: [chords.StringCount]chords.StringPlacement{
+			{Fret: 0},
+			{Fret: 1, Finger: 1},
+			{Fret: 2, Finger: 3},
+			{Fret: 2, Finger: 2},
+			{Fret: 0},
+			{Fret: -1},
+		},
+	}
+	output := renderTabDiagram(voicing)
+	for _, expected := range []string{
+		"e  ----------0----------",
+		"B  ----------1----------",
+		"G  ----------2----------",
+		"D  ----------2----------",
+		"A  ----------0----------",
+		"E  ----------X----------",
+	} {
+		if !strings.Contains(output, expected) {
+			t.Fatalf("tab diagram does not contain %q:\n%s", expected, output)
+		}
+	}
+	if strings.Contains(output, "Fingers:") || strings.Contains(output, "Symbols:") {
+		t.Fatal("tab diagram includes fretboard-only legends")
+	}
+}
+
 // TestFullFretboardLabelsAllTwentySevenFrets checks the full neck dimensions.
 func TestFullFretboardLabelsAllTwentySevenFrets(t *testing.T) {
 	output := renderFretboard(chords.Voicing{}, true)
@@ -73,6 +104,12 @@ func TestFullFretboardLabelsAllTwentySevenFrets(t *testing.T) {
 		"e  O"+strings.Repeat("-", fullNeckLastFret*fullNeckCellWidth)+"|",
 	) {
 		t.Fatalf("full-neck string does not span 27 frets:\n%s", output)
+	}
+	if !strings.Contains(
+		output,
+		"    "+strings.Repeat("─", fullNeckLastFret*fullNeckCellWidth)+"\n",
+	) {
+		t.Fatalf("full-neck fret separator is incomplete:\n%s", output)
 	}
 }
 
@@ -90,5 +127,19 @@ func TestFullFretboardAlignsFingerAtFinalFret(t *testing.T) {
 		"e  |"+strings.Repeat("-", fullNeckLastFret*fullNeckCellWidth-2)+"4-|",
 	) {
 		t.Fatalf("fret 27 marker is misaligned:\n%s", output)
+	}
+}
+
+// TestFullFretboardCentersLegend checks the wide diagram's footer alignment.
+func TestFullFretboardCentersLegend(t *testing.T) {
+	output := renderFretboard(chords.Voicing{}, true)
+	width := 4 + fullNeckLastFret*fullNeckCellWidth + 1
+	for _, label := range []string{"Fingers: 1 index  2 middle", "Symbols: O open  X muted"} {
+		line := lineWith(output, label)
+		left := strings.Index(line, label)
+		right := width - left - len(label)
+		if absoluteInt(left-right) > 1 {
+			t.Fatalf("%q is not centered: left=%d right=%d", label, left, right)
+		}
 	}
 }

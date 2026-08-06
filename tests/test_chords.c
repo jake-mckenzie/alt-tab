@@ -17,7 +17,7 @@
 /* Mirrors the chord fields used by the regression data below. */
 typedef struct {
     const char *name;
-    int variation;
+    int number;
     int frets[ GUITAR_STRING_COUNT ];
     int fingers[ GUITAR_STRING_COUNT ];
 } ExpectedChord;
@@ -68,7 +68,7 @@ static int testDefaultLibrary( void )
 
         CHECK( actual != NULL );
         CHECK( strcmp( actual->name, expected->name ) == 0 );
-        CHECK( actual->variation == expected->variation );
+        CHECK( actual->number == expected->number );
         for ( size_t string = 0; string < GUITAR_STRING_COUNT; string++ ) {
             CHECK(
                 actual->strings[ string ].fret == expected->frets[ string ]
@@ -92,9 +92,9 @@ static int testLookup( void )
     CHECK( altTabChordFind( "missing", 1 ) == NULL );
     CHECK( altTabChordFind( NULL, 1 ) == NULL );
     CHECK( altTabChordFind( "C", 0 ) == NULL );
-    CHECK( altTabChordVariationCount( NULL ) == 0 );
-    CHECK( altTabChordVariationCount( "c" ) == 2 );
-    CHECK( altTabChordVariationCount( "missing" ) == 0 );
+    CHECK( altTabChordNamedVoicingCount( NULL ) == 0 );
+    CHECK( altTabChordNamedVoicingCount( "c" ) == 2 );
+    CHECK( altTabChordNamedVoicingCount( "missing" ) == 0 );
     CHECK( altTabChordFind( "C", 2 ) != NULL );
     CHECK( altTabChordFind( "C", 3 ) == NULL );
 
