@@ -225,9 +225,9 @@ The graphical interface is resizable, keeps compact graphs beside the chord
 diagram, and stacks the panels in full-neck mode. Its waveform and frequency
 spectrum are derived from the exact pitches of every sounding string; duplicate
 pitches produce proportionally stronger spectrum peaks.
-It starts with the SNES-inspired `Super 16` palette, layering lavender gray,
-deep violet, and brighter purple controls; `t` cycles through that palette and
-the four terminal-inspired alternatives.
+It starts with the SNES-inspired `Super 16` palette, combining a lavender-gray
+shell with dark recessed panels and brighter purple controls; `t` cycles through
+that palette and the four terminal-inspired alternatives.
 
 The base-chord row lists A through G above a three-position horizontal dial.
 When the selected family has a flat, sharp, or minor chord, a nested vertical

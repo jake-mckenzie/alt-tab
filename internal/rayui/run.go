@@ -47,9 +47,9 @@ type palette struct {
 var palettes = [...]palette{
 	{
 		name: "Super 16", background: rl.NewColor(166, 161, 178, 255),
-		panel: rl.NewColor(220, 216, 231, 255), border: rl.NewColor(73, 55, 105, 255),
-		text: rl.NewColor(47, 36, 61, 255), muted: rl.NewColor(105, 85, 128, 255),
-		accent: rl.NewColor(94, 63, 157, 255), secondary: rl.NewColor(167, 93, 203, 255),
+		panel: rl.NewColor(43, 36, 56, 255), border: rl.NewColor(113, 86, 164, 255),
+		text: rl.NewColor(242, 239, 247, 255), muted: rl.NewColor(187, 176, 202, 255),
+		accent: rl.NewColor(203, 169, 247, 255), secondary: rl.NewColor(165, 105, 215, 255),
 		error: rl.NewColor(176, 48, 73, 255),
 	},
 	{
@@ -473,7 +473,7 @@ func drawFretboard(
 		}
 		drawCenteredText(label, rl.Rectangle{
 			X: x - radius, Y: y - radius, Width: radius * 2, Height: radius * 2,
-		}, clamp(radius*1.15, 10, 16), theme.background)
+		}, clamp(radius*1.15, 10, 16), theme.panel)
 	}
 }
 
@@ -636,9 +636,13 @@ func drawSectionTitle(bounds rl.Rectangle, title string, theme palette) {
 	)
 }
 
-// drawText uses Raylib's default font with consistent fractional positioning.
+// drawText adds a tight second pass for a heavier console-style default font.
 func drawText(text string, x, y, size float32, color rl.Color) {
-	rl.DrawTextEx(rl.GetFontDefault(), text, rl.Vector2{X: x, Y: y}, size, 1, color)
+	font := rl.GetFontDefault()
+	position := rl.Vector2{X: x, Y: y}
+	rl.DrawTextEx(font, text, position, size, 1, color)
+	position.X += clamp(size*0.045, 0.5, 0.8)
+	rl.DrawTextEx(font, text, position, size, 1, color)
 }
 
 // drawCenteredText centers one label within a rectangular region.
