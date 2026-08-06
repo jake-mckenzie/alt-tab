@@ -43,8 +43,15 @@ type palette struct {
 	error      rl.Color
 }
 
-// palettes retain the TUI theme identities with higher-contrast GUI colors.
+// palettes begin with an SNES-inspired gray shell and purple controls.
 var palettes = [...]palette{
+	{
+		name: "Super 16", background: rl.NewColor(166, 161, 178, 255),
+		panel: rl.NewColor(220, 216, 231, 255), border: rl.NewColor(73, 55, 105, 255),
+		text: rl.NewColor(47, 36, 61, 255), muted: rl.NewColor(105, 85, 128, 255),
+		accent: rl.NewColor(94, 63, 157, 255), secondary: rl.NewColor(167, 93, 203, 255),
+		error: rl.NewColor(176, 48, 73, 255),
+	},
 	{
 		name: "Synthwave", background: rl.NewColor(12, 10, 28, 255),
 		panel: rl.NewColor(25, 20, 48, 255), border: rl.NewColor(106, 77, 148, 255),
@@ -283,11 +290,18 @@ func (gui *viewer) draw(layout screenLayout) {
 // drawHeader combines application identity, mode, and controls.
 func (gui *viewer) drawHeader(bounds rl.Rectangle, theme palette) {
 	drawPanel(bounds, theme)
-	drawText("ALT-TAB", bounds.X+panelPadding, bounds.Y+13, 28, theme.accent)
+	// The small status lamp and recessed controls echo the original console shell.
+	rl.DrawCircleV(rl.Vector2{X: bounds.X + 17, Y: bounds.Y + 25}, 4, theme.secondary)
+	drawText("ALT-TAB", bounds.X+38, bounds.Y+13, 28, theme.accent)
 	drawText("RAYLIB CHORD VIEWER - "+strings.ToUpper(theme.name),
-		bounds.X+panelPadding, bounds.Y+46, 14, theme.muted)
+		bounds.X+38, bounds.Y+46, 14, theme.muted)
 	controls := "LEFT/RIGHT chord  UP/DOWN type  V voicing  F neck  N tab  T theme  SPACE play  F1 help  Q quit"
 	size := measureText(controls, 14)
+	controlWell := rl.Rectangle{
+		X: bounds.X + bounds.Width - panelPadding - size.X - 10,
+		Y: bounds.Y + 13, Width: size.X + 20, Height: 30,
+	}
+	rl.DrawRectangleRounded(controlWell, 0.35, 8, rl.Fade(theme.accent, 0.18))
 	drawText(controls, bounds.X+bounds.Width-panelPadding-size.X,
 		bounds.Y+20, 14, theme.text)
 }
@@ -573,7 +587,7 @@ func (gui *viewer) drawHelp(theme palette) {
 		Height: height,
 	}
 	rl.DrawRectangle(0, 0, int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight()),
-		rl.Fade(theme.background, 0.78))
+		rl.Fade(rl.Black, 0.55))
 	drawPanel(bounds, theme)
 	drawCenteredText("KEYBOARD HELP", rl.Rectangle{
 		X: bounds.X, Y: bounds.Y + 22, Width: bounds.Width, Height: 30,
@@ -595,13 +609,31 @@ func (gui *viewer) drawHelp(theme palette) {
 
 // drawPanel paints the common rounded module background and border.
 func drawPanel(bounds rl.Rectangle, theme palette) {
+	shadow := bounds
+	shadow.X += 3
+	shadow.Y += 3
+	rl.DrawRectangleRounded(shadow, 0.045, 12, rl.Fade(rl.Black, 0.22))
 	rl.DrawRectangleRounded(bounds, 0.045, 12, theme.panel)
-	rl.DrawRectangleRoundedLinesEx(bounds, 0.045, 12, 1.5, theme.border)
+	rl.DrawRectangleRoundedLinesEx(bounds, 0.045, 12, 2, theme.border)
+	// A subtle upper highlight makes each module read like molded plastic.
+	rl.DrawLineEx(
+		rl.Vector2{X: bounds.X + 14, Y: bounds.Y + 5},
+		rl.Vector2{X: bounds.X + bounds.Width - 14, Y: bounds.Y + 5},
+		1,
+		rl.Fade(rl.White, 0.32),
+	)
 }
 
 // drawSectionTitle positions one concise label at a panel's upper-left edge.
 func drawSectionTitle(bounds rl.Rectangle, title string, theme palette) {
 	drawText(title, bounds.X+panelPadding, bounds.Y+14, 16, theme.accent)
+	underlineWidth := minFloat(measureText(title, 16).X, 48)
+	rl.DrawLineEx(
+		rl.Vector2{X: bounds.X + panelPadding, Y: bounds.Y + 34},
+		rl.Vector2{X: bounds.X + panelPadding + underlineWidth, Y: bounds.Y + 34},
+		3,
+		theme.secondary,
+	)
 }
 
 // drawText uses Raylib's default font with consistent fractional positioning.
