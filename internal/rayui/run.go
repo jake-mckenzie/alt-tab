@@ -144,7 +144,7 @@ func computeLayout(width, height int, fullNeck bool) screenLayout {
 	h := float32(height)
 	margin := float32(panelGap)
 	headerHeight := clamp(h*0.105, 78, 102)
-	dialHeight := clamp(h*0.145, 105, 140)
+	dialHeight := clamp(h*0.17, 140, 160)
 	header := rl.Rectangle{X: margin, Y: margin, Width: w - 2*margin, Height: headerHeight}
 	dial := rl.Rectangle{
 		X: margin, Y: header.Y + header.Height + margin,
@@ -172,7 +172,7 @@ func computeLayout(width, height int, fullNeck bool) screenLayout {
 		}
 	}
 
-	diagramHeight := contentHeight * 0.42
+	diagramHeight := contentHeight * 0.40
 	waveHeight := contentHeight * 0.30
 	return screenLayout{
 		header:  header,
@@ -292,7 +292,7 @@ func (gui *viewer) drawHeader(bounds rl.Rectangle, theme palette) {
 	drawPanel(bounds, theme)
 	// The small status lamp and recessed controls echo the original console shell.
 	rl.DrawCircleV(rl.Vector2{X: bounds.X + 17, Y: bounds.Y + 25}, 4, theme.secondary)
-	drawText("ALT-TAB", bounds.X+38, bounds.Y+13, 28, theme.accent)
+	drawTextSpaced("ALT-TAB", bounds.X+38, bounds.Y+13, 28, 3, theme.accent)
 	drawText("RAYLIB CHORD VIEWER - "+strings.ToUpper(theme.name),
 		bounds.X+38, bounds.Y+46, 14, theme.muted)
 	controls := "LEFT/RIGHT chord  UP/DOWN type  V voicing  F neck  N tab  T theme  SPACE play  F1 help  Q quit"
@@ -325,7 +325,7 @@ func (gui *viewer) drawDial(bounds rl.Rectangle, theme palette) {
 	family := gui.families[gui.controller.SelectedIndex()]
 	center := rl.Rectangle{
 		X:      bounds.X + bounds.Width/2 - 62,
-		Y:      bounds.Y + bounds.Height - 40,
+		Y:      bounds.Y + bounds.Height - 50,
 		Width:  124,
 		Height: 24,
 	}
@@ -333,7 +333,7 @@ func (gui *viewer) drawDial(bounds rl.Rectangle, theme palette) {
 	drawCenteredText("<  "+current+"  >", center, 22, theme.text)
 	if family.Accidental != "" {
 		drawCenteredText(family.Accidental, rl.Rectangle{
-			X: center.X, Y: center.Y - 20, Width: center.Width, Height: 18,
+			X: center.X, Y: center.Y - 22, Width: center.Width, Height: 18,
 		}, 15, theme.secondary)
 	}
 	if family.Minor != "" {
@@ -355,9 +355,9 @@ func baseChordRow(bounds rl.Rectangle, count int) []rl.Rectangle {
 	for index := range row {
 		row[index] = rl.Rectangle{
 			X:      start + float32(index)*cellWidth,
-			Y:      bounds.Y + 42,
+			Y:      bounds.Y + 40,
 			Width:  cellWidth,
-			Height: 32,
+			Height: 28,
 		}
 	}
 	return row
@@ -377,15 +377,15 @@ func (gui *viewer) drawDiagram(bounds rl.Rectangle, theme palette) {
 	heading := fmt.Sprintf("%s   -   VOICING %d OF %d",
 		voicing.Name, voicing.Number, gui.controller.VoicingCount())
 	drawCenteredText(heading, rl.Rectangle{
-		X: bounds.X, Y: bounds.Y + 35, Width: bounds.Width, Height: 28,
+		X: bounds.X, Y: bounds.Y + 44, Width: bounds.Width, Height: 24,
 	}, 20, theme.text)
 
 	first, last := fretRange(voicing, gui.fullNeck)
 	board := rl.Rectangle{
 		X:      bounds.X + 54,
-		Y:      bounds.Y + 82,
+		Y:      bounds.Y + 74,
 		Width:  bounds.Width - 82,
-		Height: bounds.Height - 122,
+		Height: bounds.Height - 96,
 	}
 	if board.Height < 75 {
 		return
@@ -481,7 +481,7 @@ func drawFretboard(
 func (gui *viewer) drawWaveform(bounds rl.Rectangle, theme palette) {
 	drawPanel(bounds, theme)
 	drawSectionTitle(bounds, "WAVEFORM · AMPLITUDE / TIME", theme)
-	plot := inset(bounds, panelPadding, 48, panelPadding, 38)
+	plot := inset(bounds, panelPadding, 60, panelPadding, 30)
 	if plot.Width < 20 || plot.Height < 20 {
 		return
 	}
@@ -519,7 +519,7 @@ func (gui *viewer) drawWaveform(bounds rl.Rectangle, theme palette) {
 func (gui *viewer) drawSpectrum(bounds rl.Rectangle, theme palette) {
 	drawPanel(bounds, theme)
 	drawSectionTitle(bounds, "FREQUENCY SPECTRUM · LOG Hz", theme)
-	plot := inset(bounds, panelPadding, 48, panelPadding, 44)
+	plot := inset(bounds, panelPadding, 60, panelPadding, 36)
 	if plot.Width < 20 || plot.Height < 20 {
 		return
 	}
@@ -631,9 +631,13 @@ func drawPanel(bounds rl.Rectangle, theme palette) {
 
 // drawSectionTitle positions one concise label at a panel's upper-left edge.
 func drawSectionTitle(bounds rl.Rectangle, title string, theme palette) {
-	const titleSize = 20
-	drawText(title, bounds.X+panelPadding, bounds.Y+12, titleSize, theme.accent)
-	underlineWidth := measureText(title, titleSize).X + 1
+	const (
+		titleSize    = 20
+		titleSpacing = 2.5
+	)
+	drawTextSpaced(title, bounds.X+panelPadding, bounds.Y+12,
+		titleSize, titleSpacing, theme.accent)
+	underlineWidth := measureTextSpaced(title, titleSize, titleSpacing).X + 1
 	rl.DrawLineEx(
 		rl.Vector2{X: bounds.X + panelPadding, Y: bounds.Y + 36},
 		rl.Vector2{X: bounds.X + panelPadding + underlineWidth, Y: bounds.Y + 36},
@@ -642,13 +646,18 @@ func drawSectionTitle(bounds rl.Rectangle, title string, theme palette) {
 	)
 }
 
-// drawText adds a tight second pass for a heavier console-style default font.
+// drawText uses standard body copy spacing with the heavier console treatment.
 func drawText(text string, x, y, size float32, color rl.Color) {
+	drawTextSpaced(text, x, y, size, 1, color)
+}
+
+// drawTextSpaced adds configurable tracking and a tight pass for heavier glyphs.
+func drawTextSpaced(text string, x, y, size, spacing float32, color rl.Color) {
 	font := rl.GetFontDefault()
 	position := rl.Vector2{X: x, Y: y}
-	rl.DrawTextEx(font, text, position, size, 1, color)
+	rl.DrawTextEx(font, text, position, size, spacing, color)
 	position.X += clamp(size*0.045, 0.5, 0.8)
-	rl.DrawTextEx(font, text, position, size, 1, color)
+	rl.DrawTextEx(font, text, position, size, spacing, color)
 }
 
 // drawCenteredText centers one label within a rectangular region.
@@ -664,7 +673,12 @@ func drawCenteredText(text string, bounds rl.Rectangle, size float32, color rl.C
 
 // measureText returns default-font dimensions matching drawText.
 func measureText(text string, size float32) rl.Vector2 {
-	return rl.MeasureTextEx(rl.GetFontDefault(), text, size, 1)
+	return measureTextSpaced(text, size, 1)
+}
+
+// measureTextSpaced mirrors the tracking used by drawTextSpaced.
+func measureTextSpaced(text string, size, spacing float32) rl.Vector2 {
+	return rl.MeasureTextEx(rl.GetFontDefault(), text, size, spacing)
 }
 
 // inset removes independent padding from each rectangle side.

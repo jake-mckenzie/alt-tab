@@ -23,6 +23,12 @@ func TestComputeLayout(t *testing.T) {
 			}
 		}
 	}
+
+	full := computeLayout(minimumWindowWidth, minimumWindowHeight, true)
+	if full.diagram.Height-96 < 75 || full.waveform.Height-90 < 20 ||
+		full.spectrum.Height-96 < 20 {
+		t.Fatalf("minimum full-neck layout leaves unusable content: %+v", full)
+	}
 }
 
 // TestFretRange keeps open and upper-position diagrams correctly numbered.
