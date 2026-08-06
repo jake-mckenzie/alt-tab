@@ -87,13 +87,11 @@ func renderFretboardLegend(width int, centered, includeFingers bool) string {
 		return fingerLines[0] + "\n" + fingerLines[1] + "\n\n" + symbolLine
 	}
 
-	// Keep the two finger lines aligned while centering them as one block.
-	fingerWidth := max(len(fingerLines[0]), len(fingerLines[1]))
-	fingerPadding := strings.Repeat(" ", max(0, width-fingerWidth)/2)
-	symbolPadding := strings.Repeat(" ", max(0, width-len(symbolLine))/2)
-	return fingerPadding + fingerLines[0] + "\n" +
-		fingerPadding + fingerLines[1] + "\n\n" +
-		symbolPadding + symbolLine
+	// Center one compact block while keeping the second finger row aligned.
+	const legendGap = "    "
+	firstLine := fingerLines[0] + legendGap + symbolLine
+	padding := strings.Repeat(" ", max(0, width-len(firstLine))/2)
+	return padding + firstLine + "\n" + padding + fingerLines[1]
 }
 
 // fretRange keeps common voicings compact while preserving exact fret labels.

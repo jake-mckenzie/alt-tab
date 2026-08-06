@@ -133,16 +133,21 @@ func TestFullFretboardAlignsFingerAtFinalFret(t *testing.T) {
 	}
 }
 
-// TestFullFretboardCentersLegend checks the wide diagram's footer alignment.
+// TestFullFretboardCentersLegend checks its compact side-by-side footer.
 func TestFullFretboardCentersLegend(t *testing.T) {
 	output := renderFretboard(chords.Voicing{}, true)
 	width := 4 + fullNeckLastFret*fullNeckCellWidth + 1
-	for _, label := range []string{"Fingers: 1 index  2 middle", "Symbols: O open  X muted"} {
-		line := lineWith(output, label)
-		left := strings.Index(line, label)
-		right := width - left - len(label)
-		if absoluteInt(left-right) > 1 {
-			t.Fatalf("%q is not centered: left=%d right=%d", label, left, right)
-		}
+	legend := "Fingers: 1 index  2 middle    Symbols: O open  X muted"
+	line := lineWith(output, "Fingers:")
+	if !strings.Contains(line, legend) {
+		t.Fatalf("full-neck legends are not side-by-side:\n%s", output)
+	}
+	left := strings.Index(line, legend)
+	right := width - left - len(legend)
+	if absoluteInt(left-right) > 1 {
+		t.Fatalf("full-neck legend is not centered: left=%d right=%d", left, right)
+	}
+	if strings.Count(output, "\n") != 10 {
+		t.Fatalf("full-neck output uses unexpected vertical space:\n%s", output)
 	}
 }
