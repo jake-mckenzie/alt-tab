@@ -1,15 +1,14 @@
-package nativechords
+package chords
 
 import (
 	"errors"
 	"reflect"
 	"testing"
-
-	"github.com/jake-mckenzie/alt-tab/internal/chords"
 )
 
+// TestNativeCatalogNames verifies the ordered, de-duplicated name list.
 func TestNativeCatalogNames(t *testing.T) {
-	catalog := NewNativeCatalog()
+	catalog := NewCatalog()
 	expected := []string{
 		"A", "Am", "B", "Bb", "C", "Cm", "D",
 		"Dm", "E", "Em", "F", "F#", "G", "Gm",
@@ -20,8 +19,9 @@ func TestNativeCatalogNames(t *testing.T) {
 	}
 }
 
+// TestNativeCatalogLoadsOwnedVoicing verifies lookup, casing, and C-to-Go copying.
 func TestNativeCatalogLoadsOwnedVoicing(t *testing.T) {
-	catalog := NewNativeCatalog()
+	catalog := NewCatalog()
 	voicing, err := catalog.Load("c", 2)
 
 	if err != nil {
@@ -30,7 +30,7 @@ func TestNativeCatalogLoadsOwnedVoicing(t *testing.T) {
 	if voicing.Name != "C" || voicing.Variation != 2 {
 		t.Fatalf("Load() identity = %q:%d, want C:2", voicing.Name, voicing.Variation)
 	}
-	if voicing.Strings[0] != (chords.StringPlacement{Fret: 3, Finger: 1}) {
+	if voicing.Strings[0] != (StringPlacement{Fret: 3, Finger: 1}) {
 		t.Fatalf("high e placement = %+v, want fret 3 finger 1", voicing.Strings[0])
 	}
 	if voicing.Strings[5].Fret != -1 {
@@ -38,13 +38,14 @@ func TestNativeCatalogLoadsOwnedVoicing(t *testing.T) {
 	}
 }
 
+// TestNativeCatalogRejectsMissingVariation verifies invalid voicings are rejected.
 func TestNativeCatalogRejectsMissingVariation(t *testing.T) {
-	catalog := NewNativeCatalog()
+	catalog := NewCatalog()
 
 	if count := catalog.VariationCount("C"); count != 2 {
 		t.Fatalf("VariationCount() = %d, want 2", count)
 	}
-	if _, err := catalog.Load("C", 3); !errors.Is(err, chords.ErrChordNotFound) {
+	if _, err := catalog.Load("C", 3); !errors.Is(err, ErrChordNotFound) {
 		t.Fatalf("Load() error = %v, want ErrChordNotFound", err)
 	}
 }

@@ -19,7 +19,6 @@ type Model struct {
 	fullNeck  bool
 	showHelp  bool
 	width     int
-	height    int
 	err       error
 	styles    styles
 }
@@ -30,7 +29,6 @@ func New(catalog chords.Catalog) Model {
 		catalog:   catalog,
 		variation: 1,
 		width:     100,
-		height:    30,
 		styles:    newStyles(true),
 	}
 
@@ -56,7 +54,6 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		model.styles = newStyles(message.IsDark())
 	case tea.WindowSizeMsg:
 		model.width = message.Width
-		model.height = message.Height
 	case tea.KeyPressMsg:
 		key := message.String()
 		if key == "ctrl+c" || key == "q" {
@@ -130,11 +127,17 @@ func (model *Model) moveVariation(delta int) {
 		return
 	}
 
+	// Convert the public one-based variation number around zero-based wrapping.
 	model.variation = wrap(model.variation-1+delta, count) + 1
 	model.loadSelection()
 }
 
+// wrap confines a possibly negative index to a non-empty collection.
 func wrap(value, size int) int {
+	if size <= 0 {
+		return 0
+	}
+
 	value %= size
 	if value < 0 {
 		value += size

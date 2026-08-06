@@ -7,6 +7,7 @@ import (
 	"github.com/jake-mckenzie/alt-tab/internal/chords"
 )
 
+// TestCompactFretboardUsesExactFretsAndFingers checks its complete tab output.
 func TestCompactFretboardUsesExactFretsAndFingers(t *testing.T) {
 	voicing := chords.Voicing{
 		Name:      "C",
@@ -37,6 +38,7 @@ func TestCompactFretboardUsesExactFretsAndFingers(t *testing.T) {
 	}
 }
 
+// TestCompactFretboardStartsAtHigherPosition checks movable chord windows.
 func TestCompactFretboardStartsAtHigherPosition(t *testing.T) {
 	voicing := chords.Voicing{
 		Strings: [chords.StringCount]chords.StringPlacement{
@@ -58,6 +60,7 @@ func TestCompactFretboardStartsAtHigherPosition(t *testing.T) {
 	}
 }
 
+// TestFullFretboardLabelsAllTwentySevenFrets checks the full neck dimensions.
 func TestFullFretboardLabelsAllTwentySevenFrets(t *testing.T) {
 	output := renderFretboard(chords.Voicing{}, true)
 
@@ -73,6 +76,7 @@ func TestFullFretboardLabelsAllTwentySevenFrets(t *testing.T) {
 	}
 }
 
+// TestFullFretboardAlignsFingerAtFinalFret guards the rightmost cell alignment.
 func TestFullFretboardAlignsFingerAtFinalFret(t *testing.T) {
 	voicing := chords.Voicing{
 		Strings: [chords.StringCount]chords.StringPlacement{

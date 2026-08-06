@@ -6,12 +6,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jake-mckenzie/alt-tab/internal/nativechords"
+	"github.com/jake-mckenzie/alt-tab/internal/chords"
 )
 
+// ansiSequence strips terminal styling before comparing text snapshots.
 var ansiSequence = regexp.MustCompile(`\x1b\[[0-?]*[ -/]*[@-~]`)
 
-// Keeps the documented wide-layout snapshot synchronized with the real view.
+// TestReadmeContainsCurrentTUIOutput keeps the documented snapshot current.
 func TestReadmeContainsCurrentTUIOutput(t *testing.T) {
 	readme, err := os.ReadFile("../../README.md")
 	if err != nil {
@@ -27,9 +28,8 @@ func TestReadmeContainsCurrentTUIOutput(t *testing.T) {
 		t.Fatal("README verified TUI output block is missing")
 	}
 
-	model := New(nativechords.NewNativeCatalog())
+	model := New(chords.NewCatalog())
 	model.width = 80
-	model.height = 30
 	actual := ansiSequence.ReplaceAllString(model.View().Content, "")
 
 	if normalizeSnapshot(snapshot) != normalizeSnapshot(actual) {
@@ -41,6 +41,7 @@ func TestReadmeContainsCurrentTUIOutput(t *testing.T) {
 	}
 }
 
+// normalizeSnapshot removes irrelevant outer and line-ending whitespace.
 func normalizeSnapshot(value string) string {
 	lines := strings.Split(strings.TrimSpace(value), "\n")
 	for index := range lines {
@@ -49,6 +50,7 @@ func normalizeSnapshot(value string) string {
 	return strings.Join(lines, "\n")
 }
 
+// textBetween extracts text bounded by two required marker strings.
 func textBetween(value, start, end string) string {
 	startIndex := strings.Index(value, start)
 	if startIndex < 0 {

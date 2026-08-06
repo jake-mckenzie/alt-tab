@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <string.h>
-#include "chord_api.h"
-#include "chord_library.h"
+#include "chords.h"
 
 #define ARRAY_COUNT( array ) ( sizeof( array ) / sizeof( ( array )[ 0 ] ) )
 
+/* Stops the current test at its first failed invariant. */
 #define CHECK( condition )                                                   \
     do {                                                                     \
         if ( !( condition ) ) {                                              \
@@ -57,16 +57,16 @@ static const ExpectedChord EXPECTED_CHORDS[ ] = {
 /* Verifies every stored fret and finger assignment. */
 static int testDefaultLibrary( void )
 {
-    ChordLibrary library = chordLibraryDefault( );
-
-    CHECK( library.count == ARRAY_COUNT( EXPECTED_CHORDS ) );
+    CHECK( altTabChordVoicingCount( ) == ARRAY_COUNT( EXPECTED_CHORDS ) );
+    CHECK( altTabChordVoicingAt( ARRAY_COUNT( EXPECTED_CHORDS ) ) == NULL );
 
     for ( size_t chord_index = 0;
           chord_index < ARRAY_COUNT( EXPECTED_CHORDS );
           chord_index++ ) {
-        const Chord *actual = &library.items[ chord_index ];
+        const Chord *actual = altTabChordVoicingAt( chord_index );
         const ExpectedChord *expected = &EXPECTED_CHORDS[ chord_index ];
 
+        CHECK( actual != NULL );
         CHECK( strcmp( actual->name, expected->name ) == 0 );
         CHECK( actual->variation == expected->variation );
         for ( size_t string = 0; string < GUITAR_STRING_COUNT; string++ ) {
@@ -86,64 +86,35 @@ static int testDefaultLibrary( void )
 /* Verifies case-insensitive lookup and invalid arguments. */
 static int testLookup( void )
 {
-    ChordLibrary library = chordLibraryDefault( );
-
-    CHECK( chordLibraryFind( &library, "am" ) != NULL );
-    CHECK( chordLibraryFind( &library, "BB" ) != NULL );
-    CHECK( chordLibraryFind( &library, "f#" ) != NULL );
-    CHECK( chordLibraryFind( &library, "missing" ) == NULL );
-    CHECK( chordLibraryFind( NULL, "C" ) == NULL );
-    CHECK( chordLibraryFind( &library, NULL ) == NULL );
-    CHECK( chordLibraryVariationCount( &library, "c" ) == 2 );
-    CHECK( chordLibraryVariationCount( &library, "missing" ) == 0 );
-    CHECK( chordLibraryFindVariation( &library, "C", 2 ) != NULL );
-    CHECK( chordLibraryFindVariation( &library, "C", 3 ) == NULL );
+    CHECK( altTabChordFind( "am", 1 ) != NULL );
+    CHECK( altTabChordFind( "BB", 1 ) != NULL );
+    CHECK( altTabChordFind( "f#", 1 ) != NULL );
+    CHECK( altTabChordFind( "missing", 1 ) == NULL );
+    CHECK( altTabChordFind( NULL, 1 ) == NULL );
+    CHECK( altTabChordFind( "C", 0 ) == NULL );
+    CHECK( altTabChordVariationCount( NULL ) == 0 );
+    CHECK( altTabChordVariationCount( "c" ) == 2 );
+    CHECK( altTabChordVariationCount( "missing" ) == 0 );
+    CHECK( altTabChordFind( "C", 2 ) != NULL );
+    CHECK( altTabChordFind( "C", 3 ) == NULL );
 
     return 1;
 }
 
-/* Verifies the UI-independent backend API and its ownership boundary. */
-static int testChordApi( void )
+/* Verifies the ordered, de-duplicated chord-name API. */
+static int testChordNames( void )
 {
     static const char *const EXPECTED_NAMES[ ] = {
         "A", "Am", "B", "Bb", "C", "Cm", "D",
         "Dm", "E", "Em", "F", "F#", "G", "Gm"
     };
-    AltTabChordVoicing voicing;
-
-    CHECK( altTabChordCount( ) == ARRAY_COUNT( EXPECTED_NAMES ) );
+    CHECK( altTabChordNameCount( ) == ARRAY_COUNT( EXPECTED_NAMES ) );
     for ( size_t index = 0; index < ARRAY_COUNT( EXPECTED_NAMES ); index++ ) {
         CHECK(
             strcmp( altTabChordNameAt( index ), EXPECTED_NAMES[ index ] ) == 0
         );
     }
     CHECK( altTabChordNameAt( ARRAY_COUNT( EXPECTED_NAMES ) ) == NULL );
-    CHECK( altTabChordVariationCount( "c" ) == 2 );
-    CHECK( altTabChordVariationCount( "missing" ) == 0 );
-
-    for ( size_t index = 0; index < ARRAY_COUNT( EXPECTED_CHORDS ); index++ ) {
-        const ExpectedChord *expected = &EXPECTED_CHORDS[ index ];
-
-        CHECK(
-            altTabChordLoad(
-                expected->name,
-                expected->variation,
-                &voicing
-            )
-        );
-        CHECK( voicing.variation == expected->variation );
-        for ( size_t string = 0; string < ALT_TAB_STRING_COUNT; string++ ) {
-            CHECK( voicing.strings[ string ].fret == expected->frets[ string ] );
-            CHECK(
-                voicing.strings[ string ].finger ==
-                expected->fingers[ string ]
-            );
-        }
-    }
-
-    CHECK( !altTabChordLoad( "C", 3, &voicing ) );
-    CHECK( !altTabChordLoad( "missing", 1, &voicing ) );
-    CHECK( !altTabChordLoad( "C", 1, NULL ) );
 
     return 1;
 }
@@ -179,10 +150,8 @@ static int testChordTones( void )
     static const int OPEN_STRING_PITCHES[ GUITAR_STRING_COUNT ] = {
         4, 11, 7, 2, 9, 4
     };
-    ChordLibrary library = chordLibraryDefault( );
-
-    for ( size_t index = 0; index < library.count; index++ ) {
-        const Chord *chord = &library.items[ index ];
+    for ( size_t index = 0; index < altTabChordVoicingCount( ); index++ ) {
+        const Chord *chord = altTabChordVoicingAt( index );
         int root = rootPitchClass( chord->name );
         int minor = strchr( chord->name, 'm' ) != NULL;
         int third = ( root + ( minor ? 3 : 4 ) ) % 12;
@@ -214,11 +183,12 @@ static int testChordTones( void )
     return 1;
 }
 
+/* Runs every native regression test and reports one process-level result. */
 int main( void )
 {
     if ( !testDefaultLibrary( ) ||
          !testLookup( ) ||
-         !testChordApi( ) ||
+         !testChordNames( ) ||
          !testChordTones( ) ) {
         return 1;
     }

@@ -1,9 +1,10 @@
-#include "chord_library.h"
+#include "chords.h"
 #include <ctype.h>
+#include <string.h>
 
 #define ARRAY_COUNT( array ) ( sizeof( array ) / sizeof( ( array )[ 0 ] ) )
 
-/* Built-in voicings use conventional fretting-hand finger assignments. */
+/* Keep variations grouped by name so their display order remains predictable. */
 static const Chord DEFAULT_CHORDS[ ] = {
     { "A", 1, {
         { 0, 0 }, { 2, 3 }, { 2, 2 },
@@ -123,6 +124,7 @@ static const Chord DEFAULT_CHORDS[ ] = {
 static int namesEqual( const char *left, const char *right )
 {
     while ( *left != '\0' && *right != '\0' ) {
+        /* The unsigned conversion keeps negative char values valid for ctype. */
         if ( tolower( ( unsigned char )*left ) !=
              tolower( ( unsigned char )*right ) ) {
             return 0;
@@ -135,61 +137,97 @@ static int namesEqual( const char *left, const char *right )
     return *left == *right;
 }
 
-/* Exposes the static chord table without copying its entries. */
-ChordLibrary chordLibraryDefault( void )
+/* Detects the first occurrence of a chord name in the ordered table. */
+static int isFirstNamedChord( size_t index )
 {
-    ChordLibrary library = {
-        .items = DEFAULT_CHORDS,
-        .count = ARRAY_COUNT( DEFAULT_CHORDS )
-    };
+    const char *name = DEFAULT_CHORDS[ index ].name;
 
-    return library;
+    for ( size_t previous = 0; previous < index; previous++ ) {
+        if ( strcmp( DEFAULT_CHORDS[ previous ].name, name ) == 0 ) {
+            return 0;
+        }
+    }
+
+    return 1;
 }
 
-/* Performs a case-insensitive linear lookup in a chord library. */
-const Chord *chordLibraryFind( const ChordLibrary *library, const char *name )
+/* Returns the total number of stored voicings. */
+size_t altTabChordVoicingCount( void )
 {
-    return chordLibraryFindVariation( library, name, 1 );
+    return ARRAY_COUNT( DEFAULT_CHORDS );
 }
 
-/* Finds a specific numbered voicing in a chord library. */
-const Chord *chordLibraryFindVariation(
-    const ChordLibrary *library,
-    const char *name,
-    int variation
-)
+/* Returns one immutable voicing after validating its table index. */
+const Chord *altTabChordVoicingAt( size_t index )
 {
-    if ( library == NULL || name == NULL ) {
+    if ( index >= ARRAY_COUNT( DEFAULT_CHORDS ) ) {
         return NULL;
     }
 
-    for ( size_t index = 0; index < library->count; index++ ) {
-        if ( namesEqual( library->items[ index ].name, name ) &&
-             library->items[ index ].variation == variation ) {
-            return &library->items[ index ];
+    return &DEFAULT_CHORDS[ index ];
+}
+
+/* Counts distinct chord names without counting their additional voicings. */
+size_t altTabChordNameCount( void )
+{
+    size_t count = 0;
+
+    for ( size_t index = 0; index < ARRAY_COUNT( DEFAULT_CHORDS ); index++ ) {
+        count += isFirstNamedChord( index );
+    }
+
+    return count;
+}
+
+/* Maps a distinct-name index to its immutable table string. */
+const char *altTabChordNameAt( size_t requested_index )
+{
+    size_t name_index = 0;
+
+    for ( size_t index = 0; index < ARRAY_COUNT( DEFAULT_CHORDS ); index++ ) {
+        if ( !isFirstNamedChord( index ) ) {
+            continue;
         }
+        if ( name_index == requested_index ) {
+            return DEFAULT_CHORDS[ index ].name;
+        }
+        name_index++;
     }
 
     return NULL;
 }
 
-/* Counts every voicing that shares the requested chord name. */
-size_t chordLibraryVariationCount(
-    const ChordLibrary *library,
-    const char *name
-)
+/* Counts every voicing that shares a case-insensitive chord name. */
+size_t altTabChordVariationCount( const char *name )
 {
     size_t count = 0;
 
-    if ( library == NULL || name == NULL ) {
+    if ( name == NULL ) {
         return 0;
     }
 
-    for ( size_t index = 0; index < library->count; index++ ) {
-        if ( namesEqual( library->items[ index ].name, name ) ) {
+    for ( size_t index = 0; index < ARRAY_COUNT( DEFAULT_CHORDS ); index++ ) {
+        if ( namesEqual( DEFAULT_CHORDS[ index ].name, name ) ) {
             count++;
         }
     }
 
     return count;
+}
+
+/* Finds one numbered voicing using a case-insensitive chord name. */
+const Chord *altTabChordFind( const char *name, int variation )
+{
+    if ( name == NULL ) {
+        return NULL;
+    }
+
+    for ( size_t index = 0; index < ARRAY_COUNT( DEFAULT_CHORDS ); index++ ) {
+        if ( namesEqual( DEFAULT_CHORDS[ index ].name, name ) &&
+             DEFAULT_CHORDS[ index ].variation == variation ) {
+            return &DEFAULT_CHORDS[ index ];
+        }
+    }
+
+    return NULL;
 }

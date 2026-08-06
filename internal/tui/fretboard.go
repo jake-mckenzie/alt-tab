@@ -7,10 +7,14 @@ import (
 	"github.com/jake-mckenzie/alt-tab/internal/chords"
 )
 
-const fullNeckLastFret = 27
-const fullNeckCellWidth = 3
-const fullNeckMinimumTerminalWidth = 98
+const (
+	fullNeckLastFret             = 27
+	fullNeckCellWidth            = 3
+	fullNeckMinimumTerminalWidth = 98
+	compactCellWidth             = 5
+)
 
+// stringNames follows standard tablature order from high e to low E.
 var stringNames = [chords.StringCount]string{"e", "B", "G", "D", "A", "E"}
 
 // renderFretboard draws standard high-e-to-low-E horizontal tablature.
@@ -50,10 +54,10 @@ func fretRange(
 		return 1, fullNeckLastFret, fullNeckCellWidth
 	}
 
-	lowest := fullNeckLastFret
+	lowest := 0
 	highest := 0
 	for _, placement := range voicing.Strings {
-		if placement.Fret > 0 && placement.Fret < lowest {
+		if placement.Fret > 0 && (lowest == 0 || placement.Fret < lowest) {
 			lowest = placement.Fret
 		}
 		if placement.Fret > highest {
@@ -62,17 +66,13 @@ func fretRange(
 	}
 
 	if highest <= 4 {
-		return 1, 4, 5
+		return 1, 4, compactCellWidth
 	}
-	if lowest == fullNeckLastFret {
+	if lowest == 0 {
 		lowest = 1
 	}
 
-	last := lowest + 3
-	if highest > last {
-		last = highest
-	}
-	return lowest, last, 5
+	return lowest, max(lowest+3, highest), compactCellWidth
 }
 
 // writeFretLabels places every complete fret number above its string cell.
@@ -84,6 +84,7 @@ func writeFretLabels(output *strings.Builder, first, last, cellWidth int) {
 	output.WriteByte('\n')
 }
 
+// stringBoundary replaces the nut marker for open and muted strings.
 func stringBoundary(placement chords.StringPlacement) byte {
 	switch placement.Fret {
 	case -1:
@@ -95,11 +96,13 @@ func stringBoundary(placement chords.StringPlacement) byte {
 	}
 }
 
+// centerText pads a short ASCII marker to a fixed-width fret cell.
 func centerText(value string, width int, fill byte) string {
 	if len(value) >= width {
 		return value
 	}
 
+	// Give the left side the extra byte so markers align visually with labels.
 	left := (width - len(value) + 1) / 2
 	right := width - len(value) - left
 	return strings.Repeat(string(fill), left) +

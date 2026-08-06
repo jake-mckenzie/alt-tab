@@ -7,12 +7,15 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
+const minimumTerminalWidth = 40
+
 // render composes the stacked chord-list and fretboard layout.
 func (model Model) render() string {
 	width := model.width
-	if width < 40 {
-		width = 40
+	if width < minimumTerminalWidth {
+		width = minimumTerminalWidth
 	}
+	// The outer style contributes two columns of padding on both sides.
 	contentWidth := width - 4
 
 	header := lipgloss.JoinHorizontal(
@@ -39,17 +42,17 @@ func (model Model) render() string {
 		Render(header + "\n\n" + body + "\n\n" + footer)
 }
 
+// renderStacked places the shared chord selector above the active voicing.
 func (model Model) renderStacked(width int) string {
-	chordList := model.styles.panel.
-		Width(width - 2).
-		Render(model.renderChordList())
-	detail := model.styles.panel.
-		Width(width - 2).
-		Render(model.renderDetail())
+	// Lip Gloss adds one border column to each side of the requested width.
+	panel := model.styles.panel.Width(width - 2)
+	chordList := panel.Render(model.renderChordList())
+	detail := panel.Render(model.renderDetail())
 
 	return lipgloss.JoinVertical(lipgloss.Left, chordList, "", detail)
 }
 
+// renderChordList draws every chord in one horizontal navigation row.
 func (model Model) renderChordList() string {
 	var output strings.Builder
 	output.WriteString(model.styles.heading.Render("CHORDS"))
@@ -69,6 +72,7 @@ func (model Model) renderChordList() string {
 	return output.String()
 }
 
+// renderDetail draws the current chord heading, mode, and fretboard.
 func (model Model) renderDetail() string {
 	if model.err != nil {
 		return model.styles.err.Render(model.err.Error())
@@ -77,7 +81,7 @@ func (model Model) renderDetail() string {
 	variationCount := model.catalog.VariationCount(model.voicing.Name)
 	mode := "compact"
 	if model.fullNeck {
-		mode = "full neck · frets 1–27"
+		mode = fmt.Sprintf("full neck · frets 1–%d", fullNeckLastFret)
 	}
 
 	heading := fmt.Sprintf(
@@ -102,6 +106,7 @@ func (model Model) renderDetail() string {
 		model.styles.normal.Render(renderFretboard(model.voicing, model.fullNeck))
 }
 
+// renderHelp lists every keyboard command in a dedicated panel.
 func (model Model) renderHelp() string {
 	return model.styles.heading.Render("KEYBOARD HELP") + "\n\n" +
 		"← / h     Previous chord\n" +

@@ -2,6 +2,7 @@ package tui
 
 import "charm.land/lipgloss/v2"
 
+// styles groups the palette-dependent presentation rules used by each view.
 type styles struct {
 	title    lipgloss.Style
 	subtitle lipgloss.Style

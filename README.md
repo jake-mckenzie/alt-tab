@@ -191,7 +191,7 @@ make check
 ```
 
 The suite verifies every stored fret and finger assignment, chord pitch
-classes, the public C API, cgo conversion, TUI navigation, compact and full-neck
+classes, the C catalog API, cgo conversion, TUI navigation, compact and full-neck
 diagrams, help behavior, and the README output snapshot.
 
 ## Cleaning
@@ -239,15 +239,11 @@ string and `X` marks a muted string.
 - `cmd/alt-tab` contains the application entry point.
 - `internal/tui` owns Bubble Tea state, navigation, layout, styling, and
   fretboard rendering.
-- `internal/chords` defines Go-owned chord types and the catalog interface.
-- `internal/nativechords` owns the cgo adapter, stable C API, and immutable
-  chord library.
-- `tests` contains the native backend regression suite.
+- `internal/chords` owns the Go chord model, cgo adapter, and immutable C chord
+  table behind one catalog interface.
+- `tests` contains the native chord regression suite.
 - `.github/workflows` runs builds and quality checks for pushes and pull
   requests.
-
-Terminal concerns remain separate from the chord model so future audio input or
-output packages can consume the same Go chord types.
 
 ## Project Layout
 
@@ -256,7 +252,6 @@ output packages can consume the same Go chord types.
 ├── .github/workflows/
 ├── cmd/alt-tab/
 ├── internal/chords/
-├── internal/nativechords/
 ├── internal/tui/
 ├── tests/
 ├── go.mod

@@ -10,16 +10,20 @@ import (
 	"github.com/jake-mckenzie/alt-tab/internal/chords"
 )
 
+// fakeCatalog isolates model behavior from the native chord table.
 type fakeCatalog struct{}
 
+// Names supplies the small ordered chord set used by model tests.
 func (fakeCatalog) Names() []string {
 	return []string{"C", "G"}
 }
 
+// VariationCount gives each fake chord two navigable voicings.
 func (fakeCatalog) VariationCount(string) int {
 	return 2
 }
 
+// Load constructs a predictable voicing without invoking the C catalog.
 func (fakeCatalog) Load(name string, variation int) (chords.Voicing, error) {
 	if variation < 1 || variation > 2 {
 		return chords.Voicing{}, errors.New("missing variation")
@@ -39,6 +43,7 @@ func (fakeCatalog) Load(name string, variation int) (chords.Voicing, error) {
 	}, nil
 }
 
+// TestViewContainsChordAndFingering checks the essential rendered content.
 func TestViewContainsChordAndFingering(t *testing.T) {
 	view := New(fakeCatalog{}).View()
 
@@ -52,6 +57,7 @@ func TestViewContainsChordAndFingering(t *testing.T) {
 	}
 }
 
+// TestChordListIsHorizontalAndAboveBothFretboardModes checks shared layout.
 func TestChordListIsHorizontalAndAboveBothFretboardModes(t *testing.T) {
 	for _, fullNeck := range []bool{false, true} {
 		model := New(fakeCatalog{})
@@ -67,6 +73,7 @@ func TestChordListIsHorizontalAndAboveBothFretboardModes(t *testing.T) {
 	}
 }
 
+// TestNavigationUpdatesSelection checks the remapped directional controls.
 func TestNavigationUpdatesSelection(t *testing.T) {
 	model := New(fakeCatalog{})
 	updated, _ := model.Update(tea.KeyPressMsg{Code: tea.KeyRight})
@@ -83,6 +90,7 @@ func TestNavigationUpdatesSelection(t *testing.T) {
 	}
 }
 
+// TestFullNeckAndHelpToggles checks both single-key mode switches.
 func TestFullNeckAndHelpToggles(t *testing.T) {
 	model := New(fakeCatalog{})
 	updated, _ := model.Update(tea.KeyPressMsg{Code: 'f', Text: "f"})
@@ -100,6 +108,7 @@ func TestFullNeckAndHelpToggles(t *testing.T) {
 	}
 }
 
+// TestFullNeckRequiresNinetyEightColumns checks both sides of the boundary.
 func TestFullNeckRequiresNinetyEightColumns(t *testing.T) {
 	model := New(fakeCatalog{})
 	model.width = fullNeckMinimumTerminalWidth - 1
@@ -118,6 +127,7 @@ func TestFullNeckRequiresNinetyEightColumns(t *testing.T) {
 	}
 }
 
+// TestQuitKeyReturnsCommand checks that quitting is delegated to Bubble Tea.
 func TestQuitKeyReturnsCommand(t *testing.T) {
 	model := New(fakeCatalog{})
 	_, command := model.Update(tea.KeyPressMsg{Code: 'q', Text: "q"})

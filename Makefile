@@ -5,25 +5,21 @@ APP = alt-tab
 CMD = ./cmd/alt-tab
 BIN_DIR = bin
 BUILD_DIR = build
-NATIVE_DIR = internal/nativechords
+NATIVE_DIR = internal/chords
 TEST_DIR = tests
 
 TARGET = $(BIN_DIR)/$(APP)
 NATIVE_BUILD_DIR = $(BUILD_DIR)/native
-NATIVE_TEST_TARGET = $(NATIVE_BUILD_DIR)/test-chord-backend
+NATIVE_TEST_TARGET = $(NATIVE_BUILD_DIR)/test-chords
 
 BUILD ?= debug
 
 GO_SOURCES = $(shell find cmd internal -type f \
              \( -name '*.go' -o -name '*.c' -o -name '*.h' \) 2>/dev/null)
 GO_FILES = $(shell find cmd internal -type f -name '*.go' 2>/dev/null)
-NATIVE_SOURCES = $(NATIVE_DIR)/chord_library.c \
-                 $(NATIVE_DIR)/chord_api.c
-NATIVE_HEADERS = $(NATIVE_DIR)/chord.h \
-                 $(NATIVE_DIR)/chord_library.h \
-                 $(NATIVE_DIR)/chord_api.h
-NATIVE_OBJECTS = $(NATIVE_SOURCES:$(NATIVE_DIR)/%.c=$(NATIVE_BUILD_DIR)/%.o)
-NATIVE_TEST_OBJECT = $(NATIVE_BUILD_DIR)/test_chord_library.o
+NATIVE_HEADERS = $(NATIVE_DIR)/chords.h
+NATIVE_OBJECT = $(NATIVE_BUILD_DIR)/chords.o
+NATIVE_TEST_OBJECT = $(NATIVE_BUILD_DIR)/test_chords.o
 
 CFLAGS_BASE = -std=c11 -Wall -Wextra -pedantic
 SANITIZERS = -fsanitize=address,undefined
@@ -79,11 +75,11 @@ $(NATIVE_BUILD_DIR)/%.o: $(NATIVE_DIR)/%.c $(NATIVE_HEADERS)
 	mkdir -p $(dir $@)
 	$(CC) -I$(NATIVE_DIR) $(CFLAGS) -c $< -o $@
 
-$(NATIVE_TEST_OBJECT): $(TEST_DIR)/test_chord_library.c $(NATIVE_HEADERS)
+$(NATIVE_TEST_OBJECT): $(TEST_DIR)/test_chords.c $(NATIVE_HEADERS)
 	mkdir -p $(dir $@)
 	$(CC) -I$(NATIVE_DIR) $(CFLAGS) -c $< -o $@
 
-$(NATIVE_TEST_TARGET): $(NATIVE_TEST_OBJECT) $(NATIVE_OBJECTS)
+$(NATIVE_TEST_TARGET): $(NATIVE_TEST_OBJECT) $(NATIVE_OBJECT)
 	$(CC) $^ $(LDFLAGS) -o $@
 
 test-native: $(NATIVE_TEST_TARGET)
@@ -106,6 +102,6 @@ run: $(TARGET)
 	./$(TARGET)
 
 clean:
-	rm -rf $(BUILD_DIR) $(BIN_DIR) $(APP)
+	rm -rf $(BUILD_DIR) $(BIN_DIR)
 
 .PHONY: all build check check-deps clean fmt fmt-check race run test test-go test-native vet
