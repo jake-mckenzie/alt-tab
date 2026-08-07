@@ -16,23 +16,14 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v6
 
-      - name: Set up Go
-        uses: actions/setup-go@v6
-        with:
-          go-version-file: go.mod
-          cache-dependency-path: go.sum
-
       - name: Install Raylib build dependencies
         run: >-
           sudo apt-get update && sudo apt-get install --yes
-          libgl1-mesa-dev libx11-dev libxkbcommon-dev libxcursor-dev
+          build-essential pkg-config libraylib-dev libgl1-mesa-dev libx11-dev libxkbcommon-dev libxcursor-dev
           libxi-dev libxinerama-dev libxrandr-dev
 
-      - name: Build release binary
-        run: make BUILD=release build
-
-      - name: Build Raylib release binary
-        run: make BUILD=release build-raylib
-
-      - name: Run quality checks
+      - name: Build and test native C implementation
         run: make check
+
+      - name: Build Raylib application
+        run: make build

@@ -2,9 +2,9 @@
 
 [![CI](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml/badge.svg)](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml)
 
-Alt-Tab is an interactive guitar-chord viewer with two interfaces: the default
-Bubble Tea terminal UI and an alternate Raylib desktop UI with chord playback.
-Both use the same compact chord catalog, navigation rules, and pitch model.
+Alt-Tab is an interactive Raylib desktop guitar-chord viewer. This branch is
+migrating the application from Go to native C; the C build is now the default
+and the legacy terminal UI is no longer part of its build path.
 
 Diagrams follow standard tablature orientation: high e is at the top, low E is
 at the bottom, and fret numbers increase from left to right. Compact mode shows
@@ -23,7 +23,7 @@ waveform and spectrum displays, and chord playback in one window.
 git clone https://github.com/jake-mckenzie/alt-tab.git
 cd alt-tab
 make
-./bin/alt-tab
+./bin/alt-tab-raylib
 ```
 
 `make run` combines the build and run steps:
@@ -32,43 +32,29 @@ make
 make run
 ```
 
-Build and launch the alternate Raylib interface:
-
-```bash
-make run-raylib
-```
-
-Before building or running, Make automatically checks for Go, a resolvable
-dependency graph, and valid dependency checksums.
-
-Neither interface accepts the command-line chord and display flags used by the
-former interface.
+The C implementation currently includes the chord catalog, navigation, compact
+fretboard, chord dial, waveform, and spectrum panels. The remaining Raylib
+features are being migrated incrementally.
 
 ## Requirements
 
 - macOS, Linux, or another Unix-like environment
-- Go 1.25 or newer
+- A C11 compiler
+- Raylib development files (including `raylib.pc` for `pkg-config`)
 - Make
 
-The Raylib interface additionally requires cgo and a working C compiler. macOS
-needs Xcode Command Line Tools; Linux needs OpenGL, X11, and xkbcommon development
-packages. The Raylib source is supplied by the Go module and is compiled into
-the graphical binary.
+macOS needs Xcode Command Line Tools and Raylib. Linux needs Raylib plus its
+OpenGL and X11 development dependencies.
 
 Confirm the required tools are available:
 
 ```bash
-go version
+cc --version
+pkg-config --modversion raylib
 make --version
 ```
 
 ## Building
-
-Run the dependency check by itself:
-
-```bash
-make check-deps
-```
 
 Build the development binary:
 
@@ -79,36 +65,14 @@ make
 The resulting executable is:
 
 ```text
-./bin/alt-tab
+./bin/alt-tab-raylib
 ```
 
-Build a smaller release binary with paths and debug symbols removed:
+Run the C catalog/controller tests:
 
 ```bash
-make BUILD=release
+make test
 ```
-
-Build the Raylib desktop binary:
-
-```bash
-make build-raylib
-```
-
-The graphical executable is written to `./bin/alt-tab-raylib`. Use
-`make BUILD=release build-raylib` for a stripped release build.
-
-You can also build directly with Go:
-
-```bash
-mkdir -p bin
-go build -o bin/alt-tab ./cmd/alt-tab
-```
-
-Missing Go dependencies listed in `go.mod` and `go.sum` are downloaded
-automatically, while cached dependencies work offline. Modules are resolved in
-read-only mode and verified against their recorded checksums. The check runs
-automatically before `make`, `make run`, and `make test`; Raylib targets also
-verify that cgo and the configured C compiler are available.
 
 ## Running
 
@@ -118,17 +82,7 @@ Build and launch:
 make run
 ```
 
-Launch an existing build:
-
-```bash
-./bin/alt-tab
-```
-
-Build and launch the graphical interface:
-
-```bash
-make run-raylib
-```
+Launch an existing build with `./bin/alt-tab-raylib`.
 
 ### Controls
 
