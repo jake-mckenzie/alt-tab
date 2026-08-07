@@ -10,69 +10,12 @@ Diagrams follow standard tablature orientation: high e is at the top, low E is
 at the bottom, and fret numbers increase from left to right. Compact mode shows
 the relevant neck position; full-neck mode shows frets 1–27.
 
-## TUI Preview
+## Raylib Preview
 
-The default layout appears as follows in a 100-column terminal. Terminal colors
-are omitted here; Alt-Tab adapts them to light and dark backgrounds.
+The Raylib desktop interface combines chord selection, an interactive fretboard,
+waveform and spectrum displays, and chord playback in one window.
 
-<!-- BEGIN VERIFIED TUI OUTPUT -->
-```text
-  ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
-  │                                           ALT-TAB                                            │
-  │                               Guitar Chord Viewer · Synthwave                                │
-  │                                                                                              │
-  │           KEYS ←→ Base ↑↓ Type v Voicing f Neck n Tab t Theme w Wave ? Help q Quit           │
-  ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
-
-  ╭──────────────────────────────────────────────────────────────────────────────────────────────╮
-  │                                          CHORD DIAL                                          │
-  │                                                                                              │
-  │                               BASE CHORDS  A  B  C  D  E  F  G                               │
-  │                                                                                              │
-  │                                                                                              │
-  │                                                                                              │
-  │                                         ╭──────────╮                                         │
-  │                                 G       │  ‹ A ›   │      B                                  │
-  │                                         │          │                                         │
-  │                                         │    Am    │                                         │
-  │                                         ╰──────────╯                                         │
-  ╰──────────────────────────────────────────────────────────────────────────────────────────────╯
-
-  ╭────────────────────────────╮  ╭──────────────────────────────────────────────────────────────╮
-  │       CHORD DIAGRAM        │  │                 WAVEFORM · AMPLITUDE / TIME                  │
-  │          COMPACT           │  │                                                              │
-  │                            │  │  +1.0 |  ⡀                                                |  │
-  │             A              │  │       | ⢰⠹⡀                                  ⡜⢣           |  │
-  │       VOICING 1 OF 3       │  │       | ⡇ ⢇                                 ⢠⠃⠘⡄          |  │
-  │                            │  │       |⢠⠃ ⢸                                 ⢸  ⢇          |  │
-  │                            │  │       |⢸  ⠈⡆                                ⡎  ⢸          |  │
-  │                            │  │       |⡜   ⢇              ⢀⠤⡀  ⡠⠊⠢⡀  ⡔⢢     ⡇  ⠈⡆  ⢀⡀     |  │
-  │                            │  │   0.0 +⠧⠤⠤⠤⠼⡤⠤⡴⠭⢦⠤⠤⠤⡤⠶⢦⠤⠤⡤⠧⠤⠬⠶⠮⠤⠤⠤⠵⠤⠼⠤⠤⡧⠤⠤⠤⢴⠥⠤⠤⠤⢧⠤⢤⠧⠬⡦⠤⠤⠤⡼+  │
-  │                            │  │       |     ⠱⠔⠁  ⢣ ⡰⠁  ⠑⠒⠁             ⢸   ⢸    ⠈⠦⠃  ⠘⡄ ⡜ |  │
-  │                            │  │       |           ⠉                    ⠈⡆  ⡜          ⠘⠒⠁ |  │
-  │       1    2    3    4     │  │       |                                 ⢇  ⡇              |  │
-  │     ────────────────────   │  │       |                                 ⠸⡀⢰⠁              |  │
-  │ e  O--------------------|  │  │       |                                  ⢇⡜               |  │
-  │ B  |-------3------------|  │  │  -1.0 |                                  ⠈                |  │
-  │ G  |-------2------------|  │  │        0 ms                                           25 ms  │
-  │ D  |-------1------------|  │  ╰──────────────────────────────────────────────────────────────╯
-  │ A  O--------------------|  │
-  │ E  X--------------------|  │  ╭──────────────────────────────────────────────────────────────╮
-  │                            │  │                      FREQUENCY SPECTRUM                      │
-  │                            │  │                                                              │
-  │                            │  │  1.0 |█                 █             █         █       █|   │
-  │                            │  │      |█                 █             █         █       █|   │
-  │                            │  │  0.5 |█                 █             █         █       █|   │
-  │                            │  │      |█                 █             █         █       █|   │
-  │                            │  │      |█                 █             █         █       █|   │
-  │                            │  │  0.0 +┼─────────────────┼─────────────┼─────────┼───────┼+   │
-  │ Fingers: 1 index  2 middle │  │        A2               E3            A3        C#4     E4   │
-  │          3 ring   4 little │  │        110 Hz                                       330 Hz   │
-  │                            │  │                                                              │
-  │ Symbols: O open  X muted   │  │                  Notes: E4  C#4  A3  E3  A2                  │
-  ╰────────────────────────────╯  ╰──────────────────────────────────────────────────────────────╯
-```
-<!-- END VERIFIED TUI OUTPUT -->
+![Alt-Tab Raylib desktop interface](docs/images/raylib-desktop-preview.png)
 
 ## Quick Start
 
