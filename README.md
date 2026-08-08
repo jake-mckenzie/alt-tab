@@ -3,7 +3,7 @@
 [![CI](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml/badge.svg)](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml)
 
 Alt-Tab is an interactive guitar-chord viewer for the terminal. Its responsive
-Bubble Tea interface displays explicit open chords and generated movable
+Bubble Tea interface (migrating to raylib UI) displays explicit open chords and generated movable
 voicings from a compact, pure-Go catalog.
 
 Diagrams follow standard tablature orientation: high e is at the top, low E is
