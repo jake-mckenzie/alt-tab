@@ -23,7 +23,7 @@ const (
 	windowHeight              = 900
 	minimumWindowWidth        = 960
 	minimumWindowHeight       = 800
-	panelGap                  = 12
+	panelGap                  = 10
 	panelPadding              = 18
 	diagramLeftPadding        = 88
 	diagramRightPadding       = 28
@@ -35,7 +35,7 @@ const (
 	spectrumBottomPad         = 62
 	bodyTextSpacing           = 1.7
 	audioSampleRate           = 44100
-	audioBufferFrames         = 2048
+	audioBufferFrames         = 1024
 	waveformSeconds           = 0.025
 	fullNeckLastFret          = 27
 	idleFrameRate       int32 = 30
@@ -394,16 +394,16 @@ func (gui *viewer) drawHeader(bounds rl.Rectangle, theme palette) {
 	rl.DrawCircleV(rl.Vector2{X: bounds.X + 17, Y: bounds.Y + 27}, 4, theme.secondary)
 	drawTextSpaced("ALT-TAB", bounds.X+38, bounds.Y+5, 42, 3.5, theme.accent)
 	drawText("RAYLIB CHORD VIEWER - "+strings.ToUpper(theme.name),
-		bounds.X+38, bounds.Y+54, 17, theme.muted)
+		bounds.X+38, bounds.Y+54, 22, theme.muted)
 	controls := "←/→ CHORD  ↑/↓ TYPE  V VOICING  F NECK  N TAB  T THEME  SPACE PLAY  F1 HELP  Q QUIT"
-	size := measureText(controls, 17)
+	size := measureText(controls, 22)
 	controlWell := rl.Rectangle{
 		X: bounds.X + bounds.Width - panelPadding - size.X - 10,
 		Y: bounds.Y + 13, Width: size.X + 20, Height: 30,
 	}
 	rl.DrawRectangleRounded(controlWell, 0.35, 8, rl.Fade(theme.accent, 0.18))
 	drawText(controls, bounds.X+bounds.Width-panelPadding-size.X,
-		bounds.Y+17, 17, theme.text)
+		bounds.Y+16, 22, theme.text)
 }
 
 // drawDial renders clickable base chords and the current family variants.
@@ -416,7 +416,7 @@ func (gui *viewer) drawDial(bounds rl.Rectangle, theme palette) {
 			color = theme.accent
 			rl.DrawRectangleRounded(cell, 0.35, 8, rl.Fade(theme.accent, 0.12))
 		}
-		drawCenteredText(gui.families[index].Base, cell, 24, color)
+		drawCenteredText(gui.families[index].Base, cell, 32, color)
 	}
 
 	if len(gui.families) == 0 {
@@ -430,16 +430,16 @@ func (gui *viewer) drawDial(bounds rl.Rectangle, theme palette) {
 		Height: 24,
 	}
 	current := gui.controller.Name()
-	drawCenteredText("<  "+current+"  >", center, 27, theme.text)
+	drawCenteredText("<  "+current+"  >", center, 36, theme.text)
 	if family.Accidental != "" {
 		drawCenteredText(family.Accidental, rl.Rectangle{
 			X: center.X, Y: center.Y - 22, Width: center.Width, Height: 18,
-		}, 20, theme.secondary)
+		}, 21, theme.secondary)
 	}
 	if family.Minor != "" {
 		drawCenteredText(family.Minor, rl.Rectangle{
 			X: center.X, Y: center.Y + center.Height, Width: center.Width, Height: 18,
-		}, 20, theme.secondary)
+		}, 21, theme.secondary)
 	}
 }
 
@@ -790,7 +790,7 @@ func drawPanel(bounds rl.Rectangle, theme palette) {
 // drawSectionTitle positions one concise label at a panel's upper-left edge.
 func drawSectionTitle(bounds rl.Rectangle, title string, theme palette) {
 	const (
-		titleSize    = 24
+		titleSize    = 28
 		titleSpacing = 2.5
 	)
 	drawTextSpaced(title, bounds.X+panelPadding, bounds.Y+8,
