@@ -137,6 +137,17 @@ func (controller *Controller) MoveChord(delta int) {
 	controller.load()
 }
 
+// MoveChord rotates the natural-chord dial and resets its voicing.
+func (controller *Controller) SetChord(index int) {
+	if len(controller.families) == 0 {
+		return
+	}
+	controller.selected = Wrap(index, len(controller.families))
+	controller.kind = Base
+	controller.voicingNumber = 1
+	controller.load()
+}
+
 // MoveKind selects an available accidental or minor chord.
 func (controller *Controller) MoveKind(delta int) {
 	if len(controller.families) == 0 {

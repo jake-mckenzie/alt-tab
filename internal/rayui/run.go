@@ -332,6 +332,76 @@ func (gui *viewer) update(layout screenLayout) {
 	if rl.IsKeyPressed(rl.KeySpace) || rl.IsKeyPressed(rl.KeyP) {
 		gui.audio.toggle()
 	}
+	if rl.IsKeyPressed(rl.KeyA) {
+		if gui.audio.active {
+			gui.controller.SetChord(0)
+			selectionChanged = true
+		} else {
+			gui.audio.toggle()
+			gui.controller.SetChord(0)
+			selectionChanged = true
+		}
+	}
+	if rl.IsKeyPressed(rl.KeyB) {
+		if gui.audio.active {
+			gui.controller.SetChord(1)
+			selectionChanged = true
+		} else {
+			gui.audio.toggle()
+			gui.controller.SetChord(1)
+			selectionChanged = true
+		}
+	}
+	if rl.IsKeyPressed(rl.KeyC) {
+		if gui.audio.active {
+			gui.controller.SetChord(2)
+			selectionChanged = true
+		} else {
+			gui.audio.toggle()
+			gui.controller.SetChord(2)
+			selectionChanged = true
+		}
+	}
+	if rl.IsKeyPressed(rl.KeyD) {
+		if gui.audio.active {
+			gui.controller.SetChord(3)
+			selectionChanged = true
+		} else {
+			gui.audio.toggle()
+			gui.controller.SetChord(3)
+			selectionChanged = true
+		}
+	}
+	if rl.IsKeyPressed(rl.KeyE) {
+		if gui.audio.active {
+			gui.controller.SetChord(4)
+			selectionChanged = true
+		} else {
+			gui.audio.toggle()
+			gui.controller.SetChord(4)
+			selectionChanged = true
+		}
+	}
+	if rl.IsKeyPressed(rl.KeyF) {
+		if gui.audio.active {
+			gui.controller.SetChord(5)
+			selectionChanged = true
+		} else {
+			gui.audio.toggle()
+			gui.controller.SetChord(5)
+			selectionChanged = true
+		}
+	}
+	if rl.IsKeyPressed(rl.KeyG) {
+		if gui.audio.active {
+			gui.controller.SetChord(6)
+			selectionChanged = true
+		} else {
+			gui.audio.toggle()
+			gui.controller.SetChord(6)
+			selectionChanged = true
+		}
+	}
 	if rl.IsKeyPressed(rl.KeySlash) || rl.IsKeyPressed(rl.KeyF1) {
 		gui.help = !gui.help
 	}
