@@ -1,4 +1,4 @@
-# Alt-Tab
+# alt-tab
 
 [![CI](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml/badge.svg)](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml)
 
