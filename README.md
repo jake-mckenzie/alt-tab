@@ -10,8 +10,6 @@ This is the `raylib` branch. The original terminal version is on `master`.
 
 ![Alt-Tab Raylib desktop interface](docs/images/raylib-desktop-preview.png)
 
-*The screenshot uses the old neck shortcut; it’s now `x`.*
-
 ## Run it
 
 You’ll need Go 1.25+, Make, and a C compiler with cgo enabled. On Linux, install
