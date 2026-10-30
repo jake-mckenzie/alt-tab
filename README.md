@@ -4,7 +4,7 @@
 
 A guitar chord viewer built with Go and Raylib. Browse chord shapes, hear them
 played back, and see their waveforms and frequency spectra. Starts in CRT Amber;
-press `t` to change themes.
+press `t` once for Neon Dark: near-black, neon green, cyan, and purple accents.
 
 This is the `raylib` branch. The original terminal version is on `master`.
 [Branch notes](docs/branches.md).
@@ -31,7 +31,6 @@ For the terminal interface included in this branch, use `make run`.
 | --- | --- |
 | `←` / `h`, `→` / `l` | Previous / next chord |
 | `↑` / `k`, `↓` / `j` | Move between available accidental, major, and minor chords |
-| `v` | Next voicing |
 | `1`–`9` (also numpad) | Select a voicing; unavailable numbers do nothing |
 | `x` | Toggle compact / full-neck view |
 | `n` | Toggle finger numbers / fret numbers |
@@ -41,7 +40,7 @@ For the terminal interface included in this branch, use `make run`.
 | `F1` / `?` | Toggle help |
 | `q` / `Esc` | Quit (`Esc` closes help first) |
 
-In the terminal interface, use `?` for help, `w` to toggle the waveform, and
+In the terminal interface, use `v` to cycle voicings, `?` for help, `w` to toggle the waveform, and
 `q` or `Ctrl+C` to quit. The mouse wheel scrolls; `Esc` closes help.
 
 ## Chords

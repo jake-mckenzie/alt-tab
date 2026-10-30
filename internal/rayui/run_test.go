@@ -13,7 +13,7 @@ import (
 // TestPalettesMatchApprovedSet keeps the runtime cycle aligned with documentation.
 func TestPalettesMatchApprovedSet(t *testing.T) {
 	want := []string{
-		"CRT Amber", "Super Famicom", "Atomic Grape", "Paper Terminal", "Glacier Circuit",
+		"CRT Amber", "Neon Dark", "Super Famicom", "Atomic Grape", "Paper Terminal", "Glacier Circuit",
 		"Haunted Cartridge", "Oxide Industrial", "Cassette Future",
 		"Royal Terminal", "Sakura Console",
 	}

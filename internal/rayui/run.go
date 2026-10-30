@@ -74,6 +74,13 @@ var palettes = [...]palette{
 		signal: rl.NewColor(255, 225, 161, 255),
 	},
 	{
+		name: "Neon Dark", background: rl.NewColor(7, 8, 9, 255),
+		panel: rl.NewColor(14, 16, 18, 255), border: rl.NewColor(152, 99, 217, 255),
+		text: rl.NewColor(234, 245, 239, 255), muted: rl.NewColor(145, 166, 154, 255),
+		accent: rl.NewColor(57, 255, 136, 255), secondary: rl.NewColor(152, 99, 217, 255),
+		signal: rl.NewColor(131, 255, 232, 255),
+	},
+	{
 		name: "Super Famicom", background: rl.NewColor(201, 197, 189, 255),
 		panel: rl.NewColor(41, 37, 48, 255), border: rl.NewColor(98, 90, 112, 255),
 		text: rl.NewColor(244, 240, 233, 255), muted: rl.NewColor(183, 173, 185, 255),
@@ -310,10 +317,6 @@ func (gui *viewer) update(layout screenLayout) {
 		gui.controller.MoveKind(1)
 		selectionChanged = selectionChanged || before != gui.controller.Name()
 	}
-	if rl.IsKeyPressed(rl.KeyV) {
-		gui.controller.CycleVoicing()
-		selectionChanged = true
-	}
 	if rl.IsKeyPressed(rl.KeyX) {
 		gui.fullNeck = !gui.fullNeck
 		if gui.fullNeck {
@@ -472,7 +475,7 @@ func (gui *viewer) drawHeader(bounds rl.Rectangle, theme palette) {
 	drawTextSpaced("ALT-TAB", bounds.X+38, bounds.Y+5, 42, 3.5, theme.accent)
 	drawText("RAYLIB CHORD VIEWER - "+strings.ToUpper(theme.name),
 		bounds.X+38, bounds.Y+54, 22, theme.muted)
-	controls := "←/→ CHORD  ↑/↓ TYPE  V/1–9 VOICING  X NECK  N TAB  T THEME  SPACE PLAY  F1 HELP  Q QUIT"
+	controls := "←/→ CHORD  ↑/↓ TYPE  1-9 VOICING  X NECK  N TAB  T THEME  SPACE PLAY  F1 HELP  Q QUIT"
 	size := measureText(controls, 22)
 	controlWell := rl.Rectangle{
 		X: bounds.X + bounds.Width - panelPadding - size.X - 10,
@@ -835,7 +838,7 @@ func (gui *viewer) drawHelp(theme palette) {
 	lines := []string{
 		"← / H    Previous chord", "→ / L    Next chord",
 		"↑ / K    Accidental or base", "↓ / J    Minor or base",
-		"V / 1–9  Next / select voicing", "X        Compact / full neck",
+		"1-9      Select voicing", "X        Compact / full neck",
 		"N        Finger / tab numbers", "T        Cycle theme",
 		"SPACE    Play / stop chord", "F1 / ?   Close this help",
 		"Q / Esc  Quit",
