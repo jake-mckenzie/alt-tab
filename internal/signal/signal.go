@@ -32,7 +32,7 @@ func Notes(voicing chords.Voicing) []Note {
 			continue
 		}
 		midi := StandardTuningMIDI[index] + placement.Fret
-		notes = append(notes, Note{
+		notes = append( notes, Note{
 			Name:      fmt.Sprintf("%s%d", noteNames[wrap(midi, len(noteNames))], midi/12-1),
 			Frequency: MIDIFrequency(midi),
 			MIDI:      midi,
@@ -42,20 +42,20 @@ func Notes(voicing chords.Voicing) []Note {
 }
 
 // MIDIFrequency converts a MIDI note to equal temperament at A4=440 Hz.
-func MIDIFrequency(midi int) float64 {
-	return 440 * math.Pow(2, float64(midi-69)/12)
+func MIDIFrequency( midi int ) float64 {
+	return 440 * math.Pow( 2, float64( midi-69 )/12 )
 }
 
 // CompositeSample averages ideal equal-amplitude sine waves at one time.
-func CompositeSample(seconds float64, notes []Note) float64 {
-	if len(notes) == 0 {
+func CompositeSample( seconds float64, notes []Note ) float64 {
+	if len( notes ) == 0 {
 		return 0
 	}
 	var sample float64
 	for _, note := range notes {
-		sample += math.Sin(2 * math.Pi * note.Frequency * seconds)
+		sample += math.Sin( 2 * math.Pi * note.Frequency * seconds )
 	}
-	return sample / float64(len(notes))
+	return sample / float64( len( notes ) )
 }
 
 // wrap confines a pitch-class index to its non-empty name table.

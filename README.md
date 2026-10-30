@@ -35,7 +35,7 @@ For the terminal interface included in this branch, use `make run`.
 | `x` | Toggle compact / full-neck view |
 | `n` | Toggle finger numbers / fret numbers |
 | `t` | Next theme |
-| `a`–`g` | Select and play a chord |
+| `a`–`g` | Hold to select and play a chord; release to stop |
 | `Space` / `p` | Play / stop |
 | `F1` / `?` | Toggle help |
 | `q` / `Esc` | Quit (`Esc` closes help first) |

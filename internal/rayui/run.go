@@ -163,6 +163,7 @@ type viewer struct {
 	help       bool
 	theme      int
 	quit       bool
+	chordHeld  bool
 	audio      audioPlayer
 	signal     signalRenderCache
 }
@@ -335,76 +336,26 @@ func (gui *viewer) update(layout screenLayout) {
 	if rl.IsKeyPressed(rl.KeySpace) || rl.IsKeyPressed(rl.KeyP) {
 		gui.audio.toggle()
 	}
-	if rl.IsKeyPressed(rl.KeyA) {
-		if gui.audio.active {
-			gui.controller.SetChord(0)
-			selectionChanged = true
-		} else {
-			gui.audio.toggle()
-			gui.controller.SetChord(0)
-			selectionChanged = true
+	// Poll held keys each frame, but only reload a chord when it changes.
+	// If several keys are held, the last one in A–G order takes priority.
+	heldChord := -1
+	if rl.IsWindowFocused() {
+		for index, key := range []int32{rl.KeyA, rl.KeyB, rl.KeyC, rl.KeyD, rl.KeyE, rl.KeyF, rl.KeyG} {
+			if rl.IsKeyDown(key) {
+				heldChord = index
+			}
 		}
 	}
-	if rl.IsKeyPressed(rl.KeyB) {
-		if gui.audio.active {
-			gui.controller.SetChord(1)
-			selectionChanged = true
-		} else {
-			gui.audio.toggle()
-			gui.controller.SetChord(1)
+	if heldChord >= 0 {
+		if !gui.chordHeld || gui.controller.SelectedIndex() != heldChord {
+			gui.controller.SetChord(heldChord)
 			selectionChanged = true
 		}
+		gui.audio.setActive(true)
+	} else if gui.chordHeld {
+		gui.audio.setActive(false)
 	}
-	if rl.IsKeyPressed(rl.KeyC) {
-		if gui.audio.active {
-			gui.controller.SetChord(2)
-			selectionChanged = true
-		} else {
-			gui.audio.toggle()
-			gui.controller.SetChord(2)
-			selectionChanged = true
-		}
-	}
-	if rl.IsKeyPressed(rl.KeyD) {
-		if gui.audio.active {
-			gui.controller.SetChord(3)
-			selectionChanged = true
-		} else {
-			gui.audio.toggle()
-			gui.controller.SetChord(3)
-			selectionChanged = true
-		}
-	}
-	if rl.IsKeyPressed(rl.KeyE) {
-		if gui.audio.active {
-			gui.controller.SetChord(4)
-			selectionChanged = true
-		} else {
-			gui.audio.toggle()
-			gui.controller.SetChord(4)
-			selectionChanged = true
-		}
-	}
-	if rl.IsKeyPressed(rl.KeyF) {
-		if gui.audio.active {
-			gui.controller.SetChord(5)
-			selectionChanged = true
-		} else {
-			gui.audio.toggle()
-			gui.controller.SetChord(5)
-			selectionChanged = true
-		}
-	}
-	if rl.IsKeyPressed(rl.KeyG) {
-		if gui.audio.active {
-			gui.controller.SetChord(6)
-			selectionChanged = true
-		} else {
-			gui.audio.toggle()
-			gui.controller.SetChord(6)
-			selectionChanged = true
-		}
-	}
+	gui.chordHeld = heldChord >= 0
 	if rl.IsKeyPressed(rl.KeySlash) || rl.IsKeyPressed(rl.KeyF1) {
 		gui.help = !gui.help
 	}
@@ -1003,10 +954,15 @@ func (player *audioPlayer) setVoicing(voicing chords.Voicing) {
 
 // toggle fades synthesized playback in or out to avoid clicks.
 func (player *audioPlayer) toggle() {
-	if !player.ready {
+	player.setActive(!player.active)
+}
+
+// setActive fades playback toward the requested state once per transition.
+func (player *audioPlayer) setActive(active bool) {
+	if !player.ready || player.active == active {
 		return
 	}
-	player.active = !player.active
+	player.active = active
 	player.targetGain = 0
 	if player.active {
 		player.targetGain = 0.28
