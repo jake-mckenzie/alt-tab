@@ -126,25 +126,23 @@ func (controller *Controller) Name() string {
 	}
 }
 
-// MoveChord rotates the natural-chord dial and resets its voicing.
+// MoveChord rotates the natural-chord dial, retaining an available voicing.
 func (controller *Controller) MoveChord(delta int) {
 	if len(controller.families) == 0 {
 		return
 	}
 	controller.selected = Wrap(controller.selected+delta, len(controller.families))
 	controller.kind = Base
-	controller.voicingNumber = 1
 	controller.load()
 }
 
-// MoveChord rotates the natural-chord dial and resets its voicing.
+// SetChord selects a natural chord, retaining an available voicing.
 func (controller *Controller) SetChord(index int) {
 	if len(controller.families) == 0 {
 		return
 	}
 	controller.selected = Wrap(index, len(controller.families))
 	controller.kind = Base
-	controller.voicingNumber = 1
 	controller.load()
 }
 
@@ -172,7 +170,6 @@ func (controller *Controller) MoveKind(delta int) {
 		return
 	}
 	controller.kind = next
-	controller.voicingNumber = 1
 	controller.load()
 }
 
@@ -191,6 +188,9 @@ func (controller *Controller) load() {
 	if len(controller.families) == 0 {
 		controller.err = errors.New("no chords are available")
 		return
+	}
+	if controller.voicingNumber > controller.VoicingCount() {
+		controller.voicingNumber = 1
 	}
 	controller.voicing, controller.err = controller.catalog.Load(
 		controller.Name(),

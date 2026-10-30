@@ -51,6 +51,7 @@ Three voicings each for **A, Am, B, Bb, C, Cm, D, Dm, E, Em, F, F#, G, and Gm**.
 Diagrams put high e at the top and low E at the bottom. `O` means open, `X`
 means muted, and finger numbers run from 1 (index) to 4 (little finger).
 Full-neck view shows frets 1–27; fret-number view uses the compact layout.
+Changing chords keeps your voicing number, or returns to 1 if it isn’t available.
 
 ## Development
 
