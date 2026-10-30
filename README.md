@@ -3,12 +3,15 @@
 [![CI](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml/badge.svg)](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml)
 
 Alt-Tab is an interactive guitar-chord viewer for the terminal. Its responsive
-Bubble Tea interface (migrating to raylib UI) displays explicit open chords and generated movable
+Bubble Tea interface displays explicit open chords and generated movable
 voicings from a compact, pure-Go catalog.
 
 Diagrams follow standard tablature orientation: high e is at the top, low E is
 at the bottom, and fret numbers increase from left to right. Compact mode shows
 the relevant neck position; full-neck mode shows frets 1–27.
+
+This is the original Go/TUI branch. The desktop version lives on `raylib`.
+See [branch history and implementation differences](docs/branches.md).
 
 ## TUI Preview
 
