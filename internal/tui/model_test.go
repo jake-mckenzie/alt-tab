@@ -506,12 +506,12 @@ func TestUnavailableChordKindsDoNothing(t *testing.T) {
 // TestDiagramModesAndHelpToggle checks mutually exclusive diagram modes.
 func TestDiagramModesAndHelpToggle(t *testing.T) {
 	model := New(fakeCatalog{})
-	updated, _ := model.Update(tea.KeyPressMsg{Code: 'f', Text: "f"})
+	updated, _ := model.Update(tea.KeyPressMsg{Code: 'x', Text: "x"})
 	model = updated.(Model)
 	if !model.fullNeck ||
 		!strings.Contains(model.View().Content, " 1  2  3  4  5  6  7  8  9") ||
 		!strings.Contains(model.View().Content, " 25 26 27") {
-		t.Fatal("f did not enable the full-neck view")
+		t.Fatal("x did not enable the full-neck view")
 	}
 
 	updated, _ = model.Update(tea.KeyPressMsg{Code: 'n', Text: "n"})
@@ -525,7 +525,7 @@ func TestDiagramModesAndHelpToggle(t *testing.T) {
 		t.Fatal("n did not enable the fret-number tab view")
 	}
 
-	updated, _ = model.Update(tea.KeyPressMsg{Code: 'f', Text: "f"})
+	updated, _ = model.Update(tea.KeyPressMsg{Code: 'x', Text: "x"})
 	model = updated.(Model)
 	if !model.fullNeck || model.tabNotation {
 		t.Fatal("full-neck mode did not replace tab-number mode")

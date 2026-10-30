@@ -256,7 +256,7 @@ func (model Model) renderControls() string {
 		{"←→", "Base"},
 		{"↑↓", "Type"},
 		{"v", "Voicing"},
-		{"f", "Neck"},
+		{"x", "Neck"},
 		{"n", "Tab"},
 		{"t", "Theme"},
 		{"w", "Wave"},
@@ -389,7 +389,7 @@ func (model Model) renderHelp() string {
 		"↑ / k     Accidental chord or return to base\n" +
 		"↓ / j     Minor chord or return to base\n" +
 		"v         Next voicing\n" +
-		"f         Toggle compact/full neck\n" +
+		"x         Toggle compact/full neck\n" +
 		"n         Toggle fingered fretboard/tab numbers\n" +
 		"t         Cycle color theme\n" +
 		"w         Toggle detailed waveform\n" +

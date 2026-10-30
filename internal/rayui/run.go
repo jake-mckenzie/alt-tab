@@ -314,7 +314,7 @@ func (gui *viewer) update(layout screenLayout) {
 		gui.controller.CycleVoicing()
 		selectionChanged = true
 	}
-	if rl.IsKeyPressed(rl.KeyF) {
+	if rl.IsKeyPressed(rl.KeyX) {
 		gui.fullNeck = !gui.fullNeck
 		if gui.fullNeck {
 			gui.tabNumbers = false
@@ -465,7 +465,7 @@ func (gui *viewer) drawHeader(bounds rl.Rectangle, theme palette) {
 	drawTextSpaced("ALT-TAB", bounds.X+38, bounds.Y+5, 42, 3.5, theme.accent)
 	drawText("RAYLIB CHORD VIEWER - "+strings.ToUpper(theme.name),
 		bounds.X+38, bounds.Y+54, 22, theme.muted)
-	controls := "←/→ CHORD  ↑/↓ TYPE  V VOICING  F NECK  N TAB  T THEME  SPACE PLAY  F1 HELP  Q QUIT"
+	controls := "←/→ CHORD  ↑/↓ TYPE  V VOICING  X NECK  N TAB  T THEME  SPACE PLAY  F1 HELP  Q QUIT"
 	size := measureText(controls, 22)
 	controlWell := rl.Rectangle{
 		X: bounds.X + bounds.Width - panelPadding - size.X - 10,
@@ -828,7 +828,7 @@ func (gui *viewer) drawHelp(theme palette) {
 	lines := []string{
 		"← / H    Previous chord", "→ / L    Next chord",
 		"↑ / K    Accidental or base", "↓ / J    Minor or base",
-		"V        Next voicing", "F        Compact / full neck",
+		"V        Next voicing", "X        Compact / full neck",
 		"N        Finger / tab numbers", "T        Cycle theme",
 		"SPACE    Play / stop chord", "F1 / ?   Close this help",
 		"Q / Esc  Quit",

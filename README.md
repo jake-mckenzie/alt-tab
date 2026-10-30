@@ -21,6 +21,8 @@ waveform and spectrum displays, and chord playback in one window.
 
 ![Alt-Tab Raylib desktop interface](docs/images/raylib-desktop-preview.png)
 
+The preview predates the shortcut update: use `x` for the neck toggle shown as `F` in the image.
+
 ## Quick Start
 
 ```bash
@@ -143,7 +145,7 @@ make run-raylib
 | `↑` / `k` | Select an available accidental, or return from minor to base |
 | `↓` / `j` | Select an available minor, or return from accidental to base |
 | `v` | Cycle through voicings of the selected chord |
-| `f` | Toggle compact or full-neck view |
+| `x` | Toggle compact or full-neck view |
 | `n` | Toggle the fingered fretboard or fret-number tab view |
 | `t` | Cycle color theme |
 | `w` | Toggle high-resolution note waveform |
@@ -161,7 +163,7 @@ make run-raylib
 | `↑` / `k` | Select an available accidental, or return to base |
 | `↓` / `j` | Select an available minor, or return to base |
 | `v` | Cycle voicings |
-| `f` | Toggle compact or full-neck view |
+| `x` | Toggle compact or full-neck view |
 | `n` | Toggle finger or fret-number labels |
 | `t` | Cycle color theme |
 | `Space` / `p` | Start or stop synthesized chord playback |
