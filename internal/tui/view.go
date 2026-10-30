@@ -364,7 +364,7 @@ func (model Model) renderWaveformSection(width int) string {
 		return heading + "\n\n" + model.styles.err.Render(model.err.Error())
 	}
 
-	return heading + "\n\n" + model.styles.accent.Render(
+	return heading + "\n\n" + model.styles.signal.Render(
 		renderWaveform(width, model.voicing),
 	)
 }
@@ -376,7 +376,7 @@ func (model Model) renderSpectrumSection(width int) string {
 		return heading + "\n\n" + model.styles.err.Render(model.err.Error())
 	}
 
-	return heading + "\n\n" + model.styles.accent.Render(
+	return heading + "\n\n" + model.styles.signal.Render(
 		renderSpectrum(width, model.voicing),
 	)
 }

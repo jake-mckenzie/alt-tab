@@ -4,7 +4,8 @@
 
 A terminal guitar chord viewer built with Go and Bubble Tea. Browse chord
 shapes and see the notes that make them up, with waveform and spectrum views.
-Starts in Ember; press `t` to change themes.
+Starts in Ember; press `t` once for Neon Dark: near-black, neon green, cyan,
+and purple accents.
 
 This is the `master` branch. For the desktop version with audio playback, use
 `raylib`. [Branch notes](docs/branches.md).

@@ -188,6 +188,9 @@ func (model Model) currentChordName() string {
 // View renders the application in a resize-safe, scrollable full-screen buffer.
 func (model Model) View() tea.View {
 	view := tea.NewView(model.renderViewport())
+	if background := paletteAt(model.theme).background; background != "" {
+		view.BackgroundColor = lipgloss.Color(background)
+	}
 	view.WindowTitle = "Alt-Tab"
 	view.AltScreen = true
 	view.MouseMode = tea.MouseModeCellMotion

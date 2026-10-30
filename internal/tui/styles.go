@@ -14,13 +14,16 @@ type colorPair struct {
 
 // palette defines every color needed to render one complete theme.
 type palette struct {
-	name       string
-	accent     colorPair
-	text       colorPair
-	muted      colorPair
-	border     colorPair
-	selection  colorPair
-	errorColor colorPair
+	background  string
+	panelColor  string
+	signalColor string
+	name        string
+	accent      colorPair
+	text        colorPair
+	muted       colorPair
+	border      colorPair
+	selection   colorPair
+	errorColor  colorPair
 }
 
 // palettes are in cycling order, with the startup default first.
@@ -33,6 +36,16 @@ var palettes = []palette{
 		border:     colorPair{light: "#D97706", dark: "#FBBF24"},
 		selection:  colorPair{light: "#FFEDD5", dark: "#4A2615"},
 		errorColor: colorPair{light: "#B91C1C", dark: "#FF6B6B"},
+	},
+	{
+		name:       "Neon Dark",
+		background: "#070809", panelColor: "#0E1012", signalColor: "#83FFE8",
+		accent:     colorPair{light: "#39FF88", dark: "#39FF88"},
+		text:       colorPair{light: "#EAF5EF", dark: "#EAF5EF"},
+		muted:      colorPair{light: "#91A69A", dark: "#91A69A"},
+		border:     colorPair{light: "#9863D9", dark: "#9863D9"},
+		selection:  colorPair{light: "#151A18", dark: "#151A18"},
+		errorColor: colorPair{light: "#FF6B81", dark: "#FF6B81"},
 	},
 	{
 		name:       "Evergreen",
@@ -78,6 +91,7 @@ func paletteAt(index int) palette {
 
 // styles groups the palette-dependent presentation rules used by each view.
 type styles struct {
+	signal   lipgloss.Style
 	title    lipgloss.Style
 	subtitle lipgloss.Style
 	panel    lipgloss.Style
@@ -98,7 +112,7 @@ func newStyles(dark bool, themeIndex int) styles {
 	border := palette.border.color(dark)
 	selection := palette.selection.color(dark)
 
-	return styles{
+	result := styles{
 		title: lipgloss.NewStyle().
 			Bold(true).
 			Foreground(accent),
@@ -126,4 +140,14 @@ func newStyles(dark bool, themeIndex int) styles {
 			Bold(true).
 			Foreground(palette.errorColor.color(dark)),
 	}
+	result.signal = result.accent
+	if palette.signalColor != "" {
+		result.signal = lipgloss.NewStyle().Foreground(lipgloss.Color(palette.signalColor))
+	}
+	if palette.panelColor != "" {
+		result.panel = result.panel.Background(lipgloss.Color(palette.panelColor)).
+			BorderBackground(lipgloss.Color(palette.background))
+		result.heading = result.heading.Foreground(accent)
+	}
+	return result
 }
