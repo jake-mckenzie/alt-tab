@@ -121,7 +121,7 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			model.moveChord(1)
 		case "v":
 			model.cycleVoicing()
-		case "f":
+		case "x":
 			model.fullNeck = !model.fullNeck
 			if model.fullNeck {
 				model.tabNotation = false

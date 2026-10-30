@@ -27,8 +27,8 @@ only draws fretted notes at frets 1–4, omitting higher positions. Several cont
 advertised by its README and window are not implemented. Merging the C branch
 would replace the Go build/CI without delivering feature parity.
 
-The latest Go shortcuts also bind F to both F-chord playback and full-neck
-view. This existing conflict remains a follow-up issue.
+Both maintained branches use X to toggle compact/full-neck view. In the
+Raylib interface, F selects and plays the F chord without changing the view.
 
 ## Preserving the C experiment
 

@@ -24,7 +24,7 @@ are omitted here; Alt-Tab adapts them to light and dark backgrounds.
   │                                 ALT-TAB                                  │
   │                     Guitar Chord Viewer · Synthwave                      │
   │                                                                          │
-  │ KEYS ←→ Base ↑↓ Type v Voicing f Neck n Tab t Theme w Wave ? Help q Quit │
+  │ KEYS ←→ Base ↑↓ Type v Voicing x Neck n Tab t Theme w Wave ? Help q Quit │
   ╰──────────────────────────────────────────────────────────────────────────╯
 
   ╭──────────────────────────────────────────────────────────────────────────╮
@@ -172,7 +172,7 @@ Launch an existing build:
 | `↑` / `k` | Select an available accidental, or return from minor to base |
 | `↓` / `j` | Select an available minor, or return from accidental to base |
 | `v` | Cycle through voicings of the selected chord |
-| `f` | Toggle compact or full-neck view |
+| `x` | Toggle compact or full-neck view |
 | `n` | Toggle the fingered fretboard or fret-number tab view |
 | `t` | Cycle color theme |
 | `w` | Toggle high-resolution note waveform |
