@@ -64,8 +64,15 @@ type palette struct {
 	signal     rl.Color
 }
 
-// palettes contains the approved graphical themes in runtime cycling order.
+// palettes contains themes in cycling order, with the startup default first.
 var palettes = [...]palette{
+	{
+		name: "CRT Amber", background: rl.NewColor(53, 44, 36, 255),
+		panel: rl.NewColor(16, 14, 11, 255), border: rl.NewColor(106, 81, 52, 255),
+		text: rl.NewColor(255, 217, 138, 255), muted: rl.NewColor(169, 131, 76, 255),
+		accent: rl.NewColor(255, 181, 47, 255), secondary: rl.NewColor(239, 111, 46, 255),
+		signal: rl.NewColor(255, 225, 161, 255),
+	},
 	{
 		name: "Super Famicom", background: rl.NewColor(201, 197, 189, 255),
 		panel: rl.NewColor(41, 37, 48, 255), border: rl.NewColor(98, 90, 112, 255),
@@ -128,13 +135,6 @@ var palettes = [...]palette{
 		text: rl.NewColor(255, 245, 241, 255), muted: rl.NewColor(216, 185, 197, 255),
 		accent: rl.NewColor(240, 144, 186, 255), secondary: rl.NewColor(159, 103, 192, 255),
 		signal: rl.NewColor(255, 199, 217, 255),
-	},
-	{
-		name: "CRT Amber", background: rl.NewColor(53, 44, 36, 255),
-		panel: rl.NewColor(16, 14, 11, 255), border: rl.NewColor(106, 81, 52, 255),
-		text: rl.NewColor(255, 217, 138, 255), muted: rl.NewColor(169, 131, 76, 255),
-		accent: rl.NewColor(255, 181, 47, 255), secondary: rl.NewColor(239, 111, 46, 255),
-		signal: rl.NewColor(255, 225, 161, 255),
 	},
 }
 

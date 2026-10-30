@@ -13,9 +13,9 @@ import (
 // TestPalettesMatchApprovedSet keeps the runtime cycle aligned with documentation.
 func TestPalettesMatchApprovedSet(t *testing.T) {
 	want := []string{
-		"Super Famicom", "Atomic Grape", "Paper Terminal", "Glacier Circuit",
+		"CRT Amber", "Super Famicom", "Atomic Grape", "Paper Terminal", "Glacier Circuit",
 		"Haunted Cartridge", "Oxide Industrial", "Cassette Future",
-		"Royal Terminal", "Sakura Console", "CRT Amber",
+		"Royal Terminal", "Sakura Console",
 	}
 	got := make([]string, len(palettes))
 	for index, theme := range palettes {

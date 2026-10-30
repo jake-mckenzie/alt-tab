@@ -3,7 +3,8 @@
 [![CI](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml/badge.svg)](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml)
 
 A guitar chord viewer built with Go and Raylib. Browse chord shapes, hear them
-played back, and see their waveforms and frequency spectra.
+played back, and see their waveforms and frequency spectra. Starts in CRT Amber;
+press `t` to change themes.
 
 This is the `raylib` branch. The original terminal version is on `master`.
 [Branch notes](docs/branches.md).
