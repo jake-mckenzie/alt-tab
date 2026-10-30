@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
+	"github.com/charmbracelet/x/ansi"
 )
 
 const (
@@ -136,7 +137,7 @@ func (model Model) renderCenteredPanelAtHeight(content string, width, height int
 	if height > 0 {
 		style = style.Height(height)
 	}
-	return style.Render(centered)
+	return model.renderStyledPanel(style, centered)
 }
 
 // renderPanel optionally shrinks a bordered section to its widest content line.
@@ -146,7 +147,21 @@ func (model Model) renderPanel(content string, maximumWidth int, shrink bool) st
 	if shrink {
 		styleWidth = min(styleWidth, lipgloss.Width(content)+4)
 	}
-	return model.styles.panel.Width(styleWidth).Render(content)
+	return model.renderStyledPanel(model.styles.panel.Width(styleWidth), content)
+}
+
+// renderStyledPanel restores the panel background after nested text styles reset it.
+// Apply this after alignment so padding added by nested layouts is covered too.
+func (model Model) renderStyledPanel(style lipgloss.Style, content string) string {
+	if background := paletteAt(model.theme).panelColor; background != "" {
+		restore := ansi.NewStyle().BackgroundColor(lipgloss.Color(background)).String()
+		content = strings.NewReplacer(
+			"\x1b[m", "\x1b[m"+restore,
+			"\x1b[0m", "\x1b[0m"+restore,
+			"\x1b[49m", restore,
+		).Replace(content)
+	}
+	return style.Render(content)
 }
 
 // renderChordSelector draws the base row and three-position chord-family dial.
