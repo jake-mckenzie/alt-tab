@@ -4,9 +4,12 @@
 
 A terminal guitar chord viewer built with Go and Bubble Tea. Browse chord
 shapes and see the notes that make them up, with waveform and spectrum views.
+Starts in Ember; press `t` to change themes.
 
 This is the `master` branch. For the desktop version with audio playback, use
 `raylib`. [Branch notes](docs/branches.md).
+
+![Alt-Tab terminal interface in Ember](docs/images/tui-preview.png)
 
 ## Run it
 
@@ -51,7 +54,7 @@ Full-neck view shows frets 1–27; fret-number view uses the compact layout.
 ```text
   ╭──────────────────────────────────────────────────────────────────────────╮
   │                                 ALT-TAB                                  │
-  │                     Guitar Chord Viewer · Synthwave                      │
+  │                       Guitar Chord Viewer · Ember                        │
   │                                                                          │
   │ KEYS ←→ Base ↑↓ Type v Voicing x Neck n Tab t Theme w Wave ? Help q Quit │
   ╰──────────────────────────────────────────────────────────────────────────╯

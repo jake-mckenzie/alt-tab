@@ -201,7 +201,7 @@ func TestHeaderAndDialFillSharedWidthAndCenterContent(t *testing.T) {
 			t.Fatalf("%s is not centered: left=%d right=%d", title, left, right)
 		}
 	}
-	if lineWith(banner, "Guitar Chord Viewer · Synthwave") == "" {
+	if lineWith(banner, "Guitar Chord Viewer · Ember") == "" {
 		t.Fatal("app subtitle is not rendered below ALT-TAB")
 	}
 }
@@ -541,8 +541,8 @@ func TestDiagramModesAndHelpToggle(t *testing.T) {
 // TestThemeToggleCyclesPalettes checks runtime switching and wraparound.
 func TestThemeToggleCyclesPalettes(t *testing.T) {
 	model := New(fakeCatalog{})
-	if model.theme != 0 || !strings.Contains(model.View().Content, "Synthwave") {
-		t.Fatal("new model does not use the Synthwave theme")
+	if model.theme != 0 || !strings.Contains(model.View().Content, "Ember") {
+		t.Fatal("new model does not use the Ember theme")
 	}
 
 	for index := 1; index <= len(palettes); index++ {

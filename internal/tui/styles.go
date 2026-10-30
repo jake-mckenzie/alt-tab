@@ -23,26 +23,8 @@ type palette struct {
 	errorColor colorPair
 }
 
-// palettes are ordered exactly as the runtime theme cycle presents them.
+// palettes are in cycling order, with the startup default first.
 var palettes = []palette{
-	{
-		name:       "Synthwave",
-		accent:     colorPair{light: "#A21CAF", dark: "#FF70D9"},
-		text:       colorPair{light: "#241331", dark: "#FFF7FF"},
-		muted:      colorPair{light: "#6B5A78", dark: "#BCAAC8"},
-		border:     colorPair{light: "#7C3AED", dark: "#A78BFA"},
-		selection:  colorPair{light: "#F3E8FF", dark: "#3B155E"},
-		errorColor: colorPair{light: "#B91C1C", dark: "#FF6B81"},
-	},
-	{
-		name:       "Tidal",
-		accent:     colorPair{light: "#0369A1", dark: "#38BDF8"},
-		text:       colorPair{light: "#0C2533", dark: "#E6F8FF"},
-		muted:      colorPair{light: "#526A78", dark: "#8EB6C7"},
-		border:     colorPair{light: "#0891B2", dark: "#22D3EE"},
-		selection:  colorPair{light: "#CFFAFE", dark: "#123B4A"},
-		errorColor: colorPair{light: "#B91C1C", dark: "#FF7A90"},
-	},
 	{
 		name:       "Ember",
 		accent:     colorPair{light: "#C2410C", dark: "#FB923C"},
@@ -59,6 +41,24 @@ var palettes = []palette{
 		muted:      colorPair{light: "#536B62", dark: "#91B8A9"},
 		border:     colorPair{light: "#059669", dark: "#6EE7B7"},
 		selection:  colorPair{light: "#D1FAE5", dark: "#173D31"},
+		errorColor: colorPair{light: "#B91C1C", dark: "#FF7A90"},
+	},
+	{
+		name:       "Synthwave",
+		accent:     colorPair{light: "#A21CAF", dark: "#FF70D9"},
+		text:       colorPair{light: "#241331", dark: "#FFF7FF"},
+		muted:      colorPair{light: "#6B5A78", dark: "#BCAAC8"},
+		border:     colorPair{light: "#7C3AED", dark: "#A78BFA"},
+		selection:  colorPair{light: "#F3E8FF", dark: "#3B155E"},
+		errorColor: colorPair{light: "#B91C1C", dark: "#FF6B81"},
+	},
+	{
+		name:       "Tidal",
+		accent:     colorPair{light: "#0369A1", dark: "#38BDF8"},
+		text:       colorPair{light: "#0C2533", dark: "#E6F8FF"},
+		muted:      colorPair{light: "#526A78", dark: "#8EB6C7"},
+		border:     colorPair{light: "#0891B2", dark: "#22D3EE"},
+		selection:  colorPair{light: "#CFFAFE", dark: "#123B4A"},
 		errorColor: colorPair{light: "#B91C1C", dark: "#FF7A90"},
 	},
 }
