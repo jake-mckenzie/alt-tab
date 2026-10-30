@@ -414,6 +414,13 @@ func (gui *viewer) update(layout screenLayout) {
 	if gui.handleDialClick(layout.dial) {
 		selectionChanged = true
 	}
+	for number := 1; number <= 9; number++ {
+		if keyPressed(rl.KeyOne+int32(number-1), rl.KeyKp1+int32(number-1)) {
+			before := gui.controller.Voicing().Number
+			gui.controller.SetVoicing(number)
+			selectionChanged = selectionChanged || before != gui.controller.Voicing().Number
+		}
+	}
 	if selectionChanged {
 		gui.audio.setVoicing(gui.controller.Voicing())
 	}
@@ -465,7 +472,7 @@ func (gui *viewer) drawHeader(bounds rl.Rectangle, theme palette) {
 	drawTextSpaced("ALT-TAB", bounds.X+38, bounds.Y+5, 42, 3.5, theme.accent)
 	drawText("RAYLIB CHORD VIEWER - "+strings.ToUpper(theme.name),
 		bounds.X+38, bounds.Y+54, 22, theme.muted)
-	controls := "←/→ CHORD  ↑/↓ TYPE  V VOICING  X NECK  N TAB  T THEME  SPACE PLAY  F1 HELP  Q QUIT"
+	controls := "←/→ CHORD  ↑/↓ TYPE  V/1–9 VOICING  X NECK  N TAB  T THEME  SPACE PLAY  F1 HELP  Q QUIT"
 	size := measureText(controls, 22)
 	controlWell := rl.Rectangle{
 		X: bounds.X + bounds.Width - panelPadding - size.X - 10,
@@ -828,7 +835,7 @@ func (gui *viewer) drawHelp(theme palette) {
 	lines := []string{
 		"← / H    Previous chord", "→ / L    Next chord",
 		"↑ / K    Accidental or base", "↓ / J    Minor or base",
-		"V        Next voicing", "X        Compact / full neck",
+		"V / 1–9  Next / select voicing", "X        Compact / full neck",
 		"N        Finger / tab numbers", "T        Cycle theme",
 		"SPACE    Play / stop chord", "F1 / ?   Close this help",
 		"Q / Esc  Quit",

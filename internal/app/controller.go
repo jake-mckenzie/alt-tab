@@ -173,6 +173,15 @@ func (controller *Controller) MoveKind(delta int) {
 	controller.load()
 }
 
+// SetVoicing selects a one-based position; unavailable numbers leave it unchanged.
+func (controller *Controller) SetVoicing(number int) {
+	if number < 1 || number > controller.VoicingCount() || number == controller.voicingNumber {
+		return
+	}
+	controller.voicingNumber = number
+	controller.load()
+}
+
 // CycleVoicing advances through the active chord's stored positions.
 func (controller *Controller) CycleVoicing() {
 	count := controller.VoicingCount()

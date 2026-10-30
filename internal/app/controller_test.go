@@ -99,3 +99,39 @@ func (catalog navigationCatalog) Load(name string, number int) (chords.Voicing, 
 	}
 	return chords.Voicing{Name: name, Number: number}, nil
 }
+
+func TestSetVoicing(t *testing.T) {
+	controller := NewController(navigationCatalog{targetCount: 2})
+	for _, number := range []int{3, 1, 2, 2} {
+		controller.SetVoicing(number)
+		if controller.Err() != nil || controller.Voicing().Number != number {
+			t.Fatalf("select %d: got %+v, error %v", number, controller.Voicing(), controller.Err())
+		}
+	}
+	for _, number := range []int{-1, 0, 4, 9} {
+		controller.SetVoicing(number)
+		if controller.Err() != nil || controller.Voicing().Number != 2 {
+			t.Fatalf("invalid selection %d changed voicing: %+v, error %v", number, controller.Voicing(), controller.Err())
+		}
+	}
+	controller.MoveChord(1)
+	if controller.Voicing().Number != 2 {
+		t.Fatal("directly selected voicing was not retained on chord change")
+	}
+	controller.SetVoicing(3)
+	if controller.Err() != nil || controller.Voicing().Number != 2 {
+		t.Fatal("selection did not respect the new chord's voicing count")
+	}
+	controller.CycleVoicing()
+	if controller.Voicing().Number != 1 {
+		t.Fatal("cycling after direct selection did not wrap")
+	}
+}
+
+func TestSetVoicingWithoutCatalog(t *testing.T) {
+	controller := NewController(nil)
+	controller.SetVoicing(1)
+	if controller.Err() == nil || controller.Voicing() != (chords.Voicing{}) {
+		t.Fatal("selecting without a catalog changed initialization state")
+	}
+}

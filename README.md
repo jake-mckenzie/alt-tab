@@ -33,6 +33,7 @@ For the terminal interface included in this branch, use `make run`.
 | `←` / `h`, `→` / `l` | Previous / next chord |
 | `↑` / `k`, `↓` / `j` | Move between available accidental, major, and minor chords |
 | `v` | Next voicing |
+| `1`–`9` (also numpad) | Select a voicing; unavailable numbers do nothing |
 | `x` | Toggle compact / full-neck view |
 | `n` | Toggle finger numbers / fret numbers |
 | `t` | Next theme |
