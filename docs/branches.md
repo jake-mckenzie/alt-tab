@@ -59,6 +59,12 @@ between branches: the TUI branch predates the shared app/signal extraction.
 ## Verification
 
 Run `make check` on each maintained branch. The Raylib branch additionally
-requires cgo and the platform graphics development libraries. This organization
-was performed on a machine without Go or native Raylib development files, so
-Go tests and graphical builds could not be run here.
+requires cgo and the platform graphics development libraries. After Go 1.27.3 was installed, both branches passed formatting, unit tests,
+race checks, vet, and builds in temporary copies on 2026-10-30:
+
+- `master`: `make check build`
+- `raylib`: `make check build build-raylib`
+
+The Raylib Go module supplies its native source; the desktop build succeeded
+without a standalone `raylib.pc`. Graphical interaction and audio playback
+were not manually exercised.
