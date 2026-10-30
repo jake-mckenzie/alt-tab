@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - raylib
   pull_request:
 
 permissions:

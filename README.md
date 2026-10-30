@@ -10,6 +10,10 @@ Diagrams follow standard tablature orientation: high e is at the top, low E is
 at the bottom, and fret numbers increase from left to right. Compact mode shows
 the relevant neck position; full-neck mode shows frets 1–27.
 
+This is the maintained Go/Raylib branch. Launch the desktop with `make run-raylib`.
+The original Go/TUI version lives on `master`. See
+[branch history and implementation differences](docs/branches.md).
+
 ## Raylib Preview
 
 The Raylib desktop interface combines chord selection, an interactive fretboard,
@@ -20,7 +24,7 @@ waveform and spectrum displays, and chord playback in one window.
 ## Quick Start
 
 ```bash
-git clone https://github.com/jake-mckenzie/alt-tab.git
+git clone --branch raylib https://github.com/jake-mckenzie/alt-tab.git
 cd alt-tab
 make
 ./bin/alt-tab
