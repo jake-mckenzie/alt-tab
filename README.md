@@ -14,6 +14,38 @@ This is the `master` branch. For the desktop version with audio playback, use
 
 ## Run it
 
+Install the terminal app on Linux or macOS (x86_64 or ARM64):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jake-mckenzie/alt-tab/master/install.sh | sh
+alt-tab
+```
+
+The installer downloads the latest stable GitHub Release, verifies its SHA-256
+checksum, and installs to `~/.local/bin` without sudo. Add that directory to your
+`PATH` if needed. Run the same command again to update.
+
+To install and launch immediately, use `| sh -s -- --run`. To choose a version
+or directory:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jake-mckenzie/alt-tab/master/install.sh | sh -s -- --version v0.1.0 --dir "$HOME/.local/bin"
+```
+
+You can also download the script and inspect it before running it:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jake-mckenzie/alt-tab/master/install.sh -o install.sh
+less install.sh
+sh install.sh
+```
+
+These commands require the installer to be pushed to `master` and a stable release
+to be published. The installer does not build from source. To uninstall, remove
+`~/.local/bin/alt-tab`.
+
+### Build from source
+
 You’ll need Go 1.25+ and Make.
 
 ```bash
@@ -126,3 +158,17 @@ The race check requires cgo and a C compiler; normal builds and tests don’t.
 
 `cmd/alt-tab` starts the app, `internal/tui` handles the interface, and
 `internal/chords` holds the chord catalog.
+
+## Publishing terminal releases
+
+After merging changes to `master`, create and push a stable version tag:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The release workflow checks that the tagged commit belongs to `master`, runs
+`make check`, cross-compiles four standalone binaries, and publishes them with
+`checksums.txt` in a GitHub Release. Only `vMAJOR.MINOR.PATCH` tags are accepted.
+The Raylib branch is not part of this release process.

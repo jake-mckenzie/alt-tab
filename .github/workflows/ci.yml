@@ -22,6 +22,11 @@ jobs:
           go-version-file: go.mod
           cache-dependency-path: go.sum
 
+      - name: Check installer
+        run: |
+          sh -n install.sh
+          python3 scripts/test-installer.py
+
       - name: Build release binary
         run: make BUILD=release build
 
