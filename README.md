@@ -23,13 +23,13 @@ to uninstall. Installer options: `--version vX.Y.Z`, `--dir PATH`, and `--run`.
 
 ### Build from source
 
-Requires Go 1.25+ and Make:
+Requires Go 1.25+:
 
 ```sh
 git clone https://github.com/jake-mckenzie/alt-tab.git
 cd alt-tab
 go mod download
-make run
+go run ./cmd/alt-tab
 ```
 
 Use a terminal at least 80 columns wide, or 98 for the full-neck view.
@@ -79,12 +79,18 @@ view covers frets 1–27; fret-number view uses the compact layout.
 
 | Command | Purpose |
 | --- | --- |
-| `make build` | Build `bin/alt-tab` |
-| `make run` | Build and launch |
-| `make BUILD=release build` | Build a smaller release binary |
-| `make test` | Run tests |
-| `make check` | Check formatting, run tests and race checks, and vet |
-| `make clean` | Remove build output |
+| `go build -o bin/alt-tab ./cmd/alt-tab` | Build the binary |
+| `go run ./cmd/alt-tab` | Run directly |
+| `go test ./...` | Run tests |
+| `go test -race ./...` | Run tests with race detection |
+| `go vet ./...` | Check for likely mistakes |
+| `gofmt -w cmd internal` | Format Go source |
+
+For a smaller release binary:
+
+```sh
+CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o bin/alt-tab ./cmd/alt-tab
+```
 
 Only the race check requires cgo and a C compiler.
 

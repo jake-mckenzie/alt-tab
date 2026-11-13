@@ -29,7 +29,12 @@ jobs:
           go-version-file: go.mod
           cache-dependency-path: go.sum
       - name: Run quality checks
-        run: make check
+        run: |
+          test -z "$(gofmt -l cmd internal)"
+          go mod verify
+          go test ./...
+          go test -race ./internal/...
+          go vet ./...
       - name: Build release binaries
         shell: bash
         run: |
