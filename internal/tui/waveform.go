@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/jake-mckenzie/alt-tab/internal/chords"
+	"github.com/jake-mckenzie/alt-tab/internal/signal"
 )
 
 const (
@@ -18,62 +19,6 @@ const (
 	braillePixelWidth     = 2
 	braillePixelHeight    = 4
 )
-
-// standardTuningMIDI lists open strings from high e to low E.
-var standardTuningMIDI = [chords.StringCount]int{64, 59, 55, 50, 45, 40}
-
-// noteNames maps a MIDI pitch class to its sharp note spelling.
-var noteNames = [...]string{
-	"C", "C#", "D", "D#", "E", "F",
-	"F#", "G", "G#", "A", "A#", "B",
-}
-
-// noteSample pairs one sounding string's display name and frequency.
-type noteSample struct {
-	name      string
-	frequency float64
-	midi      int
-}
-
-// voicingNotes converts each sounding string and fret to a named frequency.
-func voicingNotes(voicing chords.Voicing) []noteSample {
-	notes := make([]noteSample, 0, chords.StringCount)
-	for index, placement := range voicing.Strings {
-		if placement.Fret < 0 {
-			continue
-		}
-
-		midi := standardTuningMIDI[index] + placement.Fret
-		notes = append(notes, noteSample{
-			name: fmt.Sprintf(
-				"%s%d",
-				noteNames[wrap(midi, len(noteNames))],
-				midi/12-1,
-			),
-			frequency: midiFrequency(midi),
-			midi:      midi,
-		})
-	}
-	return notes
-}
-
-// midiFrequency converts a MIDI note to 12-tone equal temperament at A4=440 Hz.
-func midiFrequency(midi int) float64 {
-	return 440 * math.Pow(2, float64(midi-69)/12)
-}
-
-// compositeWaveSample averages ideal equal-amplitude sine waves at one time.
-func compositeWaveSample(seconds float64, notes []noteSample) float64 {
-	if len(notes) == 0 {
-		return 0
-	}
-
-	var sample float64
-	for _, note := range notes {
-		sample += math.Sin(2 * math.Pi * note.frequency * seconds)
-	}
-	return sample / float64(len(notes))
-}
 
 // waveformPixelRow maps a normalized amplitude to a Braille pixel row.
 func waveformPixelRow(sample float64, height int) int {
@@ -177,12 +122,12 @@ func renderWaveform(width int, voicing chords.Voicing) string {
 		canvas[center][column] = true
 	}
 
-	notes := voicingNotes(voicing)
+	notes := signal.Notes(voicing)
 	previousRow := center
 	for column := 0; column < pixelWidth; column++ {
 		position := float64(column) / float64(max(1, pixelWidth-1))
 		row := waveformPixelRow(
-			compositeWaveSample(position*waveformWindowSeconds, notes),
+			signal.CompositeSample(position*waveformWindowSeconds, notes),
 			pixelHeight,
 		)
 		drawBrailleLine(canvas, max(0, column-1), previousRow, column, row)
@@ -221,26 +166,26 @@ func renderTimeAxis(width int) string {
 func renderSpectrum(width int, voicing chords.Voicing) string {
 	// Reserve one cell for a closing axis so the graph has a complete frame.
 	plotWidth := width - spectrumLabelWidth - 1
-	notes := voicingNotes(voicing)
+	notes := signal.Notes(voicing)
 	if len(notes) == 0 || plotWidth < 10 {
 		return ""
 	}
 
-	ordered := append([]noteSample(nil), notes...)
+	ordered := append([]signal.Note(nil), notes...)
 	sort.Slice(ordered, func(left, right int) bool {
-		return ordered[left].midi < ordered[right].midi
+		return ordered[left].MIDI < ordered[right].MIDI
 	})
 	lowest := ordered[0]
 	highest := ordered[len(ordered)-1]
-	span := max(1, highest.midi-lowest.midi)
+	span := max(1, highest.MIDI-lowest.MIDI)
 	positions := make([]int, len(ordered))
 	labels := []rune(strings.Repeat(" ", plotWidth))
 
 	for index, note := range ordered {
 		positions[index] = int(math.Round(
-			float64(note.midi-lowest.midi) / float64(span) * float64(plotWidth-1),
+			float64(note.MIDI-lowest.MIDI) / float64(span) * float64(plotWidth-1),
 		))
-		placeScaleLabel(labels, note.name, positions[index])
+		placeScaleLabel(labels, note.Name, positions[index])
 	}
 
 	lines := make([]string, 0, spectrumHeight+5)
@@ -266,8 +211,8 @@ func renderSpectrum(width int, voicing chords.Voicing) string {
 	lines = append(lines, "0.0 +"+string(axis)+"+")
 	prefix := strings.Repeat(" ", spectrumLabelWidth)
 	lines = append(lines, prefix+string(labels))
-	leftFrequency := fmt.Sprintf("%.0f Hz", lowest.frequency)
-	rightFrequency := fmt.Sprintf("%.0f Hz", highest.frequency)
+	leftFrequency := fmt.Sprintf("%.0f Hz", lowest.Frequency)
+	rightFrequency := fmt.Sprintf("%.0f Hz", highest.Frequency)
 	frequencyGap := max(1, plotWidth-len(leftFrequency)-len(rightFrequency))
 	lines = append(
 		lines,
@@ -288,10 +233,10 @@ func placeScaleLabel(line []rune, label string, position int) {
 }
 
 // renderNoteLegend lists the pitches combined into the displayed signal.
-func renderNoteLegend(notes []noteSample) string {
+func renderNoteLegend(notes []signal.Note) string {
 	names := make([]string, len(notes))
 	for index, note := range notes {
-		names[index] = note.name
+		names[index] = note.Name
 	}
 	return "Notes: " + strings.Join(names, "  ")
 }

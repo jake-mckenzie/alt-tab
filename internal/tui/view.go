@@ -54,7 +54,14 @@ func (model Model) renderHeader(width int) string {
 		fmt.Sprintf("Guitar Chord Viewer · %s", paletteAt(model.theme).name),
 	)
 	if lipgloss.Width(subtitle) <= width {
-		return lipgloss.JoinVertical(lipgloss.Center, title, subtitle)
+		audioStatus := "Audio unavailable"
+		if model.player != nil {
+			audioStatus = "Space/p Play · a–g Chords · 1–9 Voicing"
+			if model.playing {
+				audioStatus = "Playing · Space/p Stop · a–g Chords · 1–9 Voicing"
+			}
+		}
+		return lipgloss.JoinVertical(lipgloss.Center, title, subtitle, model.styles.muted.Render(audioStatus))
 	}
 	return title
 }
@@ -403,7 +410,9 @@ func (model Model) renderHelp() string {
 		"→ / l     Next chord\n" +
 		"↑ / k     Accidental chord or return to base\n" +
 		"↓ / j     Minor chord or return to base\n" +
-		"v         Next voicing\n" +
+		"v / 1–9   Next / select voicing\n" +
+		"space / p Play or stop chord\n" +
+		"a–g       Select and play (hold with key-release support; otherwise toggle)\n" +
 		"x         Toggle compact/full neck\n" +
 		"n         Toggle fingered fretboard/tab numbers\n" +
 		"t         Cycle color theme\n" +

@@ -3,12 +3,12 @@
 [![CI](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml/badge.svg)](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml)
 
 A terminal guitar chord viewer built with Go and Bubble Tea. Browse chord
-shapes and see the notes that make them up, with waveform and spectrum views.
+shapes, hear them played, and see their notes in waveform and spectrum views.
 Starts in Ember; press `t` once for Neon Dark: near-black, neon green, cyan,
 and purple accents.
 
-This is the `master` branch. For the desktop version with audio playback, use
-`raylib`. [Branch notes](docs/branches.md).
+The Raylib desktop application now lives in the separate `alt-synth` project.
+This repository contains only the Go terminal application.
 
 ![Alt-Tab terminal interface in Ember](docs/images/tui-preview.png)
 
@@ -46,7 +46,8 @@ to be published. The installer does not build from source. To uninstall, remove
 
 ### Build from source
 
-You’ll need Go 1.25+ and Make.
+You’ll need Go 1.25+ and Make. Linux playback also needs a running PipeWire
+PulseAudio service or PulseAudio server.
 
 ```bash
 git clone --branch master https://github.com/jake-mckenzie/alt-tab.git
@@ -62,7 +63,9 @@ Use a terminal at least 80 columns wide, or 98 for the full-neck view.
 | --- | --- |
 | `←` / `h`, `→` / `l` | Previous / next chord |
 | `↑` / `k`, `↓` / `j` | Move between available accidental, major, and minor chords |
-| `v` | Next voicing |
+| `v` / `1`–`9` | Next / select voicing |
+| `Space` / `p` | Play / stop |
+| `a`–`g` | Select and play chord; hold with key-release support, otherwise toggle |
 | `x` | Toggle compact / full-neck view |
 | `n` | Toggle finger numbers / fret numbers |
 | `t` | Next theme |
@@ -71,6 +74,25 @@ Use a terminal at least 80 columns wide, or 98 for the full-neck view.
 | `Esc` | Close help |
 | Mouse wheel | Scroll |
 | `q` / `Ctrl+C` | Quit |
+
+## Audio
+
+Linux playback uses a pure-Go PulseAudio client, compatible with PipeWire's
+PulseAudio service. No Raylib, cgo, C libraries, or external player is required.
+The synthesizer matches the desktop version: 44.1 kHz mono sine waves mixed
+from the selected strings, with smooth volume fades. Navigation updates the
+playing chord. Help, focus loss (where supported), and quitting stop playback.
+
+Terminals supporting keyboard event types can play A–G while held and stop on
+release. Other terminals toggle that chord instead. Space/P works in either case.
+If the audio server is unavailable, browsing still works and the UI shows
+`Audio unavailable`.
+
+Native macOS and Windows audio backends are planned. Other platforms currently
+support silent browsing. `internal/audio/synth.go` owns platform-independent
+synthesis; platform output lives in `output_linux.go`, with `output_other.go`
+providing the fallback. New backends reuse the same `Open`, `Set`, and `Close`
+contract without changing the UI or pitch math.
 
 ## Chords
 
@@ -88,6 +110,7 @@ Full-neck view shows frets 1–27; fret-number view uses the compact layout.
   ╭──────────────────────────────────────────────────────────────────────────╮
   │                                 ALT-TAB                                  │
   │                       Guitar Chord Viewer · Ember                        │
+  │                            Audio unavailable                             │
   │                                                                          │
   │ KEYS ←→ Base ↑↓ Type v Voicing x Neck n Tab t Theme w Wave ? Help q Quit │
   ╰──────────────────────────────────────────────────────────────────────────╯
@@ -157,7 +180,8 @@ Full-neck view shows frets 1–27; fret-number view uses the compact layout.
 The race check requires cgo and a C compiler; normal builds and tests don’t.
 
 `cmd/alt-tab` starts the app, `internal/tui` handles the interface, and
-`internal/chords` holds the chord catalog.
+`internal/chords` holds the chord catalog. `internal/signal` supplies the shared
+pitch math for plots and audio; `internal/audio` owns synthesis and output.
 
 ## Publishing terminal releases
 
@@ -171,4 +195,4 @@ git push origin v0.1.0
 The release workflow checks that the tagged commit belongs to `master`, runs
 `make check`, cross-compiles four standalone binaries, and publishes them with
 `checksums.txt` in a GitHub Release. Only `vMAJOR.MINOR.PATCH` tags are accepted.
-The Raylib branch is not part of this release process.
+Desktop releases belong to the separate Raylib project.

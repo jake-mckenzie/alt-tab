@@ -13,6 +13,10 @@ import (
 
 // Model holds the terminal UI state.
 type Model struct {
+	player        AudioPlayer
+	playing       bool
+	held          string
+	keyReleases   bool
 	catalog       chords.Catalog
 	families      []chordFamily
 	selected      int
@@ -67,6 +71,22 @@ func New(catalog chords.Catalog) Model {
 	return model
 }
 
+// AudioPlayer is the platform-independent output contract used by the UI.
+type AudioPlayer interface{ Set(chords.Voicing, bool) }
+
+// WithAudio enables playback without coupling navigation to a platform backend.
+func (model Model) WithAudio(player AudioPlayer) Model {
+	model.player = player
+	return model
+}
+
+func (model *Model) setPlaying(active bool) {
+	model.playing = active && model.player != nil && model.err == nil
+	if model.player != nil {
+		model.player.Set(model.voicing, model.playing)
+	}
+}
+
 // Init asks Bubble Tea to report the terminal background color.
 func (Model) Init() tea.Cmd {
 	return tea.RequestBackgroundColor
@@ -75,6 +95,16 @@ func (Model) Init() tea.Cmd {
 // Update handles application-level key events.
 func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	switch message := message.(type) {
+	case tea.KeyboardEnhancementsMsg:
+		model.keyReleases = message.SupportsEventTypes()
+	case tea.BlurMsg:
+		model.held = ""
+		model.setPlaying(false)
+	case tea.KeyReleaseMsg:
+		if message.String() == model.held {
+			model.held = ""
+			model.setPlaying(false)
+		}
 	case tea.BackgroundColorMsg:
 		model.dark = message.IsDark()
 		model.styles = newStyles(model.dark, model.theme)
@@ -91,7 +121,11 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.KeyPressMsg:
 		key := message.String()
+		if message.IsRepeat && (key == "p" || key == "space" || key == " " || (len(key) == 1 && key[0] >= 'a' && key[0] <= 'g')) {
+			return model, nil
+		}
 		if key == "ctrl+c" || key == "q" {
+			model.setPlaying(false)
 			return model, tea.Quit
 		}
 		if key == "t" {
@@ -110,6 +144,39 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			return model, nil
 		}
 
+		if (key == "space" || key == " " || key == "p") && model.err == nil {
+			model.held = ""
+			model.setPlaying(!model.playing)
+			return model, nil
+		}
+		if len(key) == 1 && key[0] >= 'a' && key[0] <= 'g' {
+			if model.held == key {
+				return model, nil
+			}
+			wasPlaying := model.playing && model.currentChordName() == strings.ToUpper(key)
+			for i, family := range model.families {
+				if family.base == strings.ToUpper(key) {
+					model.selected, model.chordKind = i, baseChord
+					model.loadSelection()
+					if model.keyReleases {
+						model.held = key
+						model.setPlaying(true)
+					} else {
+						model.setPlaying(!wasPlaying)
+					}
+					break
+				}
+			}
+			return model, nil
+		}
+		if len(key) == 1 && key[0] >= '1' && key[0] <= '9' {
+			number := int(key[0] - '0')
+			if model.catalog != nil && number <= model.catalog.VoicingCount(model.currentChordName()) {
+				model.voicingNumber = number
+				model.loadSelection()
+			}
+			return model, nil
+		}
 		switch key {
 		case "up", "k":
 			model.moveChordKind(-1)
@@ -133,6 +200,8 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "?":
 			model.showHelp = true
+			model.held = ""
+			model.setPlaying(false)
 		}
 	}
 
@@ -193,6 +262,8 @@ func (model Model) View() tea.View {
 	}
 	view.WindowTitle = "Alt-Tab"
 	view.AltScreen = true
+	view.ReportFocus = true
+	view.KeyboardEnhancements.ReportEventTypes = true
 	view.MouseMode = tea.MouseModeCellMotion
 	return view
 }
@@ -226,6 +297,9 @@ func (model *Model) loadSelection() {
 	voicing, err := model.catalog.Load(model.currentChordName(), model.voicingNumber)
 	model.voicing = voicing
 	model.err = err
+	if model.player != nil {
+		model.setPlaying(model.playing)
+	}
 }
 
 // moveChord rotates the base-chord dial and selects its first voicing.

@@ -3,6 +3,7 @@ module github.com/jake-mckenzie/alt-tab
 go 1.25.0
 
 require (
+	github.com/jfreymuth/pulse v0.1.3
 	charm.land/bubbletea/v2 v2.0.6
 	charm.land/lipgloss/v2 v2.0.3
 )

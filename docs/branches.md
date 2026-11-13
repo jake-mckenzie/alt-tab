@@ -1,70 +1,18 @@
-# Maintained branches
+# Project split
 
-| Branch | Purpose | Run |
-| --- | --- | --- |
-| `master` | Original pure-Go Bubble Tea terminal application | `make run` |
-| `raylib` | Go application with Raylib desktop UI and synthesized audio | `make run-raylib` |
+`master` contains the Go terminal application, including Go audio synthesis.
+The local `raylib` branch has been removed. Its history remains recoverable at
+`archive/raylib-split` (commit `757ab4a8c31eb6fa5f1004903ee83cd7e2269c8b`).
 
-Switch with `git switch master` or `git switch raylib`. The Raylib branch also
-retains the TUI and shares its catalog, navigation, and signal packages; its
-existing `make run` target still launches the terminal application.
+The desktop spinoff is `alt-synth`, located at `/home/jm/Projects/alt-synth`.
+Its Git history retains the Raylib branch tip above. Development continues
+independently from the terminal application.
 
-## Raylib history
-
-Remote tips were verified on 2026-10-30. The two implementations diverged from
-`e2b9e38` (2026-08-06); neither branch contains the other's later commits.
-
-| Original branch | Last commit before organization | Differences |
-| --- | --- | --- |
-| `feature/raylib-gui` | `44e67ca`, 2026-08-08 | Go with Raylib bindings; newer and more complete. Adds font sizing changes and A–G chord selection/playback after the fork. |
-| `feat/c-raylib-ui` | `9835b9d`, 2026-08-06 | Early native C port (`d342cb3`) plus native-build CI. Keeps the older Go source but changes the default build to C. |
-
-The Go desktop implementation has synthesized audio, chord-derived waveform and
-spectrum plots, ten themes, compact/full-neck views, tab labels, and help.
-The C prototype implements catalog generation and navigation, but its waveform
-and spectrum are hard-coded examples. It has no audio playback; its fretboard
-only draws fretted notes at frets 1–4, omitting higher positions. Several controls
-advertised by its README and window are not implemented. Merging the C branch
-would replace the Go build/CI without delivering feature parity.
-
-Both maintained branches use X to toggle compact/full-neck view. In the
-Raylib interface, F selects and plays the F chord without changing the view.
-
-## Preserving the C experiment
-
-The local C branch is archived as the annotated tag `archive/c-raylib-ui`
-pointing to `9835b9d`. Inspect it with:
+Remote deletion must be applied from a terminal with access to GitHub:
 
 ```sh
-git show archive/c-raylib-ui:src/main.c
+git push origin --delete raylib
 ```
 
-Resume it without changing either maintained branch:
-
-```sh
-git switch -c experiment/c-raylib archive/c-raylib-ui
-```
-
-The local `feature/raylib-gui` branch was renamed to `raylib`. Remote branches
-are unchanged; this organization does not publish or delete remote refs.
-
-## Code boundaries
-
-On `master`, `cmd/alt-tab` launches `internal/tui`, backed by `internal/chords`.
-On `raylib`, `cmd/alt-tab-raylib` launches `internal/rayui`; `internal/app`,
-`internal/chords`, and `internal/signal` supply shared behavior. Keep graphical
-input, rendering, and audio in `internal/rayui`. Port shared fixes deliberately
-between branches: the TUI branch predates the shared app/signal extraction.
-
-## Verification
-
-Run `make check` on each maintained branch. The Raylib branch additionally
-requires cgo and the platform graphics development libraries. After Go 1.27.3 was installed, both branches passed formatting, unit tests,
-race checks, vet, and builds in temporary copies on 2026-10-30:
-
-- `master`: `make check build`
-- `raylib`: `make check build build-raylib`
-
-The Raylib Go module supplies its native source; the desktop build succeeded
-without a standalone `raylib.pc`. Graphical interaction and audio playback
-were not manually exercised.
+Older remote experiments (`feature/raylib-gui` and `feat/c-raylib-ui`) remain
+untouched. The archive tag above is local and has not been published.

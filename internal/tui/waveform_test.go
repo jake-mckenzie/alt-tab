@@ -10,6 +10,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 
 	"github.com/jake-mckenzie/alt-tab/internal/chords"
+	"github.com/jake-mckenzie/alt-tab/internal/signal"
 )
 
 // isBrailleRune identifies one Unicode Braille pattern character.
@@ -96,10 +97,10 @@ func TestWaveformUsesVoicingNotes(t *testing.T) {
 			{Fret: -1},
 		},
 	}
-	notes := voicingNotes(voicing)
-	if len(notes) != 1 || notes[0].name != "E4" ||
-		math.Abs(notes[0].frequency-midiFrequency(64)) > 1e-9 {
-		t.Fatalf("high-e notes = %v, want E4 at %.6f Hz", notes, midiFrequency(64))
+	notes := signal.Notes(voicing)
+	if len(notes) != 1 || notes[0].Name != "E4" ||
+		math.Abs(notes[0].Frequency-signal.MIDIFrequency(64)) > 1e-9 {
+		t.Fatalf("high-e notes = %v, want E4 at %.6f Hz", notes, signal.MIDIFrequency(64))
 	}
 
 	cMajor, _ := fakeCatalog{}.Load("C", 1)
@@ -120,25 +121,25 @@ func TestCatalogVoicingsProduceExactPlotNotes(t *testing.T) {
 				t.Fatalf("Load(%s, %d): %v", name, number, err)
 			}
 
-			notes := voicingNotes(voicing)
+			notes := signal.Notes(voicing)
 			noteIndex := 0
 			for stringIndex, placement := range voicing.Strings {
 				if placement.Fret < 0 {
 					continue
 				}
-				midi := standardTuningMIDI[stringIndex] + placement.Fret
+				midi := signal.StandardTuningMIDI[stringIndex] + placement.Fret
 				expectedName := fmt.Sprintf(
 					"%s%d",
-					noteNames[wrap(midi, len(noteNames))],
+					[...]string{"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}[midi%12],
 					midi/12-1,
 				)
-				if notes[noteIndex].name != expectedName || notes[noteIndex].midi != midi {
+				if notes[noteIndex].Name != expectedName || notes[noteIndex].MIDI != midi {
 					t.Fatalf("%s:%d string %d note = %+v, want %s MIDI %d",
 						name, number, stringIndex, notes[noteIndex], expectedName, midi)
 				}
-				if math.Abs(notes[noteIndex].frequency-midiFrequency(midi)) > 1e-9 {
+				if math.Abs(notes[noteIndex].Frequency-signal.MIDIFrequency(midi)) > 1e-9 {
 					t.Fatalf("%s:%d %s frequency = %.9f, want %.9f",
-						name, number, expectedName, notes[noteIndex].frequency, midiFrequency(midi))
+						name, number, expectedName, notes[noteIndex].Frequency, signal.MIDIFrequency(midi))
 				}
 				noteIndex++
 			}
@@ -155,8 +156,8 @@ func TestCatalogVoicingsProduceExactPlotNotes(t *testing.T) {
 			}
 		}
 	}
-	if math.Abs(midiFrequency(69)-440) > 1e-12 {
-		t.Fatalf("A4 frequency = %.12f, want 440", midiFrequency(69))
+	if math.Abs(signal.MIDIFrequency(69)-440) > 1e-12 {
+		t.Fatalf("A4 frequency = %.12f, want 440", signal.MIDIFrequency(69))
 	}
 }
 
