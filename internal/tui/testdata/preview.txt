@@ -1,5 +1,5 @@
   ╭──────────────────────────────────────────────────────────────────────────╮
-  │                  alt-tab · Guitar Chord Viewer · Ember                   │
+  │                alt-tab · Guitar Chord Viewer · Synthwave                 │
   │                            Audio unavailable                             │
   │                                                                          │
   │   KEYS ←→ Chord 1–9 Voicing x Neck n Tab t Theme w Wave ? Help q Quit    │

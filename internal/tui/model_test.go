@@ -190,7 +190,7 @@ func TestHeaderAndDialFillSharedWidthAndCenterContent(t *testing.T) {
 		t.Fatal("title banner and dial do not fill their shared section width")
 	}
 	for output, title := range map[string]string{
-		banner: "alt-tab · Guitar Chord Viewer · Ember",
+		banner: "alt-tab · Guitar Chord Viewer · Synthwave",
 		dial:   "CHORD SELECTOR",
 	} {
 		line := lineWith(output, title)
@@ -201,7 +201,7 @@ func TestHeaderAndDialFillSharedWidthAndCenterContent(t *testing.T) {
 			t.Fatalf("%s is not centered: left=%d right=%d", title, left, right)
 		}
 	}
-	if lineWith(banner, "Guitar Chord Viewer · Ember") == "" {
+	if lineWith(banner, "Guitar Chord Viewer · Synthwave") == "" {
 		t.Fatal("app subtitle is missing from the title line")
 	}
 }
@@ -478,8 +478,8 @@ func TestDiagramModesAndHelpToggle(t *testing.T) {
 // TestThemeToggleCyclesPalettes checks runtime switching and wraparound.
 func TestThemeToggleCyclesPalettes(t *testing.T) {
 	model := New(fakeCatalog{})
-	if model.theme != 0 || !strings.Contains(model.View().Content, "Ember") {
-		t.Fatal("new model does not use the Ember theme")
+	if model.theme != 0 || !strings.Contains(model.View().Content, "Synthwave") {
+		t.Fatal("new model does not use the Synthwave theme")
 	}
 
 	for index := 1; index <= len(palettes); index++ {

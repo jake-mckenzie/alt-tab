@@ -55,7 +55,7 @@ Use a terminal at least 80 columns wide, or 98 for the full-neck view.
 
 In terminals that report key releases, hold `a`–`g` to play and release to stop.
 Other terminals toggle playback for that chord. `Space` / `p` works in either case.
-The initial theme is Ember; press `t` once for Neon Dark.
+The initial theme is Synthwave; press `t` once for Neon Dark.
 
 ## Audio
 

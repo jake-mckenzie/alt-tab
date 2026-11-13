@@ -29,13 +29,13 @@ type palette struct {
 // palettes are in cycling order, with the startup default first.
 var palettes = []palette{
 	{
-		name:       "Ember",
-		accent:     colorPair{light: "#C2410C", dark: "#FB923C"},
-		text:       colorPair{light: "#321A0F", dark: "#FFF7ED"},
-		muted:      colorPair{light: "#786052", dark: "#C6A58E"},
-		border:     colorPair{light: "#D97706", dark: "#FBBF24"},
-		selection:  colorPair{light: "#FFEDD5", dark: "#4A2615"},
-		errorColor: colorPair{light: "#B91C1C", dark: "#FF6B6B"},
+		name:       "Synthwave",
+		accent:     colorPair{light: "#A21CAF", dark: "#FF70D9"},
+		text:       colorPair{light: "#241331", dark: "#FFF7FF"},
+		muted:      colorPair{light: "#6B5A78", dark: "#BCAAC8"},
+		border:     colorPair{light: "#7C3AED", dark: "#A78BFA"},
+		selection:  colorPair{light: "#F3E8FF", dark: "#3B155E"},
+		errorColor: colorPair{light: "#B91C1C", dark: "#FF6B81"},
 	},
 	{
 		name:       "Neon Dark",
@@ -57,13 +57,13 @@ var palettes = []palette{
 		errorColor: colorPair{light: "#B91C1C", dark: "#FF7A90"},
 	},
 	{
-		name:       "Synthwave",
-		accent:     colorPair{light: "#A21CAF", dark: "#FF70D9"},
-		text:       colorPair{light: "#241331", dark: "#FFF7FF"},
-		muted:      colorPair{light: "#6B5A78", dark: "#BCAAC8"},
-		border:     colorPair{light: "#7C3AED", dark: "#A78BFA"},
-		selection:  colorPair{light: "#F3E8FF", dark: "#3B155E"},
-		errorColor: colorPair{light: "#B91C1C", dark: "#FF6B81"},
+		name:       "Ember",
+		accent:     colorPair{light: "#C2410C", dark: "#FB923C"},
+		text:       colorPair{light: "#321A0F", dark: "#FFF7ED"},
+		muted:      colorPair{light: "#786052", dark: "#C6A58E"},
+		border:     colorPair{light: "#D97706", dark: "#FBBF24"},
+		selection:  colorPair{light: "#FFEDD5", dark: "#4A2615"},
+		errorColor: colorPair{light: "#B91C1C", dark: "#FF6B6B"},
 	},
 	{
 		name:       "Tidal",
