@@ -2,56 +2,33 @@
 
 [![CI](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml/badge.svg)](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml)
 
-A terminal guitar chord viewer built with Go and Bubble Tea. Browse chord
-shapes, hear them played, and see their notes in waveform and spectrum views.
-Starts in Ember; press `t` once for Neon Dark: near-black, neon green, cyan,
-and purple accents.
+A terminal guitar chord viewer built with Go and Bubble Tea. Browse voicings,
+play chords, and explore their notes with waveform and frequency spectrum views.
 
-The Raylib desktop application now lives in the separate `alt-synth` project.
-This repository contains only the Go terminal application.
+![Alt-Tab terminal interface](docs/images/tui-preview.png)
 
-![Alt-Tab terminal interface in Ember](docs/images/tui-preview.png)
+## Install
 
-## Run it
+Prebuilt releases support Linux and macOS on x86_64 and ARM64:
 
-Install the terminal app on Linux or macOS (x86_64 or ARM64):
-
-```bash
+```sh
 curl -fsSL https://raw.githubusercontent.com/jake-mckenzie/alt-tab/master/install.sh | sh
 alt-tab
 ```
 
-The installer downloads the latest stable GitHub Release, verifies its SHA-256
-checksum, and installs to `~/.local/bin` without sudo. Add that directory to your
-`PATH` if needed. Run the same command again to update.
-
-To install and launch immediately, use `| sh -s -- --run`. To choose a version
-or directory:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/jake-mckenzie/alt-tab/master/install.sh | sh -s -- --version v0.1.0 --dir "$HOME/.local/bin"
-```
-
-You can also download the script and inspect it before running it:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/jake-mckenzie/alt-tab/master/install.sh -o install.sh
-less install.sh
-sh install.sh
-```
-
-These commands require the installer to be pushed to `master` and a stable release
-to be published. The installer does not build from source. To uninstall, remove
-`~/.local/bin/alt-tab`.
+The installer requires a published GitHub Release. It verifies the release's
+SHA-256 checksum and installs to `~/.local/bin` without sudo. Ensure that directory
+is on your `PATH`. Run the same command to update; remove `~/.local/bin/alt-tab`
+to uninstall. Installer options: `--version vX.Y.Z`, `--dir PATH`, and `--run`.
 
 ### Build from source
 
-You’ll need Go 1.25+ and Make. Linux playback also needs a running PipeWire
-PulseAudio service or PulseAudio server.
+Requires Go 1.25+ and Make:
 
-```bash
-git clone --branch master https://github.com/jake-mckenzie/alt-tab.git
+```sh
+git clone https://github.com/jake-mckenzie/alt-tab.git
 cd alt-tab
+go mod download
 make run
 ```
 
@@ -61,138 +38,57 @@ Use a terminal at least 80 columns wide, or 98 for the full-neck view.
 
 | Key | Action |
 | --- | --- |
-| `←` / `h`, `→` / `l` | Previous / next chord |
-| `↑` / `k`, `↓` / `j` | Move between available accidental, major, and minor chords |
-| `v` / `1`–`9` | Next / select voicing |
+| `←` / `h`, `→` / `l` | Previous / next base chord |
+| `↑` / `k`, `↓` / `j` | Select an available accidental, major, or minor chord |
+| `v` | Next voicing |
+| `1`–`9` | Select a voicing; unavailable numbers do nothing |
 | `Space` / `p` | Play / stop |
-| `a`–`g` | Select and play chord; hold with key-release support, otherwise toggle |
+| `a`–`g` | Select and play a chord |
 | `x` | Toggle compact / full-neck view |
 | `n` | Toggle finger numbers / fret numbers |
-| `t` | Next theme |
+| `t` | Cycle themes |
 | `w` | Show / hide waveform |
 | `?` | Toggle help |
 | `Esc` | Close help |
 | Mouse wheel | Scroll |
 | `q` / `Ctrl+C` | Quit |
 
+In terminals that report key releases, hold `a`–`g` to play and release to stop.
+Other terminals toggle playback for that chord. `Space` / `p` works in either case.
+The initial theme is Ember; press `t` once for Neon Dark.
+
 ## Audio
 
-Linux playback uses a pure-Go PulseAudio client, compatible with PipeWire's
-PulseAudio service. No Raylib, cgo, C libraries, or external player is required.
-The synthesizer matches the desktop version: 44.1 kHz mono sine waves mixed
-from the selected strings, with smooth volume fades. Navigation updates the
-playing chord. Help, focus loss (where supported), and quitting stop playback.
+Playback currently supports Linux with PulseAudio or PipeWire's PulseAudio
+service. Synthesis and output are written in Go, with no cgo or external player
+required. Navigation updates the playing chord; opening help, losing focus
+(where the terminal reports it), or quitting stops playback.
 
-Terminals supporting keyboard event types can play A–G while held and stop on
-release. Other terminals toggle that chord instead. Space/P works in either case.
-If the audio server is unavailable, browsing still works and the UI shows
-`Audio unavailable`.
-
-Native macOS and Windows audio backends are planned. Other platforms currently
-support silent browsing. `internal/audio/synth.go` owns platform-independent
-synthesis; platform output lives in `output_linux.go`, with `output_other.go`
-providing the fallback. New backends reuse the same `Open`, `Set`, and `Close`
-contract without changing the UI or pitch math.
+If audio is unavailable, the app still supports browsing and displays
+`Audio unavailable`. Native macOS and Windows audio support is planned.
 
 ## Chords
 
 Three voicings each for **A, Am, B, Bb, C, Cm, D, Dm, E, Em, F, F#, G, and Gm**.
 
-Diagrams put high e at the top and low E at the bottom. `O` means open, `X`
-means muted, and finger numbers run from 1 (index) to 4 (little finger).
-Full-neck view shows frets 1–27; fret-number view uses the compact layout.
-
-<details>
-<summary>Terminal preview</summary>
-
-<!-- BEGIN VERIFIED TUI OUTPUT -->
-```text
-  ╭──────────────────────────────────────────────────────────────────────────╮
-  │                                 ALT-TAB                                  │
-  │                       Guitar Chord Viewer · Ember                        │
-  │                            Audio unavailable                             │
-  │                                                                          │
-  │ KEYS ←→ Base ↑↓ Type v Voicing x Neck n Tab t Theme w Wave ? Help q Quit │
-  ╰──────────────────────────────────────────────────────────────────────────╯
-
-  ╭──────────────────────────────────────────────────────────────────────────╮
-  │                                CHORD DIAL                                │
-  │                                                                          │
-  │                     BASE CHORDS  A  B  C  D  E  F  G                     │
-  │                                                                          │
-  │                                                                          │
-  │                                                                          │
-  │                               ╭──────────╮                               │
-  │                       G       │  ‹ A ›   │      B                        │
-  │                               │          │                               │
-  │                               │    Am    │                               │
-  │                               ╰──────────╯                               │
-  ╰──────────────────────────────────────────────────────────────────────────╯
-
-  ╭────────────────────────────╮  ╭──────────────────────────────────────────╮
-  │       CHORD DIAGRAM        │  │       WAVEFORM · AMPLITUDE / TIME        │
-  │          COMPACT           │  │                                          │
-  │                            │  │  +1.0 |                               |  │
-  │             A              │  │       | ⣷                     ⡼⡀      |  │
-  │       VOICING 1 OF 3       │  │       |⢰⠉⡆                    ⡇⡇      |  │
-  │                            │  │       |⢸ ⡇                   ⢸ ⢇      |  │
-  │                            │  │       |⢸ ⢱                   ⢸ ⢸      |  │
-  │                            │  │       |⡇ ⢸         ⡤⡀⢀⠎⡆ ⡰⡄  ⢸ ⠸⡀ ⡀   |  │
-  │                            │  │   0.0 +⠧⠤⠬⡦⡴⠵⡤⠤⡴⢦⠤⡼⠤⠵⠮⠤⠼⠴⠥⢵⠤⠤⡧⠤⠤⡧⡴⠽⡤⠤⡼+  │
-  │                            │  │       |   ⠱⠃ ⢇⢰⠁ ⠓⠁       ⢸  ⡇  ⠱⠃ ⢣⢠⠃|  │
-  │                            │  │       |      ⠈⠁           ⠈⡆ ⡇     ⠈⠊ |  │
-  │       1    2    3    4     │  │       |                    ⡇⢰⠁        |  │
-  │     ────────────────────   │  │       |                    ⢱⢸         |  │
-  │ e  O--------------------|  │  │       |                    ⠸⡜         |  │
-  │ B  |-------3------------|  │  │  -1.0 |                     ⠁         |  │
-  │ G  |-------2------------|  │  │        0 ms                       25 ms  │
-  │ D  |-------1------------|  │  ╰──────────────────────────────────────────╯
-  │ A  O--------------------|  │
-  │ E  X--------------------|  │  ╭──────────────────────────────────────────╮
-  │                            │  │            FREQUENCY SPECTRUM            │
-  │                            │  │                                          │
-  │                            │  │  1.0 |█          █       █     █    █|   │
-  │                            │  │      |█          █       █     █    █|   │
-  │                            │  │  0.5 |█          █       █     █    █|   │
-  │                            │  │      |█          █       █     █    █|   │
-  │                            │  │      |█          █       █     █    █|   │
-  │                            │  │  0.0 +┼──────────┼───────┼─────┼────┼+   │
-  │ Fingers: 1 index  2 middle │  │        A2        E3      A3    C#4  E4   │
-  │          3 ring   4 little │  │        110 Hz                   330 Hz   │
-  │                            │  │                                          │
-  │ Symbols: O open  X muted   │  │        Notes: E4  C#4  A3  E3  A2        │
-  ╰────────────────────────────╯  ╰──────────────────────────────────────────╯
-```
-<!-- END VERIFIED TUI OUTPUT -->
-
-</details>
+Diagrams show high e at the top and low E at the bottom. `O` means open and `X`
+means muted. Fingers are numbered 1 (index) through 4 (little finger). Full-neck
+view covers frets 1–27; fret-number view uses the compact layout.
 
 ## Development
 
 | Command | Purpose |
 | --- | --- |
-| `make` | Build `bin/alt-tab` |
-| `make BUILD=release` | Build a smaller release binary |
+| `make build` | Build `bin/alt-tab` |
+| `make run` | Build and launch |
+| `make BUILD=release build` | Build a smaller release binary |
 | `make test` | Run tests |
-| `make check` | Run formatting, tests, race checks, and vet |
+| `make check` | Check formatting, run tests and race checks, and vet |
 | `make clean` | Remove build output |
 
-The race check requires cgo and a C compiler; normal builds and tests don’t.
+Only the race check requires cgo and a C compiler.
 
-`cmd/alt-tab` starts the app, `internal/tui` handles the interface, and
-`internal/chords` holds the chord catalog. `internal/signal` supplies the shared
-pitch math for plots and audio; `internal/audio` owns synthesis and output.
-
-## Publishing terminal releases
-
-After merging changes to `master`, create and push a stable version tag:
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-The release workflow checks that the tagged commit belongs to `master`, runs
-`make check`, cross-compiles four standalone binaries, and publishes them with
-`checksums.txt` in a GitHub Release. Only `vMAJOR.MINOR.PATCH` tags are accepted.
-Desktop releases belong to the separate Raylib project.
+`cmd/alt-tab` starts the app. Under `internal/`, `tui` handles the terminal UI,
+`chords` holds the catalog, `signal` provides pitch calculations for audio and
+plots, and `audio` handles synthesis and platform output. Future audio backends
+can reuse the synthesizer without changing the UI.
