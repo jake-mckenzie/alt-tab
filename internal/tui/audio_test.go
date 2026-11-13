@@ -72,3 +72,33 @@ func TestAudioControls(t *testing.T) {
 		t.Fatal("quit did not stop playback")
 	}
 }
+
+// Selection changes must keep the diagram and audio on the same voicing.
+func TestSelectionKeepsDiagramAndAudioTogether(t *testing.T) {
+	p := &testPlayer{}
+	m := New(chords.NewCatalog()).WithAudio(p)
+	for _, step := range []struct {
+		key, chord string
+		number     int
+	}{
+		{"p", "A", 1},
+		{"3", "A", 3},
+		{"9", "A", 3}, // unavailable positions leave the selection intact
+		{"c", "C", 3}, // letter shortcuts retain the selected voicing
+		{"l", "D", 1}, // dial movement resets to the first voicing
+		{"2", "D", 2},
+		{"j", "Dm", 1}, // changing chord kind also resets the voicing
+		{"v", "Dm", 2},
+		{"v", "Dm", 3},
+		{"v", "Dm", 1},
+	} {
+		next, _ := m.Update(tea.KeyPressMsg{Code: rune(step.key[0]), Text: step.key})
+		m = next.(Model)
+		if m.err != nil || m.voicing.Name != step.chord || m.voicing.Number != step.number {
+			t.Fatalf("%s selected %s:%d (%v), want %s:%d", step.key, m.voicing.Name, m.voicing.Number, m.err, step.chord, step.number)
+		}
+		if !p.active || p.voicing != m.voicing {
+			t.Fatalf("%s left audio out of sync", step.key)
+		}
+	}
+}

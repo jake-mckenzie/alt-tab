@@ -13,27 +13,26 @@ import (
 
 // Model holds the terminal UI state.
 type Model struct {
-	player        AudioPlayer
-	playing       bool
-	held          string
-	keyReleases   bool
-	catalog       chords.Catalog
-	families      []chordFamily
-	selected      int
-	chordKind     int
-	voicingNumber int
-	voicing       chords.Voicing
-	fullNeck      bool
-	tabNotation   bool
-	showHelp      bool
-	dark          bool
-	theme         int
-	waveform      bool
-	width         int
-	height        int
-	scroll        int
-	err           error
-	styles        styles
+	player      AudioPlayer
+	playing     bool
+	held        string
+	keyReleases bool
+	catalog     chords.Catalog
+	families    []chordFamily
+	selected    int
+	chordKind   int
+	voicing     chords.Voicing
+	fullNeck    bool
+	tabNotation bool
+	showHelp    bool
+	dark        bool
+	theme       int
+	waveform    bool
+	width       int
+	height      int
+	scroll      int
+	err         error
+	styles      styles
 }
 
 const (
@@ -52,13 +51,12 @@ type chordFamily struct {
 // New returns the initial terminal UI model.
 func New(catalog chords.Catalog) Model {
 	model := Model{
-		catalog:       catalog,
-		voicingNumber: 1,
-		dark:          true,
-		waveform:      true,
-		width:         100,
-		height:        100,
-		styles:        newStyles(true, 0),
+		catalog:  catalog,
+		dark:     true,
+		waveform: true,
+		width:    100,
+		height:   100,
+		styles:   newStyles(true, 0),
 	}
 
 	if catalog == nil {
@@ -67,7 +65,7 @@ func New(catalog chords.Catalog) Model {
 	}
 
 	model.families = buildChordFamilies(catalog.Names())
-	model.loadSelection()
+	model.loadSelection(1)
 	return model
 }
 
@@ -157,7 +155,7 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			for i, family := range model.families {
 				if family.base == strings.ToUpper(key) {
 					model.selected, model.chordKind = i, baseChord
-					model.loadSelection()
+					model.loadSelection(max(1, model.voicing.Number))
 					if model.keyReleases {
 						model.held = key
 						model.setPlaying(true)
@@ -172,8 +170,7 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		if len(key) == 1 && key[0] >= '1' && key[0] <= '9' {
 			number := int(key[0] - '0')
 			if model.catalog != nil && number <= model.catalog.VoicingCount(model.currentChordName()) {
-				model.voicingNumber = number
-				model.loadSelection()
+				model.loadSelection(number)
 			}
 			return model, nil
 		}
@@ -288,13 +285,13 @@ func (model *Model) moveViewport(delta int) {
 }
 
 // loadSelection refreshes the active voicing after navigation.
-func (model *Model) loadSelection() {
+func (model *Model) loadSelection(number int) {
 	if len(model.families) == 0 {
 		model.err = errors.New("no chords are available")
 		return
 	}
 
-	voicing, err := model.catalog.Load(model.currentChordName(), model.voicingNumber)
+	voicing, err := model.catalog.Load(model.currentChordName(), number)
 	model.voicing = voicing
 	model.err = err
 	if model.player != nil {
@@ -310,8 +307,7 @@ func (model *Model) moveChord(delta int) {
 
 	model.selected = wrap(model.selected+delta, len(model.families))
 	model.chordKind = baseChord
-	model.voicingNumber = 1
-	model.loadSelection()
+	model.loadSelection(1)
 }
 
 // moveChordKind moves between an available accidental, base, and minor chord.
@@ -338,8 +334,7 @@ func (model *Model) moveChordKind(delta int) {
 		return
 	}
 	model.chordKind = next
-	model.voicingNumber = 1
-	model.loadSelection()
+	model.loadSelection(1)
 }
 
 // cycleVoicing advances through fingerings for the exact selected chord.
@@ -355,8 +350,7 @@ func (model *Model) cycleVoicing() {
 	}
 
 	// Convert the public one-based voicing number for zero-based wrapping.
-	model.voicingNumber = wrap(model.voicingNumber, count) + 1
-	model.loadSelection()
+	model.loadSelection(wrap(model.voicing.Number, count) + 1)
 }
 
 // wrap confines a possibly negative index to a non-empty collection.
