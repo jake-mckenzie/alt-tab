@@ -20,6 +20,7 @@ type synth struct {
 	gain, target float64
 }
 
+// Set updates the chord and playback gain under the audio callback lock.
 func (s *synth) Set(v chords.Voicing, active bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -34,7 +35,7 @@ func (s *synth) Set(v chords.Voicing, active bool) {
 	}
 }
 
-// read uses the Raylib version's oscillator mix and smoothing at 44.1 kHz.
+// read fills a 44.1 kHz buffer with phase-continuous sine waves and smoothed gain.
 func (s *synth) read(buffer []float32) (int, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

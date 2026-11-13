@@ -105,20 +105,6 @@ func (model Model) renderSections(width int) string {
 	)
 }
 
-// renderMatchedCenteredPanels gives paired sections equal top-aligned rectangles.
-func (model Model) renderMatchedCenteredPanels(
-	leftContent string,
-	leftWidth int,
-	rightContent string,
-	rightWidth int,
-) (string, string) {
-	left := model.renderCenteredPanel(leftContent, leftWidth)
-	right := model.renderCenteredPanel(rightContent, rightWidth)
-	height := max(lipgloss.Height(left), lipgloss.Height(right))
-	return model.renderCenteredPanelAtHeight(leftContent, leftWidth, height),
-		model.renderCenteredPanelAtHeight(rightContent, rightWidth, height)
-}
-
 // renderCenteredPanel fills the shared section width and centers each content line.
 func (model Model) renderCenteredPanel(content string, width int) string {
 	return model.renderCenteredPanelAtHeight(content, width, 0)

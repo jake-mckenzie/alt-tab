@@ -9,6 +9,7 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
+// TestNeonDarkBackgroundAndThemeSwitch checks terminal and palette background colors.
 func TestNeonDarkBackgroundAndThemeSwitch(t *testing.T) {
 	for _, dark := range []bool{false, true} {
 		model := New(fakeCatalog{})
@@ -35,6 +36,7 @@ func TestNeonDarkBackgroundAndThemeSwitch(t *testing.T) {
 	}
 }
 
+// TestNeonDarkPanelBackgroundIsUniform checks that nested styles preserve panel backgrounds.
 func TestNeonDarkPanelBackgroundIsUniform(t *testing.T) {
 	model := New(fakeCatalog{})
 	model.theme = 1

@@ -1,8 +1,6 @@
 package audio
 
-import (
-	"github.com/jfreymuth/pulse"
-)
+import "github.com/jfreymuth/pulse"
 
 // Player sends Go-generated samples to PipeWire's PulseAudio service or PulseAudio.
 // Future platform backends implement Open, Set and Close with the same synth.
@@ -12,6 +10,7 @@ type Player struct {
 	stream *pulse.PlaybackStream
 }
 
+// Open connects to PulseAudio or PipeWire and starts a silent playback stream.
 func Open() (*Player, error) {
 	client, err := pulse.NewClient(pulse.ClientApplicationName("Alt-Tab"))
 	if err != nil {

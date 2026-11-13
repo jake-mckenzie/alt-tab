@@ -12,8 +12,10 @@ type testPlayer struct {
 	active  bool
 }
 
+// Set records the most recent playback request for control assertions.
 func (p *testPlayer) Set(v chords.Voicing, active bool) { p.voicing, p.active = v, active }
 
+// TestAudioControls checks toggled playback, held chords, help, focus loss, and quit.
 func TestAudioControls(t *testing.T) {
 	p := &testPlayer{}
 	m := New(chords.NewCatalog()).WithAudio(p)

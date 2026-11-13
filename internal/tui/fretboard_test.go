@@ -151,3 +151,18 @@ func TestFullFretboardCentersLegend(t *testing.T) {
 		t.Fatalf("full-neck output uses unexpected vertical space:\n%s", output)
 	}
 }
+
+// renderFretboard draws standard high-e-to-low-E horizontal tablature.
+func renderFretboard(
+	voicing chords.Voicing,
+	fullNeck bool,
+) string {
+	board, legend := renderFretboardParts(voicing, fullNeck, false)
+	return board + "\n\n" + legend
+}
+
+// renderTabDiagram preserves the neck while replacing fingers with fret numbers.
+func renderTabDiagram(voicing chords.Voicing) string {
+	board, _ := renderFretboardParts(voicing, false, true)
+	return board
+}

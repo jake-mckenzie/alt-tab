@@ -9,7 +9,8 @@ import (
 	"github.com/jake-mckenzie/alt-tab/internal/signal"
 )
 
-func TestSynthMatchesRaylibMixAndFadesToSilence(t *testing.T) {
+// TestSynthMatchesCompositeSignalAndFadesToSilence checks sample values and stopping.
+func TestSynthMatchesCompositeSignalAndFadesToSilence(t *testing.T) {
 	v, _ := chords.NewCatalog().Load("A", 1)
 	var s synth
 	s.Set(v, true)
@@ -36,6 +37,7 @@ func TestSynthMatchesRaylibMixAndFadesToSilence(t *testing.T) {
 	}
 }
 
+// TestSynthPreservesPhaseAcrossBuffers checks continuity across reads and repeated selection.
 func TestSynthPreservesPhaseAcrossBuffers(t *testing.T) {
 	v, _ := chords.NewCatalog().Load("C", 2)
 	var whole, split synth
@@ -53,6 +55,7 @@ func TestSynthPreservesPhaseAcrossBuffers(t *testing.T) {
 	}
 }
 
+// TestSynthConcurrentSelection exercises UI updates alongside audio reads.
 func TestSynthConcurrentSelection(t *testing.T) {
 	var s synth
 	v, _ := chords.NewCatalog().Load("G", 1)

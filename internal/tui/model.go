@@ -78,6 +78,7 @@ func (model Model) WithAudio(player AudioPlayer) Model {
 	return model
 }
 
+// setPlaying updates playback only when audio and a valid voicing are available.
 func (model *Model) setPlaying(active bool) {
 	model.playing = active && model.player != nil && model.err == nil
 	if model.player != nil {

@@ -2,6 +2,7 @@
 # Install the terminal version of Alt-Tab from a GitHub release.
 set -eu
 
+# usage prints supported installer options without accessing the network.
 usage() {
     cat <<'HELP'
 Usage: sh install.sh [--version vX.Y.Z] [--dir PATH] [--run]
@@ -13,7 +14,11 @@ Installs the latest stable terminal release to ~/.local/bin by default.
   --help         Show this help
 HELP
 }
-fail() { printf 'alt-tab: %s\n' "$*" >&2; exit 1; }
+# fail reports an installer error and terminates before replacing the binary.
+fail() {
+    printf 'alt-tab: %s\n' "$*" >&2
+    exit 1
+}
 version=latest
 install_dir=${HOME:?HOME must be set}/.local/bin
 run=no
@@ -60,9 +65,12 @@ esac
 asset=alt-tab_${os}_${arch}
 tmp_dir=$(mktemp -d) || fail 'could not create temporary directory'
 staged=
+# cleanup removes temporary downloads and any unfinished atomic installation.
 cleanup() {
     rm -rf "$tmp_dir"
-    if [ -n "$staged" ]; then rm -f "$staged"; fi
+    if [ -n "$staged" ]; then
+        rm -f "$staged"
+    fi
 }
 trap cleanup EXIT
 trap 'exit 1' HUP INT TERM

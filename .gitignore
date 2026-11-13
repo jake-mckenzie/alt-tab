@@ -1,5 +1,6 @@
 # Build output
 /bin/
+/dist/
 
 # Operating-system metadata
 .DS_Store
@@ -12,3 +13,12 @@
 
 # Temporary files
 *~
+__pycache__/
+*.pyc
+
+# Local credentials (examples may be committed)
+.env
+.env.*
+!.env.example
+*.pem
+*.key

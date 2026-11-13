@@ -17,15 +17,6 @@ const (
 // stringNames follows standard tablature order from high e to low E.
 var stringNames = [chords.StringCount]string{"e", "B", "G", "D", "A", "E"}
 
-// renderFretboard draws standard high-e-to-low-E horizontal tablature.
-func renderFretboard(
-	voicing chords.Voicing,
-	fullNeck bool,
-) string {
-	board, legend := renderFretboardParts(voicing, fullNeck, false)
-	return board + "\n\n" + legend
-}
-
 // renderFretboardParts separates the neck from its position legend for layout.
 func renderFretboardParts(
 	voicing chords.Voicing,
@@ -63,12 +54,6 @@ func renderFretboardParts(
 		!tabNumbers,
 	)
 	return output.String(), legend
-}
-
-// renderTabDiagram preserves the neck while replacing fingers with fret numbers.
-func renderTabDiagram(voicing chords.Voicing) string {
-	board, _ := renderFretboardParts(voicing, false, true)
-	return board
 }
 
 // renderFretboardLegend explains markers and centers the full-neck legend.

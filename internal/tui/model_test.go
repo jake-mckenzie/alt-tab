@@ -206,32 +206,6 @@ func TestHeaderAndDialFillSharedWidthAndCenterContent(t *testing.T) {
 	}
 }
 
-// TestBottomPanelsShareHeightAndCenterContent checks matched output rectangles.
-func TestBottomPanelsShareHeightAndCenterContent(t *testing.T) {
-	model := New(fakeCatalog{})
-	diagram, waveform := model.renderMatchedCenteredPanels(
-		model.renderChordDiagram(),
-		28,
-		model.renderWaveformSection(40),
-		46,
-	)
-	if lipgloss.Height(diagram) != lipgloss.Height(waveform) {
-		t.Fatalf(
-			"bottom heights differ: diagram=%d waveform=%d",
-			lipgloss.Height(diagram),
-			lipgloss.Height(waveform),
-		)
-	}
-	plain := ansiSequence.ReplaceAllString(diagram, "")
-	titleLine := lineWith(plain, "CHORD DIAGRAM")
-	titleIndex := strings.Index(titleLine, "CHORD DIAGRAM")
-	left := lipgloss.Width(titleLine[:titleIndex])
-	right := lipgloss.Width(titleLine) - left - len("CHORD DIAGRAM")
-	if absoluteInt(left-right) > 1 {
-		t.Fatal("diagram content is not horizontally centered")
-	}
-}
-
 // TestCompactDiagramCentersBoardAndBottomAlignsLegend checks vertical layout.
 func TestCompactDiagramCentersBoardAndBottomAlignsLegend(t *testing.T) {
 	model := New(fakeCatalog{})

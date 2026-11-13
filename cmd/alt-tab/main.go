@@ -19,6 +19,7 @@ func main() {
 	}
 }
 
+// run starts optional audio and serves the terminal UI until it exits.
 func run() error {
 	catalog := chords.NewCatalog()
 	model := tui.New(catalog)
