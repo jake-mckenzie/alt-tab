@@ -27,13 +27,12 @@ jobs:
           sh -n install.sh
           python3 scripts/test-installer.py
 
-      - name: Build release binary
+      - name: Build binary
         run: go build -o bin/alt-tab ./cmd/alt-tab
 
       - name: Run quality checks
         run: |
           test -z "$(gofmt -l cmd internal)"
           go mod verify
-          go test ./...
-          go test -race ./internal/...
+          go test -race ./...
           go vet ./...
