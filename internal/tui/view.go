@@ -14,10 +14,6 @@ const (
 	bottomColumnMinimumWidth = 64
 	sectionGapWidth          = 2
 	outerHorizontalPadding   = 2
-	dialCellWidth            = 10
-	verticalDialWidth        = 10
-	verticalDialHeight       = 7
-	verticalDialBaseRow      = verticalDialHeight / 2
 	panelFrameHeight         = 2
 )
 
@@ -47,23 +43,19 @@ func (model Model) render() string {
 		Render(banner + "\n\n" + model.renderSections(contentWidth))
 }
 
-// renderHeader stacks the app identity while avoiding narrow-terminal wrapping.
+// renderHeader keeps the app title and subtitle together on one line.
 func (model Model) renderHeader(width int) string {
-	title := model.styles.title.Render("ALT-TAB")
-	subtitle := model.styles.subtitle.Render(
-		fmt.Sprintf("Guitar Chord Viewer · %s", paletteAt(model.theme).name),
-	)
-	if lipgloss.Width(subtitle) <= width {
-		audioStatus := "Audio unavailable"
-		if model.player != nil {
-			audioStatus = "Space/p Play · a–g Chords · 1–9 Voicing"
-			if model.playing {
-				audioStatus = "Playing · Space/p Stop · a–g Chords · 1–9 Voicing"
-			}
-		}
-		return lipgloss.JoinVertical(lipgloss.Center, title, subtitle, model.styles.muted.Render(audioStatus))
+	title := model.styles.title.Render("alt-tab")
+	subtitle := model.styles.subtitle.Render(fmt.Sprintf("Guitar Chord Viewer · %s", paletteAt(model.theme).name))
+	heading := title + " · " + subtitle
+	if lipgloss.Width(heading) > width {
+		return title
 	}
-	return title
+	audioHint := "Audio unavailable"
+	if model.player != nil {
+		audioHint = "Space/p Play / stop · a–g Play chord"
+	}
+	return lipgloss.JoinVertical(lipgloss.Center, heading, model.styles.muted.Render(audioHint))
 }
 
 // renderSections keeps navigation above the responsive dashboard modules.
@@ -171,98 +163,28 @@ func (model Model) renderStyledPanel(style lipgloss.Style, content string) strin
 	return style.Render(content)
 }
 
-// renderChordSelector draws the base row and three-position chord-family dial.
+// renderChordSelector shows base chords and the current quality without a nested dial.
 func (model Model) renderChordSelector() string {
-	var output strings.Builder
-	output.WriteString(model.styles.heading.Render("CHORD DIAL"))
-	output.WriteString("\n\n")
-	output.WriteString(model.styles.muted.Render("BASE CHORDS  "))
-	for index, family := range model.families {
-		if index > 0 {
-			output.WriteString("  ")
-		}
-		if index == model.selected {
-			output.WriteString(model.styles.accent.Bold(true).Render(family.base))
+	cells := make([]string, len(model.families))
+	for i, family := range model.families {
+		label := " " + family.base + " "
+		if i == model.selected {
+			cells[i] = model.styles.selected.Render("[" + family.base + "]")
 		} else {
-			output.WriteString(model.styles.normal.Render(family.base))
+			cells[i] = model.styles.normal.Render(label)
 		}
 	}
-	output.WriteString("\n\n")
-
-	if len(model.families) == 0 {
-		return output.String()
+	quality := "major"
+	switch model.chordKind {
+	case minorChord:
+		quality = "minor"
+	case accidentalChord:
+		quality = "major (accidental)"
 	}
-	family := model.families[model.selected]
-	previous := model.families[wrap(model.selected-1, len(model.families))]
-	next := model.families[wrap(model.selected+1, len(model.families))]
-	output.WriteString(model.renderNestedDial(previous.base, family, next.base))
-
-	return output.String()
-}
-
-// renderNestedDial embeds real accidental and minor choices in the center cell.
-func (model Model) renderNestedDial(left string, family chordFamily, right string) string {
-	if family.accidental == "" && family.minor == "" {
-		center := model.styles.selected.Render("‹ " + family.base + " ›")
-		lines := make([]string, verticalDialHeight)
-		for row := range lines {
-			if row == verticalDialBaseRow {
-				lines[row] = model.renderHorizontalDialLine(left, center, right)
-			} else {
-				lines[row] = model.renderHorizontalDialLine("", "", "")
-			}
-		}
-		return strings.Join(lines, "\n")
-	}
-
-	border := model.styles.accent.Render
-	entry := func(name string, kind int) string {
-		entry := model.styles.normal.Render(name)
-		if model.chordKind == kind {
-			entry = model.styles.selected.Render("‹ " + name + " ›")
-		}
-		return border("│") + centerDisplayText(entry, verticalDialWidth) + border("│")
-	}
-
-	centers := make([]string, verticalDialHeight)
-	top := verticalDialBaseRow - 1
-	bottom := verticalDialBaseRow + 1
-	if family.accidental != "" {
-		top = 0
-		centers[1] = entry(family.accidental, accidentalChord)
-	}
-	if family.minor != "" {
-		bottom = verticalDialHeight - 1
-		centers[verticalDialHeight-2] = entry(family.minor, minorChord)
-	}
-	centers[top] = border("╭" + strings.Repeat("─", verticalDialWidth) + "╮")
-	centers[verticalDialBaseRow] = entry(family.base, baseChord)
-	centers[bottom] = border("╰" + strings.Repeat("─", verticalDialWidth) + "╯")
-	for row := top + 1; row < bottom; row++ {
-		if centers[row] == "" {
-			centers[row] = border("│") +
-				strings.Repeat(" ", verticalDialWidth) + border("│")
-		}
-	}
-
-	lines := make([]string, verticalDialHeight)
-	for row, center := range centers {
-		if row == verticalDialBaseRow {
-			lines[row] = model.renderHorizontalDialLine(left, center, right)
-		} else {
-			lines[row] = model.renderHorizontalDialLine("", center, "")
-		}
-	}
-	return strings.Join(lines, "\n")
-}
-
-// renderHorizontalDialLine aligns neighboring bases with the nested center cell.
-func (model Model) renderHorizontalDialLine(left, center, right string) string {
-	return centerDisplayText(model.styles.normal.Render(left), dialCellWidth) +
-		strings.Repeat(" ", sectionGapWidth) +
-		centerDisplayText(center, verticalDialWidth+2) +
-		strings.Repeat(" ", sectionGapWidth) +
-		centerDisplayText(model.styles.normal.Render(right), dialCellWidth)
+	return model.styles.heading.Render("CHORD SELECTOR") + "\n\n" +
+		model.styles.muted.Render("BASE CHORDS  ") + strings.Join(cells, " ") + "\n\n" +
+		model.styles.accent.Render(model.currentChordName()+" · "+quality) + "\n" +
+		model.styles.muted.Render(", Major/minor · . Natural/accidental")
 }
 
 // centerDisplayText pads styled terminal text without counting ANSI bytes.
@@ -275,9 +197,8 @@ func centerDisplayText(value string, width int) string {
 // renderControls summarizes every available runtime command.
 func (model Model) renderControls() string {
 	hints := [][2]string{
-		{"←→", "Base"},
-		{"↑↓", "Type"},
-		{"v", "Voicing"},
+		{"←→", "Chord"},
+		{"1–9", "Voicing"},
 		{"x", "Neck"},
 		{"n", "Tab"},
 		{"t", "Theme"},
@@ -408,9 +329,9 @@ func (model Model) renderHelp() string {
 	return model.styles.heading.Render("KEYBOARD HELP") + "\n\n" +
 		"← / h     Previous chord\n" +
 		"→ / l     Next chord\n" +
-		"↑ / k     Accidental chord or return to base\n" +
-		"↓ / j     Minor chord or return to base\n" +
-		"v / 1–9   Next / select voicing\n" +
+		",         Swap major/minor (when available)\n" +
+		".         Swap natural/accidental (when available)\n" +
+		"1–9       Select voicing\n" +
 		"space / p Play or stop chord\n" +
 		"a–g       Select and play (hold with key-release support; otherwise toggle)\n" +
 		"x         Toggle compact/full neck\n" +

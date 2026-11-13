@@ -1,23 +1,17 @@
   ╭──────────────────────────────────────────────────────────────────────────╮
-  │                                 ALT-TAB                                  │
-  │                       Guitar Chord Viewer · Ember                        │
+  │                  alt-tab · Guitar Chord Viewer · Ember                   │
   │                            Audio unavailable                             │
   │                                                                          │
-  │ KEYS ←→ Base ↑↓ Type v Voicing x Neck n Tab t Theme w Wave ? Help q Quit │
+  │   KEYS ←→ Chord 1–9 Voicing x Neck n Tab t Theme w Wave ? Help q Quit    │
   ╰──────────────────────────────────────────────────────────────────────────╯
 
   ╭──────────────────────────────────────────────────────────────────────────╮
-  │                                CHORD DIAL                                │
+  │                              CHORD SELECTOR                              │
   │                                                                          │
-  │                     BASE CHORDS  A  B  C  D  E  F  G                     │
+  │                 BASE CHORDS  [A]  B   C   D   E   F   G                  │
   │                                                                          │
-  │                                                                          │
-  │                                                                          │
-  │                               ╭──────────╮                               │
-  │                       G       │  ‹ A ›   │      B                        │
-  │                               │          │                               │
-  │                               │    Am    │                               │
-  │                               ╰──────────╯                               │
+  │                                A · major                                 │
+  │                   , Major/minor · . Natural/accidental                   │
   ╰──────────────────────────────────────────────────────────────────────────╯
 
   ╭────────────────────────────╮  ╭──────────────────────────────────────────╮

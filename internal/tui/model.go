@@ -119,7 +119,7 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.KeyPressMsg:
 		key := message.String()
-		if message.IsRepeat && (key == "p" || key == "space" || key == " " || (len(key) == 1 && key[0] >= 'a' && key[0] <= 'g')) {
+		if message.IsRepeat && (key == "," || key == "." || key == "p" || key == "space" || key == " " || (len(key) == 1 && key[0] >= 'a' && key[0] <= 'g')) {
 			return model, nil
 		}
 		if key == "ctrl+c" || key == "q" {
@@ -175,16 +175,14 @@ func (model Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			return model, nil
 		}
 		switch key {
-		case "up", "k":
-			model.moveChordKind(-1)
-		case "down", "j":
-			model.moveChordKind(1)
+		case ",":
+			model.toggleChordKind(minorChord)
+		case ".":
+			model.toggleChordKind(accidentalChord)
 		case "left", "h":
 			model.moveChord(-1)
 		case "right", "l":
 			model.moveChord(1)
-		case "v":
-			model.cycleVoicing()
 		case "x":
 			model.fullNeck = !model.fullNeck
 			if model.fullNeck {
@@ -257,7 +255,7 @@ func (model Model) View() tea.View {
 	if background := paletteAt(model.theme).background; background != "" {
 		view.BackgroundColor = lipgloss.Color(background)
 	}
-	view.WindowTitle = "Alt-Tab"
+	view.WindowTitle = "alt-tab"
 	view.AltScreen = true
 	view.ReportFocus = true
 	view.KeyboardEnhancements.ReportEventTypes = true
@@ -310,47 +308,20 @@ func (model *Model) moveChord(delta int) {
 	model.loadSelection(1)
 }
 
-// moveChordKind moves between an available accidental, base, and minor chord.
-func (model *Model) moveChordKind(delta int) {
+// toggleChordKind swaps an available variant with the natural major chord.
+func (model *Model) toggleChordKind(kind int) {
 	if len(model.families) == 0 {
 		return
 	}
 	family := model.families[model.selected]
-	next := model.chordKind
-	if delta < 0 {
-		if model.chordKind == minorChord {
-			next = baseChord
-		} else if model.chordKind == baseChord && family.accidental != "" {
-			next = accidentalChord
-		}
-	} else if delta > 0 {
-		if model.chordKind == accidentalChord {
-			next = baseChord
-		} else if model.chordKind == baseChord && family.minor != "" {
-			next = minorChord
-		}
-	}
-	if next == model.chordKind {
+	if (kind == minorChord && family.minor == "") || (kind == accidentalChord && family.accidental == "") {
 		return
 	}
-	model.chordKind = next
+	if model.chordKind == kind {
+		kind = baseChord
+	}
+	model.chordKind = kind
 	model.loadSelection(1)
-}
-
-// cycleVoicing advances through fingerings for the exact selected chord.
-func (model *Model) cycleVoicing() {
-	name := model.currentChordName()
-	if name == "" {
-		return
-	}
-
-	count := model.catalog.VoicingCount(name)
-	if count == 0 {
-		return
-	}
-
-	// Convert the public one-based voicing number for zero-based wrapping.
-	model.loadSelection(wrap(model.voicing.Number, count) + 1)
 }
 
 // wrap confines a possibly negative index to a non-empty collection.

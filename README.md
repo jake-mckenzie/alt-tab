@@ -1,4 +1,4 @@
-# Alt-Tab
+# alt-tab
 
 [![CI](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml/badge.svg)](https://github.com/jake-mckenzie/alt-tab/actions/workflows/ci.yml)
 
@@ -39,8 +39,8 @@ Use a terminal at least 80 columns wide, or 98 for the full-neck view.
 | Key | Action |
 | --- | --- |
 | `←` / `h`, `→` / `l` | Previous / next base chord |
-| `↑` / `k`, `↓` / `j` | Select an available accidental, major, or minor chord |
-| `v` | Next voicing |
+| `,` | Swap major / minor where available |
+| `.` | Swap natural / accidental where available |
 | `1`–`9` | Select a voicing; unavailable numbers do nothing |
 | `Space` / `p` | Play / stop |
 | `a`–`g` | Select and play a chord |

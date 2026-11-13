@@ -48,7 +48,7 @@ func (fakeCatalog) Load(name string, number int) (chords.Voicing, error) {
 func TestViewContainsChordAndFingering(t *testing.T) {
 	view := New(fakeCatalog{}).View()
 
-	for _, expected := range []string{"ALT-TAB", "C", "VOICING 1 OF 2", "--1--", "X"} {
+	for _, expected := range []string{"alt-tab", "C", "VOICING 1 OF 2", "--1--", "X"} {
 		if !strings.Contains(view.Content, expected) {
 			t.Fatalf("view does not contain %q", expected)
 		}
@@ -65,10 +65,10 @@ func TestChordListIsHorizontalAndAboveBothFretboardModes(t *testing.T) {
 		model.fullNeck = fullNeck
 		plain := ansiSequence.ReplaceAllString(model.View().Content, "")
 
-		if !strings.Contains(plain, "BASE CHORDS  C  G") {
+		if !strings.Contains(plain, "BASE CHORDS  [C]  G") {
 			t.Fatalf("fullNeck=%t does not show the base-chord row", fullNeck)
 		}
-		if strings.Index(plain, "CHORD DIAL") >
+		if strings.Index(plain, "CHORD SELECTOR") >
 			strings.Index(plain, "VOICING 1 OF 2") {
 			t.Fatalf("fullNeck=%t places the chord dial below the fretboard", fullNeck)
 		}
@@ -80,17 +80,17 @@ func TestSectionsAreClearlyLabeledAndOrdered(t *testing.T) {
 	plain := ansiSequence.ReplaceAllString(New(fakeCatalog{}).View().Content, "")
 	positions := make(map[string]int)
 	for _, title := range []string{
-		"KEYS", "CHORD DIAL", "CHORD DIAGRAM", "WAVEFORM · AMPLITUDE / TIME", "FREQUENCY SPECTRUM",
+		"KEYS", "CHORD SELECTOR", "CHORD DIAGRAM", "WAVEFORM · AMPLITUDE / TIME", "FREQUENCY SPECTRUM",
 	} {
 		positions[title] = strings.Index(plain, title)
 		if positions[title] < 0 {
 			t.Fatalf("section %q is missing", title)
 		}
 	}
-	if positions["KEYS"] > positions["CHORD DIAL"] ||
-		positions["CHORD DIAL"] > positions["CHORD DIAGRAM"] ||
-		positions["CHORD DIAL"] > positions["WAVEFORM · AMPLITUDE / TIME"] ||
-		positions["CHORD DIAL"] > positions["FREQUENCY SPECTRUM"] {
+	if positions["KEYS"] > positions["CHORD SELECTOR"] ||
+		positions["CHORD SELECTOR"] > positions["CHORD DIAGRAM"] ||
+		positions["CHORD SELECTOR"] > positions["WAVEFORM · AMPLITUDE / TIME"] ||
+		positions["CHORD SELECTOR"] > positions["FREQUENCY SPECTRUM"] {
 		t.Fatal("title controls, dial, and output sections are out of order")
 	}
 }
@@ -162,7 +162,7 @@ func TestControlsStayOnOneClearlyLabeledLine(t *testing.T) {
 	if !strings.HasPrefix(ansiSequence.ReplaceAllString(model.renderControls(), ""), "KEYS") {
 		t.Fatal("controls do not have an explicit title")
 	}
-	for _, title := range []string{"Base", "Type", "Voicing", "Neck", "Tab", "Theme", "Wave"} {
+	for _, title := range []string{"Chord", "Voicing", "Neck", "Tab", "Theme", "Wave"} {
 		if !strings.Contains(model.renderControls(), title) {
 			t.Fatalf("controls omit the %s action title", title)
 		}
@@ -190,8 +190,8 @@ func TestHeaderAndDialFillSharedWidthAndCenterContent(t *testing.T) {
 		t.Fatal("title banner and dial do not fill their shared section width")
 	}
 	for output, title := range map[string]string{
-		banner: "ALT-TAB",
-		dial:   "CHORD DIAL",
+		banner: "alt-tab · Guitar Chord Viewer · Ember",
+		dial:   "CHORD SELECTOR",
 	} {
 		line := lineWith(output, title)
 		titleIndex := strings.Index(line, title)
@@ -202,7 +202,7 @@ func TestHeaderAndDialFillSharedWidthAndCenterContent(t *testing.T) {
 		}
 	}
 	if lineWith(banner, "Guitar Chord Viewer · Ember") == "" {
-		t.Fatal("app subtitle is not rendered below ALT-TAB")
+		t.Fatal("app subtitle is missing from the title line")
 	}
 }
 
@@ -274,61 +274,19 @@ func TestFullNeckPanelsUseNaturalHeights(t *testing.T) {
 	}
 }
 
-// TestChordDialShowsBasesAndAvailableVariants checks the selector hierarchy.
-func TestChordDialShowsBasesAndAvailableVariants(t *testing.T) {
+// TestChordSelectorShowsCurrentQuality checks variant labels and stable height.
+func TestChordSelectorShowsCurrentQuality(t *testing.T) {
 	model := New(chords.NewCatalog())
-	plain := ansiSequence.ReplaceAllString(model.renderChordSelector(), "")
-	if !strings.Contains(plain, "BASE CHORDS  A  B  C  D  E  F  G") ||
-		!strings.Contains(plain, "Am") {
-		t.Fatal("dial omits the base row or A minor variant")
-	}
-
-	model.moveChord(1)
-	plain = ansiSequence.ReplaceAllString(model.renderChordSelector(), "")
-	if !strings.Contains(plain, "Bb") {
-		t.Fatal("B dial omits its flat variant")
-	}
-}
-
-// TestNestedDialOnlyAppearsForRealVariants avoids suggesting missing chords.
-func TestNestedDialOnlyAppearsForRealVariants(t *testing.T) {
-	model := New(fakeCatalog{})
-	withMinor := ansiSequence.ReplaceAllString(model.renderChordSelector(), "")
-	if !strings.Contains(withMinor, "╭──────────╮") || !strings.Contains(withMinor, "Cm") {
-		t.Fatal("family with a minor chord does not use the nested dial")
-	}
-
-	model.families[0] = chordFamily{base: "C"}
-	withoutVariant := ansiSequence.ReplaceAllString(model.renderChordSelector(), "")
-	if strings.Contains(withoutVariant, "╭──────────╮") || strings.Contains(withoutVariant, "Cm") {
-		t.Fatal("base-only family implies an unavailable variant")
-	}
-}
-
-// TestChordDialKeepsFixedHeightAndBaseRow prevents navigation layout shifts.
-func TestChordDialKeepsFixedHeightAndBaseRow(t *testing.T) {
-	model := New(chords.NewCatalog())
-	wantHeight := 0
-	wantBaseRow := -1
-	for selected, family := range model.families {
-		model.selected = selected
-		model.chordKind = baseChord
+	height := lipgloss.Height(model.renderChordSelector())
+	for _, step := range []struct{ key, label string }{
+		{",", "Am · minor"}, {",", "A · major"}, {"l", "B · major"},
+		{",", "B · major"}, {".", "Bb · major (accidental)"}, {".", "B · major"},
+	} {
+		next, _ := model.Update(tea.KeyPressMsg{Code: rune(step.key[0]), Text: step.key})
+		model = next.(Model)
 		plain := ansiSequence.ReplaceAllString(model.renderChordSelector(), "")
-		lines := strings.Split(plain, "\n")
-		if selected == 0 {
-			wantHeight = len(lines)
-			for row, line := range lines {
-				if strings.Contains(line, "‹ "+family.base+" ›") {
-					wantBaseRow = row
-					break
-				}
-			}
-		}
-		if len(lines) != wantHeight {
-			t.Fatalf("%s dial height = %d, want %d", family.base, len(lines), wantHeight)
-		}
-		if !strings.Contains(lines[wantBaseRow], "‹ "+family.base+" ›") {
-			t.Fatalf("%s base moved away from row %d", family.base, wantBaseRow+1)
+		if !strings.Contains(plain, step.label) || lipgloss.Height(plain) != height {
+			t.Fatalf("%s: unexpected selector: %s", step.key, plain)
 		}
 	}
 }
@@ -450,56 +408,35 @@ func TestNavigationUpdatesSelection(t *testing.T) {
 		t.Fatalf("right selected %s:%d, want G:1", model.voicing.Name, model.voicing.Number)
 	}
 
-	updated, _ = model.Update(tea.KeyPressMsg{Code: tea.KeyDown})
+	updated, _ = model.Update(tea.KeyPressMsg{Code: ',', Text: ","})
 	model = updated.(Model)
 	if model.voicing.Name != "Gm" || model.voicing.Number != 1 {
 		t.Fatalf("down selected %s:%d, want Gm:1", model.voicing.Name, model.voicing.Number)
 	}
 
-	updated, _ = model.Update(tea.KeyPressMsg{Code: 'v', Text: "v"})
+	updated, _ = model.Update(tea.KeyPressMsg{Code: '2', Text: "2"})
 	model = updated.(Model)
 	if model.voicing.Name != "Gm" || model.voicing.Number != 2 {
 		t.Fatalf("v selected %s:%d, want Gm:2", model.voicing.Name, model.voicing.Number)
 	}
 }
 
-// TestBuiltInCatalogCyclesThreeVoicings checks the expanded runtime catalog.
-func TestBuiltInCatalogCyclesThreeVoicings(t *testing.T) {
+// TestNumberedVoicings checks direct selection and the removal of cycling.
+func TestNumberedVoicings(t *testing.T) {
 	model := New(chords.NewCatalog())
-	for expected := 2; expected <= 3; expected++ {
-		updated, _ := model.Update(tea.KeyPressMsg{Code: 'v', Text: "v"})
-		model = updated.(Model)
-		if model.voicing.Number != expected {
-			t.Fatalf("v selected voicing %d, want %d", model.voicing.Number, expected)
+	for _, number := range []rune{'3', '1', '2'} {
+		next, _ := model.Update(tea.KeyPressMsg{Code: number, Text: string(number)})
+		model = next.(Model)
+		if model.voicing.Number != int(number-'0') {
+			t.Fatal("number did not select voicing")
 		}
 	}
-	updated, _ := model.Update(tea.KeyPressMsg{Code: 'v', Text: "v"})
-	model = updated.(Model)
-	if model.voicing.Number != 1 {
-		t.Fatalf("v wrapped to voicing %d, want 1", model.voicing.Number)
-	}
-}
-
-// TestUnavailableChordKindsDoNothing checks only catalog-backed movement.
-func TestUnavailableChordKindsDoNothing(t *testing.T) {
-	model := New(chords.NewCatalog())
-	model.moveChordKind(-1)
-	if model.voicing.Name != "A" {
-		t.Fatalf("up from A selected unavailable chord %s", model.voicing.Name)
-	}
-	model.moveChordKind(1)
-	if model.voicing.Name != "Am" {
-		t.Fatalf("down from A selected %s, want Am", model.voicing.Name)
-	}
-	model.moveChordKind(-1)
-	model.moveChord(1)
-	model.moveChordKind(1)
-	if model.voicing.Name != "B" {
-		t.Fatalf("down from B selected unavailable chord %s", model.voicing.Name)
-	}
-	model.moveChordKind(-1)
-	if model.voicing.Name != "Bb" {
-		t.Fatalf("up from B selected %s, want Bb", model.voicing.Name)
+	for _, key := range []rune{'v', '9'} {
+		next, _ := model.Update(tea.KeyPressMsg{Code: key, Text: string(key)})
+		model = next.(Model)
+		if model.voicing.Number != 2 {
+			t.Fatal("removed or unavailable key changed voicing")
+		}
 	}
 }
 

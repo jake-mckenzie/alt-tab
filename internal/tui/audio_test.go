@@ -25,7 +25,7 @@ func TestAudioControls(t *testing.T) {
 	if !p.active || p.voicing.Name != "A" {
 		t.Fatal("p did not play selection")
 	}
-	press("v")
+	press("2")
 	if p.voicing.Number != 2 {
 		t.Fatal("playing voicing did not update")
 	}
@@ -87,10 +87,10 @@ func TestSelectionKeepsDiagramAndAudioTogether(t *testing.T) {
 		{"c", "C", 3}, // letter shortcuts retain the selected voicing
 		{"l", "D", 1}, // dial movement resets to the first voicing
 		{"2", "D", 2},
-		{"j", "Dm", 1}, // changing chord kind also resets the voicing
-		{"v", "Dm", 2},
-		{"v", "Dm", 3},
-		{"v", "Dm", 1},
+		{",", "Dm", 1}, // changing chord kind also resets the voicing
+		{"2", "Dm", 2},
+		{"3", "Dm", 3},
+		{"1", "Dm", 1},
 	} {
 		next, _ := m.Update(tea.KeyPressMsg{Code: rune(step.key[0]), Text: step.key})
 		m = next.(Model)
@@ -99,6 +99,26 @@ func TestSelectionKeepsDiagramAndAudioTogether(t *testing.T) {
 		}
 		if !p.active || p.voicing != m.voicing {
 			t.Fatalf("%s left audio out of sync", step.key)
+		}
+	}
+}
+
+// Playback state must not change header text or layout, including held-key repeats.
+func TestPlaybackKeepsInstructionsStable(t *testing.T) {
+	p := &testPlayer{}
+	m := New(chords.NewCatalog()).WithAudio(p)
+	before := m.View().Content
+	for _, msg := range []tea.Msg{
+		tea.KeyPressMsg{Code: 'p', Text: "p"},
+		tea.KeyboardEnhancementsMsg{Flags: ansi.KittyReportEventTypes},
+		tea.KeyPressMsg{Code: 'a', Text: "a"},
+		tea.KeyPressMsg{Code: 'a', Text: "a", IsRepeat: true},
+		tea.KeyReleaseMsg{Code: 'a', Text: "a"},
+	} {
+		next, _ := m.Update(msg)
+		m = next.(Model)
+		if m.View().Content != before {
+			t.Fatal("playback changed the menu or instructions")
 		}
 	}
 }
